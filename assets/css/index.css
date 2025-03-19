@@ -1,7 +1,9 @@
 /* global */
 
 body {
-  font-family: "Bree Serif", sans-serif;
+  /* font-family: "Bree Serif", sans-serif; */
+  font-family: "LXGW WenKai Screen";
+  font-weight: normal;
   -webkit-font-smoothing: antialiased;
   margin: 0 20px;
 }

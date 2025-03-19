@@ -7,6 +7,8 @@
   });
 </script>
 {{ end }}
+
+{{ if .Site.Params.disqus }}
 <script>
   // var posts = document.getElementById('posts-list');
   // posts && quicklink({
@@ -33,3 +35,4 @@
     observer.observe(disqus, { childList: true, subtree: true });
   });
 </script>
+{{ end }}
