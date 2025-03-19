@@ -6,6 +6,7 @@ body {
   font-weight: normal;
   -webkit-font-smoothing: antialiased;
   margin: 0 20px;
+  background-color: #F8F9FA;
 }
 
 article {
@@ -54,7 +55,7 @@ a:hover {
 .markdown-body code {
   padding: 0.2em 0.4em;
   font-size: 85%;
-  background-color: #f6f8fa;
+  background-color: #E9ECEF;
   border-radius: 6px;
 }
 
@@ -220,7 +221,7 @@ a:hover {
 .related-content {
   border-width: 3px;
   border-style: solid;
-  border-color: #000;
+  border-color: #333333;
   padding: 0 10px;
   margin-bottom: 50px;
   margin-top: 100px;
