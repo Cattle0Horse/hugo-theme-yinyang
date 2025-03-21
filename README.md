@@ -1,5 +1,7 @@
 # YinYang
 
+> 在原主题上进行了一些修改，包括但不限于数学公式支持，disqus 逻辑更改
+
 [YinYang](https://en.wikipedia.org/wiki/Yin_and_yang) is a black-white theme for [Hugo](https://gohugo.io/).
 
 [**Demo**](https://blog.joway.io)
