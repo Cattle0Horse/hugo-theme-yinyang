@@ -1,0 +1,16 @@
+<header>
+  <div class="header-title">
+    <a href="/"
+      >{{ or .Site.Params.headTitle .Site.Params.author.name }}</a
+    >
+  </div>
+  <div class="header-subtitle">{{ .Site.Params.Description }}</div>
+</header>
+<div class="row end-md header-items">
+  {{ range .Site.Params.socials }}
+  <div class="header-item">
+    <a href="{{ .link }}" target="_blank">{{ .name }}</a>
+  </div>
+  {{ end }}
+</div>
+<div class="header-line"></div>

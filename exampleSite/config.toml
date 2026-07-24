@@ -1,0 +1,46 @@
+baseURL = "https://cattle0horse.github.io"
+locale = "zh-cn"
+theme = "yinyang"
+
+[permalinks]
+posts = "/blog/:title/"
+
+# 代码高亮
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    guessSyntax = true
+    noClasses = true
+    style = "tango"
+    tabWidth = 2
+
+[params]
+headTitle = "CattleHorse's Blog"
+description = "By accumulating small steps, one can reach a thousand miles."
+mainSections = ["posts"]
+postHeaderContent = ""
+lazyImage = true
+favicon = "/logo.png"
+extraCSSFiles = ["css/background.css"]
+extraHead = '''
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@callmebill/lxgw-wenkai-web@latest/lxgwwenkai-regular/result.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.min.css" />
+  <style>
+    body { font-family: "LXGW WenKai", sans-serif; }
+    pre, code { font-family: "Fira Code", "SF Mono", Menlo, monospace; }
+  </style>
+'''
+
+[params.author]
+homepage = "https://github.com/cattle0horse"
+name = "CattleHorse"
+
+[[params.socials]]
+name = "RSS"
+link = "/index.xml"
+
+[[params.socials]]
+name = "Github"
+link = "https://github.com/cattle0horse"
