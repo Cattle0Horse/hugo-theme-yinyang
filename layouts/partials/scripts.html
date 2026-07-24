@@ -6,3 +6,50 @@
   });
 </script>
 {{ end }}
+{{ if not .IsHome -}}
+<script>
+(function () {
+  var FN_RE = /^#fn((ref)?):(\d+)/;
+
+  function escapeSelector(id) {
+    return id.replace(/:/g, '\\:');
+  }
+  function highlight(hash) {
+    var m = hash.match(FN_RE);
+    if (!m) return false;
+    var target = document.querySelector(escapeSelector(hash));
+    if (!target) return false;
+    var kind = m[2] === undefined ? 'footnote' : 'ref';
+
+    document.querySelectorAll('.footnote-highlight, .ref-highlight').forEach(function (el) {
+      el.classList.remove('footnote-highlight', 'ref-highlight');
+    });
+
+    target.offsetWidth;
+    target.classList.add(kind === 'footnote' ? 'footnote-highlight' : 'ref-highlight');
+
+    requestAnimationFrame(function () {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    return true;
+  }
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('a');
+    if (!link) return;
+    if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+    var href = link.getAttribute('href');
+    if (!href || !FN_RE.test(href)) return;
+    e.preventDefault();
+    if (highlight(href)) {
+      history.pushState(null, '', href);
+    }
+  });
+  window.addEventListener('hashchange', function () {
+    highlight(location.hash);
+  });
+  if (location.hash) {
+    highlight(location.hash);
+  }
+})();
+</script>
+{{ end }}
