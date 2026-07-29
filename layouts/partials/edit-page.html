@@ -1,0 +1,8 @@
+{{ if and .Site.Params.editPageRepo .File }}
+<div class="edit-page">
+  <hr>
+  <a href="{{ .Site.Params.editPageRepo }}/edit/{{ .Site.Params.editPageBranch | default "main" }}/content/{{ .File.Path }}">
+    {{ .Site.Params.editPageText | default "有错误？欢迎提交 Pull Request。" }}
+  </a>
+</div>
+{{ end }}

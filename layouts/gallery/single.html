@@ -27,6 +27,8 @@
     </div>
   </article>
 
+  {{ partial "edit-page.html" . }}
+
   {{ partial "scripts.html" . }}
   {{ if .Site.Params.extraBody }}
   {{ .Site.Params.extraBody | safeHTML }}

@@ -313,3 +313,26 @@ sup.ref-highlight::before {
   background: #ffe066;
   border-radius: 4px;
 }
+
+/* edit page link */
+
+.edit-page {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.edit-page hr {
+  width: 100%;
+  border: none;
+  border-top: 1px solid #dee2e6;
+  margin-bottom: 16px;
+}
+
+.edit-page a {
+  font-size: 14px;
+  color: #868e96;
+}
+
+.edit-page a:hover {
+  color: #000;
+}

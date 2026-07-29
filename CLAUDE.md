@@ -47,6 +47,7 @@ hugo -s exampleSite --themesDir ../.. --theme $(basename $(pwd))
 | `seo.html` | `head.html` |
 | `math.html` | `head.html`（按需条件加载） |
 | `scripts.html` | 所有布局模板直接加载，位于 `</body>` 之前 |
+| `edit-page.html` | `_default/single.html`、`gallery/single.html` |
 
 **不存在** footer partial、基模板、分页 partial、目录（TOC）partial 以及 `i18n/` 国际化目录。
 
@@ -79,3 +80,6 @@ hugo -s exampleSite --themesDir ../.. --theme $(basename $(pwd))
 - `lazyImage` — 布尔值，启用 vanilla-lazyload 图片懒加载（首页不启用）
 - `staticPrefix` — CDN 前缀，用于加载静态资源（同时生成 `dns-prefetch` 链接）
 - `album` — 单页级别的 Open Graph 图片覆盖（字符串数组）
+- `editPageRepo` — GitHub 仓库 URL，启用文章底部"纠错链接"功能
+- `editPageBranch` — 仓库分支名，默认 `main`（可选）
+- `editPageText` — 链接文字，默认"有错误？欢迎提交 Pull Request。"
