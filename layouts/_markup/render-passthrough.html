@@ -1,0 +1,1 @@
+{{- if eq .Type "inline" -}}${{ .Inner | safeHTML }}${{- else -}}$${{ .Inner | safeHTML }}$${{- end -}}
