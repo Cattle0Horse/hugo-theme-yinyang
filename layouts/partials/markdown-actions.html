@@ -1,0 +1,50 @@
+{{ if and .RawContent .Site.Params.markdownActions }}
+<span class="markdown-actions">
+  <button id="copy-markdown-btn" class="markdown-action-btn" title="Copy Markdown">Copy</button>
+  <button id="view-raw-btn" class="markdown-action-btn" title="View Raw Markdown">Raw</button>
+</span>
+
+<script id="raw-markdown-content" type="text/plain">{{ .RawContent }}</script>
+<script>
+(function () {
+  var raw = document.getElementById('raw-markdown-content');
+  if (!raw) return;
+
+  // Copy as Markdown
+  var copyBtn = document.getElementById('copy-markdown-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function () {
+      var text = raw.textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          copyBtn.textContent = 'Copied!';
+          setTimeout(function () { copyBtn.textContent = 'Copy'; }, 2000);
+        });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(function () { copyBtn.textContent = 'Copy'; }, 2000);
+      }
+    });
+  }
+
+  // View Raw
+  var viewBtn = document.getElementById('view-raw-btn');
+  if (viewBtn) {
+    viewBtn.addEventListener('click', function () {
+      var blob = new Blob([raw.textContent], { type: 'text/plain;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      URL.revokeObjectURL(url);
+    });
+  }
+})();
+</script>
+{{ end }}

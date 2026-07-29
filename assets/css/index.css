@@ -336,3 +336,35 @@ sup.ref-highlight::before {
 .edit-page a:hover {
   color: #000;
 }
+
+/* post desc (date + markdown actions inline) */
+
+.post-desc-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.markdown-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.markdown-action-btn {
+  font-size: 12px;
+  font-weight: 600;
+  font-style: normal;
+  color: #868e96;
+  background: none;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.markdown-action-btn:hover {
+  color: #000;
+  border-color: #adb5bd;
+}

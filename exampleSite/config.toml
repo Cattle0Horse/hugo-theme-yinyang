@@ -39,6 +39,7 @@ extraHead = '''
   </style>
 '''
 editPageRepo = "https://github.com/Cattle0Horse/Cattle0Horse.github.io"
+markdownActions = true
 
 [params.author]
 homepage = "https://github.com/cattle0horse"
