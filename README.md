@@ -1,6 +1,6 @@
 # YinYang
 
-> Fork 自 [joway/hugo-theme-yinyang](https://github.com/joway/hugo-theme-yinyang)
+> Fork 自 [joway/hugo-theme-yinyang](https://github.com/joway/hugo-theme-yinyang)，在其布局基础上增加了部分功能，如 Markdown Action（快捷复制文章）、大纲、脚注跳转及高亮显示等
 
 站点示例：<https://cattle0horse.github.io/>
 
