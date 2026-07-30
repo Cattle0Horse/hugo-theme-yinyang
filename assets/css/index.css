@@ -1,5 +1,10 @@
 /* global */
 
+:root {
+  --accent-bg: #fdf2e0;
+  --accent-border: #e6a817;
+}
+
 html {
   scrollbar-gutter: stable;
 }
@@ -290,8 +295,8 @@ sup.ref-highlight::before {
 
 .footnotes li.footnote-highlight::before {
   inset: -4px -8px;
-  background: #fdf2e0;
-  box-shadow: inset 3px 0 0 #e6a817;
+  background: var(--accent-bg);
+  box-shadow: inset 3px 0 0 var(--accent-border);
   border-radius: 0 4px 4px 0;
   animation-duration: 3s;
 }
@@ -348,6 +353,7 @@ sup.ref-highlight::before {
 .markdown-actions {
   display: flex;
   gap: 6px;
+  margin-left: auto;
 }
 
 .markdown-action-btn {
@@ -367,4 +373,194 @@ sup.ref-highlight::before {
 .markdown-action-btn:hover {
   color: #000;
   border-color: #adb5bd;
+}
+
+/* table of contents */
+
+/* ---- narrow (< 84em): hidden overlay, slides in on float-btn click ---- */
+
+.post-toc-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  max-width: 85vw;
+  height: 100vh;
+  z-index: 1000;
+  background: #fff;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.1);
+  transform: translateX(100%);
+  overflow-y: auto;
+  padding: 24px 20px;
+  box-sizing: border-box;
+}
+
+.post-toc-sidebar.toc-open {
+  transform: translateX(0);
+  transition: transform 0.25s ease;
+}
+
+/* ---- wide (≥ 84em): fixed beside the centered article ---- */
+
+/* --- sidebar header --- */
+
+.toc-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.toc-sidebar-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #57606a;
+}
+
+.toc-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  font-size: 20px;
+  color: #868e96;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0;
+  line-height: 1;
+}
+
+.toc-close-btn:hover {
+  color: #000;
+  background: #e9ecef;
+}
+
+/* --- float button --- */
+
+.toc-float-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid #dee2e6;
+  background: #fff;
+  color: #57606a;
+  cursor: pointer;
+  z-index: 999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: background 0.15s, color 0.15s;
+}
+
+.toc-float-btn:hover {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+/* --- backdrop --- */
+
+.toc-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.toc-backdrop.toc-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media screen and (min-width: 84em) {
+  .post-toc-sidebar {
+    top: 24px;
+    right: auto;
+    left: calc(50vw + 432px);          /* article.right(50vw+400) + 32px gap */
+    width: 240px;
+    max-width: none;
+    height: auto;
+    max-height: calc(100vh - 48px);
+    z-index: auto;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+    padding: 0 0 0 16px;
+    border-left: 1px solid #dee2e6;
+    overflow-y: auto;
+  }
+
+  .toc-sidebar-header {
+    margin-bottom: 12px;
+  }
+
+  .toc-close-btn,
+  .toc-float-btn,
+  .toc-backdrop {
+    display: none;
+  }
+}
+
+/* --- toc nav links --- */
+
+.toc-nav {
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.toc-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.toc-nav li {
+  margin: 0;
+  padding: 0;
+}
+
+.toc-nav li ul {
+  padding-left: 1em;
+}
+
+.toc-nav a {
+  display: block;
+  color: #57606a;
+  text-decoration: none;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border-left: 2px solid transparent;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.toc-nav a:hover {
+  color: #000;
+  background: #e9ecef;
+}
+
+.toc-nav a.toc-active {
+  color: #000;
+  font-weight: 600;
+  border-left-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+/* --- scroll margin for heading anchors --- */
+
+.post-content h2,
+.post-content h3,
+.post-content h4 {
+  scroll-margin-top: 24px;
 }

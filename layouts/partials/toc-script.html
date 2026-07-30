@@ -1,0 +1,131 @@
+<script>
+(function () {
+  'use strict';
+
+  var sidebar = document.getElementById('tocSidebar');
+  var floatBtn = document.getElementById('tocFloatBtn');
+  var closeBtn = document.getElementById('tocCloseBtn');
+  var backdrop = document.getElementById('tocBackdrop');
+  var prevOverflow = '';
+
+  function openToc() {
+    sidebar.classList.add('toc-open');
+    if (backdrop) backdrop.classList.add('toc-open');
+    if (!window.matchMedia || !window.matchMedia('(min-width: 84em)').matches) {
+      prevOverflow = document.body.style.overflow || '';
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeToc() {
+    sidebar.classList.remove('toc-open');
+    if (backdrop) backdrop.classList.remove('toc-open');
+    document.body.style.overflow = prevOverflow;
+  }
+
+  if (floatBtn) floatBtn.addEventListener('click', openToc);
+  if (closeBtn) closeBtn.addEventListener('click', closeToc);
+  if (backdrop) backdrop.addEventListener('click', closeToc);
+
+  var tocNav = sidebar.querySelector('.toc-nav');
+  if (tocNav) {
+    tocNav.addEventListener('click', function (e) {
+      var link = e.target.closest('a');
+      if (!link) return;
+      var href = link.getAttribute('href');
+      if (!href || href.charAt(0) !== '#') return;
+
+      var id = href.slice(1);
+      if (!id) return;
+      var target = document.getElementById(id);
+      if (!target) return;
+
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.pushState(null, '', href);
+      if (sidebar.classList.contains('toc-open')) closeToc();
+    });
+  }
+
+  if (window.matchMedia) {
+    var widthMq = window.matchMedia('(min-width: 84em)');
+    widthMq.addListener(function (e) {
+      if (e.matches && sidebar.classList.contains('toc-open')) {
+        document.body.style.overflow = prevOverflow;
+      }
+    });
+  }
+
+  if (typeof IntersectionObserver === 'undefined') return;
+  var links = tocNav ? tocNav.querySelectorAll('a') : [];
+  if (links.length === 0) return;
+
+  var linkMap = {};
+  var headings = [];
+  links.forEach(function (link) {
+    var href = link.getAttribute('href');
+    if (href && href.charAt(0) === '#') {
+      var id = href.slice(1);
+      var heading = document.getElementById(id);
+      if (heading) {
+        linkMap[id] = link;
+        headings.push(heading);
+      }
+    }
+  });
+  if (headings.length === 0) return;
+
+  var activeId = null;
+  var intersecting = {};
+
+  function pickActive() {
+    for (var i = 0; i < headings.length; i++) {
+      if (intersecting[headings[i].id]) {
+        switchTo(headings[i].id);
+        return;
+      }
+    }
+
+    var observationTop = 80;
+    var best = headings[0];
+    for (var i = 0; i < headings.length; i++) {
+      var top = headings[i].getBoundingClientRect().top;
+      if (top <= observationTop) {
+        best = headings[i];
+      } else {
+        break;
+      }
+    }
+    switchTo(best.id);
+  }
+
+  function switchTo(id) {
+    if (id === activeId) return;
+    if (activeId && linkMap[activeId]) linkMap[activeId].classList.remove('toc-active');
+    activeId = id;
+    if (linkMap[id]) linkMap[id].classList.add('toc-active');
+  }
+
+  var observer = new IntersectionObserver(function (entries) {
+    for (var i = 0; i < entries.length; i++) {
+      intersecting[entries[i].target.id] = entries[i].isIntersecting;
+    }
+    pickActive();
+  }, {
+    rootMargin: '-80px 0px -70% 0px',
+    threshold: 0
+  });
+
+  headings.forEach(function (h) { observer.observe(h); });
+
+  if (location.hash) {
+    var initialId = location.hash.slice(1);
+    if (linkMap[initialId]) {
+      activeId = initialId;
+      linkMap[initialId].classList.add('toc-active');
+    }
+  } else {
+    pickActive();
+  }
+})();
+</script>

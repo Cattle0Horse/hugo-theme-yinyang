@@ -48,8 +48,11 @@ hugo -s exampleSite --themesDir ../.. --theme $(basename $(pwd))
 | `math.html` | `head.html`（按需条件加载） |
 | `scripts.html` | 所有布局模板直接加载，位于 `</body>` 之前 |
 | `edit-page.html` | `_default/single.html`、`gallery/single.html` |
+| `toc.html` | `_default/single.html`（条件加载，需启用 `tableOfContents`），同时加载 `toc-script.html` |
+| `toc-script.html` | 由 `toc.html` 条件加载，负责 TOC 交互和 scroll-spy |
+| `markdown-actions.html` | `_default/single.html`、`gallery/single.html`（条件加载，需启用 `markdownActions`） |
 
-**不存在** footer partial、基模板、分页 partial、目录（TOC）partial 以及 `i18n/` 国际化目录。
+**不存在** footer partial、基模板、分页 partial 以及 `i18n/` 国际化目录。
 
 ### MathJax 数学公式检测
 
@@ -83,3 +86,6 @@ hugo -s exampleSite --themesDir ../.. --theme $(basename $(pwd))
 - `editPageRepo` — GitHub 仓库 URL，启用文章底部"纠错链接"功能
 - `editPageBranch` — 仓库分支名，默认 `main`（可选）
 - `editPageText` — 链接文字，默认"有错误？欢迎提交 Pull Request。"
+- `markdownActions` — 布尔值，启用文章顶部"View Raw"和"Copy Markdown"按钮（默认关闭）
+- `tableOfContents` — 布尔值，启用文章页目录侧边栏（需配合 `[markup.tableOfContents]` 配置使用）
+- `toc` — 文章级 front matter 参数（布尔值），在单篇文章中禁用 TOC，如 `toc: false`
