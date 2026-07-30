@@ -2,6 +2,8 @@
 
 > Fork 自 [joway/hugo-theme-yinyang](https://github.com/joway/hugo-theme-yinyang)
 
+站点示例：<https://cattle0horse.github.io/>
+
 ## 安装
 
 在站点根目录执行：

@@ -62,7 +62,8 @@
 
   {{ partial "edit-page.html" . }}
 
-  {{ partial "scripts.html" . }}
+  {{ partial "image-loading.html" . }}
+  {{ partial "footnotes.html" . }}
   {{ if .Site.Params.extraBody }}
   {{ .Site.Params.extraBody | safeHTML }}
   {{ end }}

@@ -24,7 +24,7 @@
           <div class="row gallery">
             {{ range .Params.gallery }}
             <div class="col-xs-6 gallery-img">
-              <img src="{{ .url }}" alt="{{ .name }}">
+              {{ partial "image-tag.html" (dict "Page" $ "Src" .url "Alt" .name) }}
               <span class="gallery-img-desc">{{ .name }}</span>
             </div>
             {{ end }}
@@ -36,7 +36,8 @@
 
   {{ partial "edit-page.html" . }}
 
-  {{ partial "scripts.html" . }}
+  {{ partial "image-loading.html" . }}
+  {{ partial "footnotes.html" . }}
   {{ if .Site.Params.extraBody }}
   {{ .Site.Params.extraBody | safeHTML }}
   {{ end }}

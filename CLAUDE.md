@@ -46,12 +46,14 @@ hugo -s exampleSite --themesDir ../.. --theme $(basename $(pwd))
 | `header.html` | `index.html`、`_default/list.html`、`_default/single.html`、`gallery/single.html` |
 | `seo.html` | `head.html` |
 | `math.html` | `head.html`（按需条件加载） |
-| `scripts.html` | 所有布局模板直接加载，位于 `</body>` 之前 |
+| `footnotes.html` | 所有布局模板直接加载，位于 `</body>` 之前 |
+| `image-loading.html` | `_default/single.html`、`gallery/single.html`（需启用 `imageLoading`，首页不生效） |
 | `edit-page.html` | `_default/single.html`、`gallery/single.html`（条件加载，需启用 `editPageRepo`） |
 | `edit-url.html` | `edit-page.html`、`markdown-actions.html`（共享 URL 构造，避免重复） |
 | `toc.html` | `_default/single.html`（条件加载，需启用 `tableOfContents`），同时加载 `toc-script.html` |
 | `toc-script.html` | 由 `toc.html` 条件加载，负责 TOC 交互和 scroll-spy |
 | `markdown-actions.html` | `_default/single.html`、`gallery/single.html`（需启用 `markdownActions` 或 `editPageRepo`） |
+| `image-tag.html` | `_markup/render-image.html`、`gallery/single.html`（共享 `<img>` 尺寸解析） |
 
 **不存在** footer partial、基模板、分页 partial 以及 `i18n/` 国际化目录。
 
@@ -61,7 +63,7 @@ hugo -s exampleSite --themesDir ../.. --theme $(basename $(pwd))
 
 ### 脚注高亮与滚动
 
-`layouts/partials/scripts.html` 包含内联 JavaScript（commit `02ddced`），截获脚注链接（`#fn*`、`#fnref:*` hash）的点击事件，应用平滑滚动和黄色背景脉冲动画效果。对应的 CSS keyframes 定义在 `index.css` 中。
+`layouts/partials/footnotes.html` 包含内联 JavaScript（commit `02ddced`），截获脚注链接（`#fn*`、`#fnref:*` hash）的点击事件，应用平滑滚动和黄色背景脉冲动画效果。对应的 CSS keyframes 定义在 `index.css` 中。
 
 ### Gallery 内容类型
 
@@ -81,7 +83,8 @@ hugo -s exampleSite --themesDir ../.. --theme $(basename $(pwd))
 - `extraCSSFiles` — 额外 CSS 文件路径数组
 - `extraBody` — 注入到 `</body>` 之前的原始 HTML
 - `postHeaderContent` / `postFooterContent` — 文章页中注入到正文前后的 HTML
-- `lazyImage` — 布尔值，启用 vanilla-lazyload 图片懒加载（首页不启用）
+- `lazyImage` — 布尔值，为 `<img>` 添加原生 `loading="lazy"` 属性，延迟加载视口外图片
+- `imageLoading` — 布尔值，启用图片 shimmer 骨架屏 + 加载失败占位处理（首页不启用）
 - `staticPrefix` — CDN 前缀，用于加载静态资源（同时生成 `dns-prefetch` 链接）
 - `album` — 单页级别的 Open Graph 图片覆盖（字符串数组）
 - `editPageRepo` — GitHub 仓库 URL，启用文章底部"纠错链接"功能

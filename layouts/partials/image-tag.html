@@ -1,0 +1,25 @@
+{{- $page := .Page -}}
+{{- $src := .Src -}}
+{{- $width := "" -}}
+{{- $height := "" -}}
+
+{{- /* Try to resolve as page resource */ -}}
+{{- $img := $page.Resources.GetMatch (strings.TrimPrefix "./" $src) -}}
+{{- if not $img -}}
+  {{- $img = $page.Resources.GetMatch (printf "*%s" (path.Base $src)) -}}
+{{- end -}}
+
+{{- /* Skip SVG — dimensions may be unreliable (0 or incorrect) */ -}}
+{{- $isSvg := and $img (eq $img.MediaType.SubType "svg") -}}
+{{- if and $img (not $isSvg) -}}
+  {{- $width = $img.Width -}}
+  {{- $height = $img.Height -}}
+{{- end -}}
+
+<img src="{{ $src }}"
+     alt="{{ .Alt }}"
+     {{- with .Title }} title="{{ . }}"{{ end -}}
+     {{- with $width }} width="{{ . }}"{{ end -}}
+     {{- with $height }} height="{{ . }}"{{ end -}}
+     {{- if $page.Site.Params.lazyImage }} loading="lazy"{{ end -}}
+     {{- if and $page.Site.Params.imageLoading (not $isSvg) }} class="loading-img"{{ end }}>

@@ -1,0 +1,36 @@
+{{ if and .Site.Params.imageLoading (not .IsHome) }}
+<script>
+	;(function () {
+		function onLoad(img) {
+			img.classList.add("loading-done")
+		}
+		function onError(img) {
+			if (img.classList.contains("loading-done")) return
+			var alt = img.getAttribute("alt") || ""
+			var w = img.getAttribute("width") || ""
+			var h = img.getAttribute("height") || ""
+			var div = document.createElement("div")
+			div.className = "loading-failed"
+			div.textContent = alt
+			if (w) div.style.maxWidth = w + "px"
+			if (h) {
+				var hi = parseInt(h, 10)
+				if (!isNaN(hi)) div.style.minHeight = Math.min(hi, 400) + "px"
+			}
+			if (img.parentNode) img.parentNode.replaceChild(div, img)
+		}
+		var handlers = { load: onLoad, error: onError }
+		Object.keys(handlers).forEach(function (type) {
+			document.addEventListener(type, function (e) {
+				if (e.target.tagName === "IMG" && e.target.classList.contains("loading-img")) {
+					handlers[type](e.target)
+				}
+			}, true)
+		})
+		document.querySelectorAll("img.loading-img").forEach(function (img) {
+			if (!img.complete) return
+			if (img.naturalWidth > 0) onLoad(img); else onError(img)
+		})
+	})()
+</script>
+{{ end }}
