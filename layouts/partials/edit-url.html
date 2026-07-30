@@ -1,2 +1,0 @@
-{{- $path := .File.Path | replaceRE " " "%20" -}}
-{{- printf "%s/edit/%s/content/%s" .Site.Params.editPageRepo (.Site.Params.editPageBranch | default "main") $path | safeURL -}}

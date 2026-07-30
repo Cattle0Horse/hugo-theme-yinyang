@@ -6,7 +6,7 @@
 		}
 		function onError(img) {
 			if (img.classList.contains("loading-done")) return
-			var alt = img.getAttribute("alt") || img.getAttribute("title") || ""
+			var alt = img.getAttribute("alt") || img.getAttribute("title");
 			if (!alt) {
 				var src = img.getAttribute("src") || ""
 				alt = src.substring(Math.max(src.lastIndexOf("/"), src.lastIndexOf("\\")) + 1) || "图片加载失败"
