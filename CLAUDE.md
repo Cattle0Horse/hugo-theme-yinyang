@@ -47,10 +47,11 @@ hugo -s exampleSite --themesDir ../.. --theme $(basename $(pwd))
 | `seo.html` | `head.html` |
 | `math.html` | `head.html`（按需条件加载） |
 | `scripts.html` | 所有布局模板直接加载，位于 `</body>` 之前 |
-| `edit-page.html` | `_default/single.html`、`gallery/single.html` |
+| `edit-page.html` | `_default/single.html`、`gallery/single.html`（条件加载，需启用 `editPageRepo`） |
+| `edit-url.html` | `edit-page.html`、`markdown-actions.html`（共享 URL 构造，避免重复） |
 | `toc.html` | `_default/single.html`（条件加载，需启用 `tableOfContents`），同时加载 `toc-script.html` |
 | `toc-script.html` | 由 `toc.html` 条件加载，负责 TOC 交互和 scroll-spy |
-| `markdown-actions.html` | `_default/single.html`、`gallery/single.html`（条件加载，需启用 `markdownActions`） |
+| `markdown-actions.html` | `_default/single.html`、`gallery/single.html`（需启用 `markdownActions` 或 `editPageRepo`） |
 
 **不存在** footer partial、基模板、分页 partial 以及 `i18n/` 国际化目录。
 

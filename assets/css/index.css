@@ -368,6 +368,9 @@ sup.ref-highlight::before {
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
+  line-height: 1.5;
 }
 
 .markdown-action-btn:hover {

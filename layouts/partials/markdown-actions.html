@@ -1,9 +1,18 @@
-{{ if and .RawContent .Site.Params.markdownActions }}
+{{ $hasMarkdown := and .RawContent .Site.Params.markdownActions }}
+{{ $hasEdit := and .Site.Params.editPageRepo .File }}
+{{ if or $hasMarkdown $hasEdit }}
 <span class="markdown-actions">
+  {{ if $hasEdit }}
+  <a href="{{ partial "edit-url.html" . }}" class="markdown-action-btn" title="{{ .Site.Params.editPageText | default "有错误？欢迎提交 Pull Request" }}">Edit</a>
+  {{ end }}
+  {{ if $hasMarkdown }}
   <button id="copy-markdown-btn" class="markdown-action-btn" title="Copy Markdown">Copy</button>
   <button id="view-raw-btn" class="markdown-action-btn" title="View Raw Markdown">Raw</button>
+  {{ end }}
 </span>
+{{ end }}
 
+{{ if $hasMarkdown }}
 <script id="raw-markdown-content" type="text/plain">{{ .RawContent }}</script>
 <script>
 (function () {

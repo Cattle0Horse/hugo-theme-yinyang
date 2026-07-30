@@ -1,0 +1,1 @@
+{{ .Site.Params.editPageRepo }}/edit/{{ .Site.Params.editPageBranch | default "main" }}/content/{{ .File.Path | replaceRE " " "%20" | safeURL }}
