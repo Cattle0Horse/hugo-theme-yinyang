@@ -1,7 +1,9 @@
 # YinYang
 
 > 布局参考 [joway/hugo-theme-yinyang](https://github.com/joway/hugo-theme-yinyang)
+> 
 > 在其基础上增加了额外功能，如 Markdown Action（快捷复制文章）、大纲、脚注跳转及高亮显示等
+> 
 > 动效参考了 [detail.design](https://detail.design/) 的提示
 
 站点示例：<https://cattle0horse.github.io/>
