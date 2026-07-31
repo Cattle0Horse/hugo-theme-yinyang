@@ -33,6 +33,23 @@
   font-style: italic;
 }
 
+.post-meta-sep {
+  margin: 0 16px;
+  color: var(--color-text);
+}
+
+.post-meta-category {
+  color: var(--color-text);
+  text-decoration: none;
+  font-style: italic;
+  font-weight: 800;
+}
+
+.post-meta-category:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
 .page-content {
   min-height: 60%;
 }
