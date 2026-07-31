@@ -8,3 +8,7 @@ https://github.com/leovan/leovan.me/blob/main/static/css/style.css
 :root[data-theme="dark"] {
   --image-background: url(/images/little-bear-dark.png);
 }
+
+html::after {
+  opacity: 0.25;
+}
