@@ -1,23 +1,22 @@
 {{ if and .Site.Params.tableOfContents .TableOfContents (not (eq .Params.toc false)) }}
-<aside class="post-toc-sidebar" id="tocSidebar">
+<aside class="post-toc-sidebar" id="tocSidebar" aria-label="文章目录" aria-hidden="true">
   <div class="toc-sidebar-header">
     <span class="toc-sidebar-title">目录</span>
-    <button class="toc-close-btn" id="tocCloseBtn" aria-label="关闭目录">&times;</button>
   </div>
-  <nav class="toc-nav">
-    {{ .TableOfContents }}
-  </nav>
+  <div class="toc-scroll" id="tocScroll">
+    {{ partial "edge-blur.html" "top" }}
+    <nav class="toc-nav">
+      <span class="toc-track" aria-hidden="true"><span class="toc-indicator" id="tocIndicator"></span></span>
+      {{ .TableOfContents }}
+    </nav>
+    {{ partial "edge-blur.html" "bottom" }}
+  </div>
 </aside>
 
-<button class="toc-float-btn" id="tocFloatBtn" aria-label="目录">
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="2" y="3" width="16" height="2" rx="1" fill="currentColor"/>
-    <rect x="2" y="9" width="12" height="2" rx="1" fill="currentColor"/>
-    <rect x="2" y="15" width="14" height="2" rx="1" fill="currentColor"/>
-  </svg>
+<button class="toc-float-btn action-button state-button" id="tocFloatBtn" type="button" aria-label="打开目录" data-tooltip="打开目录" aria-controls="tocSidebar" aria-expanded="false">
+  <span class="action-icon state-icon state-icon-default"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span>
+  <span class="action-icon state-icon state-icon-open"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></span>
 </button>
-
 <div class="toc-backdrop" id="tocBackdrop"></div>
-
 {{ partial "toc-script.html" . }}
 {{ end }}

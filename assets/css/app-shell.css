@@ -1,0 +1,222 @@
+/* ========================================================================
+   App Shell
+   ======================================================================== */
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+}
+
+.app-shell {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.app-content {
+  height: 100%;
+  min-height: 0;
+}
+
+.app-main {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+/* ---- header (normal flow, inside app-scroll) ---- */
+
+.app-header {
+  /* block in normal flow, no special layout */
+}
+
+.site-header-content {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ---- main scroll area ---- */
+
+.app-scroll {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+.app-scroll::-webkit-scrollbar,
+.toc-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.app-scroll::-webkit-scrollbar-track,
+.toc-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+  border-radius: 3px;
+}
+
+.app-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-hover);
+}
+
+.toc-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.toc-scroll:hover::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+}
+
+.toc-scroll:hover::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-hover);
+}
+
+.app-scroll > article {
+  padding-bottom: 24px;
+}
+
+/* ---- edge blur (narrow: mask-image) ---- */
+
+.edge-blur { display: none; }
+
+.app-scroll.has-fade-top.has-fade-bottom {
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .2) 0, #000 var(--scroll-fade-size), #000 calc(100% - var(--scroll-fade-size)), rgba(0, 0, 0, .2) 100%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .2) 0, #000 var(--scroll-fade-size), #000 calc(100% - var(--scroll-fade-size)), rgba(0, 0, 0, .2) 100%);
+}
+
+.app-scroll.has-fade-top:not(.has-fade-bottom) {
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .2) 0, #000 var(--scroll-fade-size));
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .2) 0, #000 var(--scroll-fade-size));
+}
+
+.app-scroll.has-fade-bottom:not(.has-fade-top) {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--scroll-fade-size)), rgba(0, 0, 0, .2) 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--scroll-fade-size)), rgba(0, 0, 0, .2) 100%);
+}
+
+/* ---- wide-screen (≥ 84em): body scroll ---- */
+
+@media (min-width: 84em) {
+  html,
+  body {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: auto;
+    min-height: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-scrollbar) transparent;
+  }
+
+  html::-webkit-scrollbar { width: 6px; }
+  html::-webkit-scrollbar-track { background: transparent; }
+  html::-webkit-scrollbar-thumb { background: var(--color-scrollbar); border-radius: 3px; }
+  html::-webkit-scrollbar-thumb:hover { background: var(--color-scrollbar-hover); }
+
+  .app-shell {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .app-main {
+    height: auto;
+  }
+
+  .app-content {
+    height: auto;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .app-scroll {
+    flex: none;
+    overflow: visible;
+    height: auto;
+    scrollbar-gutter: auto;
+  }
+
+  /* TOC fixed to the right of centered content */
+  .app-main:has(.post-toc-sidebar) .post-toc-sidebar {
+    position: fixed;
+    top: 48px;
+    left: calc(50% + 432px);
+    right: auto;
+    bottom: 48px;
+    z-index: auto;
+    width: 240px;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+    visibility: visible;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .app-main:has(.post-toc-sidebar) .toc-sidebar-header {
+    min-height: 36px;
+    padding: 0 0 12px;
+  }
+
+  .app-main:has(.post-toc-sidebar) .toc-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  .app-main:has(.post-toc-sidebar) .toc-scroll > .edge-blur {
+    margin-right: 0;
+    margin-left: 0;
+  }
+
+  .app-main:has(.post-toc-sidebar) .toc-float-btn,
+  .app-main:has(.post-toc-sidebar) .toc-backdrop {
+    display: none;
+  }
+
+  /* edge blur: fixed overlay instead of mask-image */
+  .edge-blur.is-visible {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    pointer-events: none;
+    height: var(--scroll-fade-size);
+  }
+
+  .edge-blur-top.is-visible {
+    top: 0;
+    background: linear-gradient(to bottom, var(--color-bg), transparent);
+  }
+
+  .edge-blur-bottom.is-visible {
+    bottom: 0;
+    background: linear-gradient(to top, var(--color-bg), transparent);
+  }
+}

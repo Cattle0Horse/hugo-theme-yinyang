@@ -1,0 +1,33 @@
+/* ========================================================================
+   Theme Toggle
+   ======================================================================== */
+
+.theme-toggle {
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  user-select: none;
+  position: relative;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+.theme-toggle .action-icon {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  transition: opacity 180ms ease, filter 180ms ease, transform 180ms ease;
+}
+
+/* icon state transition */
+.theme-toggle .theme-toggle-dark { display: inline-flex; opacity: 1; filter: blur(0); transform: scale(1); }
+.theme-toggle .theme-toggle-light { display: inline-flex; opacity: 0; filter: blur(4px); transform: scale(.8); }
+:root[data-theme="dark"] .theme-toggle .theme-toggle-dark { display: inline-flex; opacity: 0; filter: blur(4px); transform: scale(.8); }
+:root[data-theme="dark"] .theme-toggle .theme-toggle-light { display: inline-flex; opacity: 1; filter: blur(0); transform: scale(1); }
+
+

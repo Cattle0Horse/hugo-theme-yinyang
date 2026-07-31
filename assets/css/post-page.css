@@ -1,0 +1,174 @@
+/* ========================================================================
+   Post Page
+   ======================================================================== */
+
+.post-header {
+  margin-bottom: 50px;
+}
+
+.post-title {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.post-tag {
+  display: inline-block;
+  font-weight: 600;
+  padding: 2px 10px;
+  margin: 2px 6px 2px 0;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.post-tag:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-medium);
+  text-decoration: none;
+}
+
+.post-date {
+  font-weight: 800;
+  font-style: italic;
+}
+
+.page-content {
+  min-height: 60%;
+}
+
+.post-content {
+  margin-bottom: 50px;
+}
+
+.post-content p {
+  hyphens: auto;
+  line-height: 1.8;
+  text-justify: ideographic;
+  margin-bottom: 1em;
+}
+
+.post-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-right: auto;
+  margin-top: 6px;
+  border-radius: 6px;
+}
+
+.post-content .post-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.post-content .post-gallery img {
+  margin-right: auto;
+  margin-top: auto;
+  width: calc(50% - 3px);
+  height: auto;
+}
+
+.post-content h2,
+.post-content h3,
+.post-content h4 {
+  scroll-margin-top: 24px;
+}
+
+@media screen and (max-width: 600px) {
+  .markdown-body {
+    font-size: 16px;
+  }
+  .post-title {
+    font-size: 2rem;
+  }
+  .post-content p {
+    letter-spacing: 0.05em;
+  }
+  .post-content .post-gallery img {
+    width: 100%;
+    height: auto;
+  }
+}
+
+/* ---- post desc (date + markdown actions inline) ---- */
+
+.post-desc-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.markdown-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.markdown-action-btn {
+  font-size: 12px;
+  font-weight: 600;
+  font-style: normal;
+  color: var(--color-text-muted);
+  background: none;
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  line-height: 1;
+}
+
+.markdown-action-btn:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-medium);
+}
+
+/* ---- edit page link ---- */
+
+.edit-page {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.edit-page hr {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--color-border-light);
+  margin-bottom: 16px;
+}
+
+.edit-page a {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.edit-page a:hover {
+  color: var(--color-text);
+}
+
+/* ---- site footer ---- */
+
+.site-footer {
+    font-size: 12px;
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--color-text-muted);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.site-footer-item {
+  margin-right: 12px;
+}
+
+

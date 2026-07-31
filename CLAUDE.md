@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-YinYang 是一个极简 Hugo 博客主题，fork 自 `joway/hugo-theme-yinyang`。功能特性包括：系统字体栈、MathJax 3 数学公式支持、图片懒加载、SEO JSON-LD 结构化数据、Gallery 内容类型以及 CJK 排版优化。
+YinYang 是一个极简 Hugo 博客主题，fork 自 `joway/hugo-theme-yinyang`。功能包括：暗色/亮色主题切换、MathJax 3 数学公式、图片懒加载与骨架屏、代码块工具栏（语言标签/复制/折叠）、TOC 目录滚动监听、脚注高亮跳转、SEO JSON-LD、Gallery 内容类型、CJK 排版优化。
 
 ## 开发命令
 
@@ -18,78 +18,136 @@ hugo -s exampleSite --themesDir ../.. --theme $(basename $(pwd))
 
 ## 架构
 
-### 无 baseof.html
+### baseof.html 与模板继承
 
-每个布局模板（`index.html`、`_default/single.html`、`_default/list.html`、`gallery/single.html`、`404.html`）都是一个**独立的完整 HTML 文档**，包含各自的 `<html>`、`<head>` 和 `<body>` 标签，没有共享的基模板。新增标记时需要注意是否需要在多个模板中重复添加。
+`_default/baseof.html` 定义应用外壳骨架，但并非所有模板都继承它：
+
+| 模板 | 是否继承 baseof |
+|---|---|
+| `index.html` | 是（`{{ define "main" }}`） |
+| `_default/list.html` | 是（`{{ define "main" }}`） |
+| `_default/single.html` | **否** — 独立完整 HTML |
+| `gallery/single.html` | **否** — 独立完整 HTML |
+| `_default/terms.html` | **否** — 独立完整 HTML |
+| `404.html` | **否** — 独立完整 HTML |
+
+`single.html`、`gallery/single.html` 和 `terms.html`、`404.html` 各自包含完整的 `<html>`/`<head>`/`<body>`。这意味着对页面外壳做结构性修改时，需要同时更新 baseof 和这些独立模板。
+
+baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` block 目前未被任何子模板覆盖。
+
+### 双模式滚动架构
+
+页面在窄屏（< 84em）和宽屏（≥ 84em）下使用不同的滚动容器：
+
+- **窄屏**：`body` 满屏固定（`overflow: hidden`），滚动发生在 `#appScroll` 元素内部。TOC 作为浮层滑出。
+- **宽屏**：`body` 自身可滚动，`app-scroll` 退化为普通流（`overflow: visible`）。TOC 固定在内容区右侧（`left: calc(50% + 432px)`）。Edge blur 从 CSS mask 切换为 `position: fixed` 渐变叠加。
+
+`ui.html` 中的 `toggleScrollFade()` 和 `isWide()` 分别管理边缘模糊检测和宽屏判断，供所有脚本共享。
 
 ### CSS 处理流程
 
-两段 CSS 由 `layouts/partials/head.html` 内联到 `<style>` 标签中：
+16 个 CSS 文件位于 `assets/css/`，由 `head.html` 通过 Hugo 资源管线处理：
 
-- `assets/css/index.css` — 主样式表（约 316 行）
-- `assets/css/flexboxgrid-6.3.1.min.css` — 第三方 flexbox 网格系统
+1. **`bundle.css`**：通过 `resources.Concat` 合并 14 个文件再 `minify`，内联到 `<style>` 标签。按加载顺序：
+   `variables` → `global` → `site-header` → `theme-toggle` → `posts-list` → `post-page` → `taxonomy` → `gallery` → `footnotes` → `app-shell` → `code-blocks` → `actions` → `toc` → `image-loading` → `mobile`（最后装载以便覆盖）
+2. **`syntax.css`**：独立 minify 并内联（来自 Hugo 的 Chroma 语法高亮样式）。
 
-两者均通过 Hugo 资源管线 `resources.Get | minify` 处理。使用了 Hugo Pipes 转换，因此需要挂载资源目录（`--themesDir` 参数负责处理）。
+`extraCSSFiles` 参数可通过 `<link>` 加载额外 CSS（用于自定义字体、背景等，不受 Hugo minify 处理）。
 
-额外的 CSS 文件可以通过 `params.extraCSSFiles`（路径数组）加载，以 `<link>` 标签形式注入到 `</head>` 之前。
+### 主题系统
 
-### 与布局相关的 CSS 细节
+暗色/亮色切换通过 `data-theme` 属性配合 CSS 变量实现：
 
-- `.Chinese` CSS 类通过 `single.html` 和 `gallery/single.html` 中将 `.Site.Language.Locale` 追加到 `<article>` 的 class 属性上，触发 `index.css` 中的 CJK 行高（200%）和字间距样式规则。
-- `html` 上的 `scrollbar-gutter: stable` 用于防止滚动条显隐导致的布局偏移——这是一次有意的修复（commit `ef9eb14`）。
+- `head.html` 顶部内联脚本在 HTML 解析前同步执行，从 `localStorage` 或 `prefers-color-scheme` 读取主题，设置 `document.documentElement.setAttribute("data-theme", ...)`，避免 FOUC。
+- `variables.css` 定义 `:root`（亮色）和 `:root[data-theme="dark"]`（暗色）两套 CSS 自定义属性。
+- `theme-toggle.html` 提供切换按钮交互，切换时短暂添加 `theme-changing` class 禁用 CSS transition（避免颜色渐变闪烁）。
+- 主题按钮嵌入在 `header.html` 中。
 
-### Partial 及其职责
+### Partial 及其职责与加载位置
 
-| Partial | 被哪些模板加载 |
-|---|---|
-| `head.html` | 所有布局模板直接加载 |
-| `header.html` | `index.html`、`_default/list.html`、`_default/single.html`、`gallery/single.html` |
-| `seo.html` | `head.html` |
-| `math.html` | `head.html`（按需条件加载） |
-| `footnotes.html` | 所有布局模板直接加载，位于 `</body>` 之前 |
-| `image-loading.html` | `_default/single.html`、`gallery/single.html`（需启用 `imageLoading`，首页不生效） |
-| `edit-page.html` | `_default/single.html`、`gallery/single.html`（条件加载，需启用 `editPageRepo`） |
-| `edit-url.html` | `edit-page.html`、`markdown-actions.html`（共享 URL 构造，避免重复） |
-| `toc.html` | `_default/single.html`（条件加载，需启用 `tableOfContents`），同时加载 `toc-script.html` |
-| `toc-script.html` | 由 `toc.html` 条件加载，负责 TOC 交互和 scroll-spy |
-| `markdown-actions.html` | `_default/single.html`、`gallery/single.html`（需启用 `markdownActions` 或 `editPageRepo`） |
-| `image-tag.html` | `_markup/render-image.html`、`gallery/single.html`（共享 `<img>` 尺寸解析） |
+| Partial | 加载位置 | 条件 |
+|---|---|---|
+| `head.html` | 所有独立模板 + baseof | 始终 |
+| `header.html` | 所有独立模板 + baseof | 始终 |
+| `seo.html` | `head.html` 内 | 始终 |
+| `math.html` | `head.html` 内 | `partialCached`，仅在内容含 `$$`/`$...$` 时加载 MathJax CDN |
+| `theme-toggle.html` | 所有独立模板 + baseof（`</body>` 前） | 始终 |
+| `footnotes.html` | 所有独立模板 + baseof（`</body>` 前） | 首页跳过 |
+| `ui.html` | 所有独立模板 + baseof（`</body>` 末尾） | 始终（tooltip DOM + 滚动/边缘模糊/tooltip 脚本） |
+| `edge-blur.html` | 所有模板，在 header 后和内容末尾各一次 | 始终 |
+| `toc.html` | `single.html`、baseof（`"toc"` block） | `tableOfContents` 启用且文章 `toc` 不为 `false` |
+| `toc-script.html` | `toc.html` 内 | 同上 |
+| `markdown-actions.html` | `single.html`、`gallery/single.html`（文章标题下方） | `markdownActions` 或 `editPageRepo` 启用 |
+| `copy-button.html` | `single.html`、`gallery/single.html`（`<body>` 最顶部） | 始终（定义 `bindCopyButton` 全局函数） |
+| `code-toolbar.html` | `single.html`、`gallery/single.html`（`</body>` 前） | 始终（自动为所有 `.highlight` 和 `pre` 包装工具栏） |
+| `image-loading.html` | `single.html`、`gallery/single.html`（`</body>` 前） | `imageLoading` 启用且非首页 |
+| `image-tag.html` | `_markup/render-image.html`、`gallery/single.html` | 始终（共享 `<img>` 尺寸解析与骨架屏渲染） |
+| `edit-page.html` | `single.html`、`gallery/single.html`（文章底部） | `editPageRepo` 且 `.File` 存在 |
+| `edit-urls.html` | `edit-page.html`、`markdown-actions.html` | `editPageRepo` 且 `.File` 存在 |
 
-**不存在** footer partial、基模板、分页 partial 以及 `i18n/` 国际化目录。
+### 代码块工具栏
 
-### MathJax 数学公式检测
+`code-toolbar.html`（约 130 行 JS）在客户端自动增强所有代码块：
 
-`layouts/partials/math.html` 扫描页面原始内容（`.RawContent`）中的数学公式分隔符（`$$`、`$...$`、`\[`、`\(`），仅在检测到公式时才从 CDN 加载 MathJax 3 的 `tex-chtml.js`，避免在无公式页面加载额外脚本。
+1. 为 `.highlight` 块包装 `.code-block-wrapper`，添加语言标签和复制按钮。
+2. 行数超过 `codeMaxLines`（默认 15）时折叠，底部显示展开按钮。折叠通过 `max-height: 360px` + `is-folded` class 实现；若渲染高度不超过 360px 则自动移除折叠。
+3. 无语言标签的 `<pre>` 块包装为 `.plain-code-wrapper`，添加浮动复制按钮。
+4. 复制功能由 `copy-button.html` 提供的 `bindCopyButton()` 实现，优先级 `navigator.clipboard.writeText` → `document.execCommand('copy')` 降级。
 
-### 脚注高亮与滚动
+### 图片增强
 
-`layouts/partials/footnotes.html` 包含内联 JavaScript（commit `02ddced`），截获脚注链接（`#fn*`、`#fnref:*` hash）的点击事件，应用平滑滚动和黄色背景脉冲动画效果。对应的 CSS keyframes 定义在 `index.css` 中。
+`image-tag.html` 统一处理三种场景：
+
+1. **页面资源解析**：尝试以 `Resources.GetMatch` 解析图片尺寸（跳过 SVG）。
+2. **懒加载**：`lazyImage` 启用时添加原生 `loading="lazy"`。
+3. **骨架屏与失败重试**：`imageLoading` 启用时（非首页、非 SVG），包装 `.loading-image-frame`，内嵌 shimmer 骨架和失败占位。加载失败后点击重试（URL 追加 `?retry=` 参数破缓存）。
+
+### TOC 系统
+
+`toc.html` + `toc-script.html` 实现自适应目录：
+
+- **宽屏（≥84em）**：侧边栏固定在页面右侧 `left: calc(50% + 432px)`，始终可见。
+- **窄屏**：浮动按钮 `#tocFloatBtn` + 全屏遮罩 `#tocBackdrop`，点击展开滑出面板。Esc 关闭、Tab 焦点锁定、点击外部关闭。
+- **Scroll-spy**：解析 TOC 链接对应的 heading，计算当前视口内可见的 heading，高亮对应链接并移动 `.toc-indicator` 指示条位置。滚动自动跟随（`scrollBy` + `smooth`）。
+- **边缘模糊**：TOC 滚动区复用 `edge-blur.html` 并绑定 `toggleScrollFade`。
+
+### 脚注系统
+
+`footnotes.html` 拦截所有 `#fn:*` / `#fnref:*` 链接点击：
+
+- **tooltip**：自动为脚注链接添加 `data-tooltip`（"查看脚注 N" / "返回引用处"）。
+- **滚动与高亮**：点击后居中目标并触发黄色脉冲动画（`footnote-highlight` / `ref-highlight` CSS class）。
+- **双模式滚动**：宽屏使用 `scrollIntoView`，窄屏手动计算 `app-scroll` 内的滚动偏移。
+
+### 数学公式
+
+- `_markup/render-passthrough.html`：配合 Goldmark passthrough 扩展，将 `$...$` / `$$...$$` 原样输出。
+- `math.html`：通过正则扫描 `.RawContent` 中的 `$$` / `$...$`，仅在检测到公式时才加载 MathJax 3 CDN（`partialCached` 按 `RelPermalink` 缓存检测结果）。MathJax 配置使用 `ui/safe` 扩展以防御 XSS。
 
 ### Gallery 内容类型
 
-`layouts/gallery/single.html` 渲染 `Params.gallery`（`{url, name}` 对象数组），以两列 flexbox 网格展示图片。使用 `range` 直接遍历 params 数组，而非基于分类法（taxonomy）或页面集合。
+`gallery/single.html` 渲染 `Params.gallery`（`{url, name}` 对象数组），使用 `image-tag.html` 渲染每张图片，两列网格布局。与 `single.html` 共享 markdown-actions、edit-page、图片加载、代码工具栏 partial。
 
-### 配置参数（全部位于 `[params]` 下）
+## 配置参数（全部位于 `[params]` 下）
 
-模板中使用的主要参数：
-
-- `headTitle` — 页头显示的网站标题（回退到 `author.name`）
-- `description` — 元描述（meta description）和页头副标题
-- `mainSections` — 首页展示的 content sections
-- `author.name` / `author.homepage` — 用于 SEO JSON-LD 和元标签
-- `socials` — 页头渲染的社交链接数组，每项包含 `{name, link}`
+- `headTitle` — 页头展示标题（回退到 `author.name`）
+- `description` — meta description 和页头副标题
+- `mainSections` — 首页和列表页展示的 content sections
+- `author.name` / `author.homepage` — SEO JSON-LD 使用
+- `socials` — 页头链接数组，`{name, link}`
 - `favicon` — 网站图标路径
-- `extraHead` — 注入到 `</head>` 之前的原始 HTML
-- `extraCSSFiles` — 额外 CSS 文件路径数组
-- `extraBody` — 注入到 `</body>` 之前的原始 HTML
-- `postHeaderContent` / `postFooterContent` — 文章页中注入到正文前后的 HTML
-- `lazyImage` — 布尔值，为 `<img>` 添加原生 `loading="lazy"` 属性，延迟加载视口外图片
-- `imageLoading` — 布尔值，启用图片 shimmer 骨架屏 + 加载失败占位处理（首页不启用）
-- `staticPrefix` — CDN 前缀，用于加载静态资源（同时生成 `dns-prefetch` 链接）
-- `album` — 单页级别的 Open Graph 图片覆盖（字符串数组）
-- `editPageRepo` — GitHub 仓库 URL，启用文章底部"纠错链接"功能
-- `editPageBranch` — 仓库分支名，默认 `main`（可选）
-- `editPageText` — 链接文字，默认"有错误？欢迎提交 Pull Request。"
-- `markdownActions` — 布尔值，启用文章顶部"View Raw"和"Copy Markdown"按钮（默认关闭）
-- `tableOfContents` — 布尔值，启用文章页目录侧边栏（需配合 `[markup.tableOfContents]` 配置使用）
-- `toc` — 文章级 front matter 参数（布尔值），在单篇文章中禁用 TOC，如 `toc: false`
+- `extraHead` — 注入 `</head>` 前的原始 HTML
+- `extraBody` — 注入 `</body>` 前的原始 HTML
+- `postHeaderContent` / `postFooterContent` — 文章正文前后的注入 HTML
+- `extraCSSFiles` — 额外 CSS 路径数组，以 `<link>` 加载
+- `staticPrefix` — CDN 前缀，同时生成 `dns-prefetch`
+- `lazyImage` — 布尔值，为 `<img>` 添加 `loading="lazy"`
+- `imageLoading` — 布尔值，启用骨架屏 + 加载失败重试（首页不生效）
+- `markdownActions` — 布尔值，启用"复制 Markdown"按钮（默认关闭）
+- `editPageRepo` — GitHub 仓库 URL，启用"编辑原文"/"查看 Raw"按钮和底部纠错链接
+- `editPageBranch` — 仓库分支名，默认 `main`
+- `editPageText` — 纠错链接文字
+- `tableOfContents` — 布尔值，启用 TOC 侧边栏
+- `codeMaxLines` — 代码块折叠阈值，默认 15
+- `album` — 单页 Open Graph 图片覆盖（字符串数组）
+- `toc` — 文章 front matter（布尔值），单篇禁用 TOC；也兼容旧字段 `notoc`

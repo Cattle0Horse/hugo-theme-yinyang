@@ -1,81 +1,55 @@
 {{ $hasGitHub := and .Site.Params.editPageRepo .File }}
 {{ $hasMarkdown := and .RawContent .Site.Params.markdownActions }}
 {{ if or $hasMarkdown $hasGitHub }}
-{{- $repo := .Site.Params.editPageRepo -}}
-{{- $branch := .Site.Params.editPageBranch | default "main" -}}
-{{- $path := replace .File.Path " " "%20" -}}
-{{- $editUrl := printf "%s/edit/%s/content/%s" $repo $branch $path -}}
-{{- $parsed := urls.Parse $repo -}}
-{{- $rawUrl := printf "https://raw.githubusercontent.com%s/%s/content/%s" $parsed.Path $branch $path -}}
+{{- $urls := partialCached "edit-urls.html" . .File.Path -}}
 <span class="markdown-actions">
   {{ if $hasGitHub }}
-  <button id="edit-page-btn" class="markdown-action-btn" title="{{ .Site.Params.editPageText | default "有错误？欢迎提交 Pull Request" }}">Edit</button>
-  <button id="view-raw-btn" class="markdown-action-btn" title="View Raw Markdown">Raw</button>
-  {{ printf "<script id=\"edit-page-url\" type=\"text/plain\">%s</script>" $editUrl | safeHTML }}
-  {{ printf "<script id=\"raw-page-url\" type=\"text/plain\">%s</script>" $rawUrl | safeHTML }}
+  <button id="edit-page-btn" class="markdown-action-btn action-button" type="button" aria-label="编辑原文" data-tooltip="编辑原文">
+    <span class="action-icon"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+  </button>
+  <button id="view-raw-btn" class="markdown-action-btn action-button" type="button" aria-label="查看原始 Markdown" data-tooltip="查看原始 Markdown">
+    <span class="action-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 15l-2 2 2 2M15 15l2 2-2 2"/></svg></span>
+  </button>
+  {{ printf "<script id=\"edit-page-url\" type=\"text/plain\">%s</script>" ($urls.edit) | safeHTML }}
+  {{ printf "<script id=\"raw-page-url\" type=\"text/plain\">%s</script>" ($urls.raw) | safeHTML }}
   {{ end }}
   {{ if $hasMarkdown }}
-  <button id="copy-markdown-btn" class="markdown-action-btn" title="Copy Markdown">Copy</button>
+  <button id="copy-markdown-btn" class="markdown-action-btn action-button state-button" type="button" aria-label="复制 Markdown" data-tooltip="复制 Markdown">
+    <span class="action-icon state-icon state-icon-default"><svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span>
+    <span class="action-icon state-icon state-icon-success"><svg viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></svg></span>
+    <span class="action-icon state-icon state-icon-error"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg></span>
+  </button>
   {{ end }}
 </span>
 {{ if $hasMarkdown }}
-<script id="raw-markdown-content" type="text/plain">{{ .RawContent }}</script>
+{{ printf "<script id=\"raw-markdown-content\" type=\"application/json\">%s</script>" (.RawContent | jsonify) | safeHTML }}
 {{ end }}
 <script>
 (function () {
   function bindOpen(btnId, urlId) {
-    var btn = document.getElementById(btnId);
-    var url = document.getElementById(urlId);
-    if (btn && url) {
-      btn.addEventListener('click', function () {
-        window.open(url.textContent, '_blank');
-      });
-    }
+    var btn = document.getElementById(btnId)
+    var url = document.getElementById(urlId)
+    if (!btn || !url) return
+    var locked = false
+    btn.addEventListener('click', function () {
+      if (locked) return
+      locked = true
+      btn.setAttribute('aria-disabled', 'true')
+      window.open(url.textContent, '_blank', 'noopener')
+      setTimeout(function () {
+        locked = false
+        btn.removeAttribute('aria-disabled')
+      }, 500)
+    })
   }
-  bindOpen('edit-page-btn', 'edit-page-url');
-  bindOpen('view-raw-btn', 'raw-page-url');
+  bindOpen('edit-page-btn', 'edit-page-url')
+  bindOpen('view-raw-btn', 'raw-page-url')
 
-  var raw = document.getElementById('raw-markdown-content');
-  if (!raw) return;
-
-  function copyToClipboard(text) {
-    try {
-      var ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.left = '-9999px';
-      ta.style.top = '0';
-      ta.style.opacity = '0';
-      ta.style.pointerEvents = 'none';
-      document.body.appendChild(ta);
-      ta.select();
-      var ok = document.execCommand('copy');
-      document.body.removeChild(ta);
-      return ok;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  var copyBtn = document.getElementById('copy-markdown-btn');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', function () {
-      var text = raw.textContent;
-      function done(success) {
-        copyBtn.textContent = success ? 'Copied!' : 'Failed';
-        setTimeout(function () { copyBtn.textContent = 'Copy'; }, 2000);
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function () {
-          done(true);
-        }).catch(function () {
-          done(copyToClipboard(text));
-        });
-      } else {
-        done(copyToClipboard(text));
-      }
-    });
-  }
-})();
+  var raw = document.getElementById('raw-markdown-content')
+  var copyBtn = document.getElementById('copy-markdown-btn')
+  if (!raw || !copyBtn) return
+  var text = JSON.parse(raw.textContent)
+  if (window.bindCopyButton) window.bindCopyButton(copyBtn, text, { defaultLabel: '复制 Markdown' })
+})()
 </script>
 {{ end }}

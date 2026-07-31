@@ -3,44 +3,57 @@
 {{ partial "head.html" . }}
 
 <body>
-  <article class="post {{ .Site.Language.Locale }}" id="article">
-    <div class="row">
-      <div class="col-xs-12">
-        <div class="site-header">
-          {{ partial "header.html" . }}
-        </div>
-        <header class="post-header">
-          <h1 class="post-title">{{ .Title }}</h1>
-          {{ if or (and .RawContent .Site.Params.markdownActions) (and .Site.Params.editPageRepo .File) }}
-          <div class="row post-desc">
-            <div class="col-xs-12 post-desc-inner">
-              {{ partial "markdown-actions.html" . }}
-            </div>
-          </div>
-          {{ end }}
-        </header>
+  {{ partial "copy-button.html" . }}
+  <div class="app-shell">
+    <main class="app-main">
+      <div class="app-content">
+        <div class="app-scroll" id="appScroll">
+          <header class="app-header" id="appHeader">
+            {{ partial "header.html" . }}
+          </header>
+          {{ partial "edge-blur.html" "top" }}
+          <article class="post {{ .Site.Language.Locale }}" id="article">
+            <div class="row">
+              <div class="col-xs-12">
+                <header class="post-header">
+                  <h1 class="post-title">{{ .Title }}</h1>
+                  {{ if or (and .RawContent .Site.Params.markdownActions) (and .Site.Params.editPageRepo .File) }}
+                  <div class="row post-desc">
+                    <div class="col-xs-12 post-desc-inner">
+                      {{ partial "markdown-actions.html" . }}
+                    </div>
+                  </div>
+                  {{ end }}
+                </header>
 
-        <div class="post-content page-content markdown-body">
-          <div class="row gallery">
-            {{ range .Params.gallery }}
-            <div class="col-xs-6 gallery-img">
-              {{ partial "image-tag.html" (dict "Page" $ "Src" .url "Alt" .name) }}
-              <span class="gallery-img-desc">{{ .name }}</span>
+                <div class="post-content page-content markdown-body">
+                  <div class="row gallery">
+                    {{ range .Params.gallery }}
+                    <div class="col-xs-6 gallery-img">
+                      {{ partial "image-tag.html" (dict "Page" $ "Src" .url "Alt" .name) }}
+                      <span class="gallery-img-desc">{{ .name }}</span>
+                    </div>
+                    {{ end }}
+                  </div>
+                </div>
+              </div>
             </div>
-            {{ end }}
-          </div>
+          </article>
+          {{ partial "edit-page.html" . }}
+          {{ partial "edge-blur.html" "bottom" }}
         </div>
       </div>
-    </div>
-  </article>
-
-  {{ partial "edit-page.html" . }}
+    </main>
+  </div>
 
   {{ partial "image-loading.html" . }}
+  {{ partial "code-toolbar.html" . }}
+  {{ partial "theme-toggle.html" . }}
   {{ partial "footnotes.html" . }}
   {{ if .Site.Params.extraBody }}
   {{ .Site.Params.extraBody | safeHTML }}
   {{ end }}
+  {{ partial "ui.html" . }}
 
 </body>
 

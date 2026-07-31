@@ -1,131 +1,223 @@
 <script>
 (function () {
-  'use strict';
+  'use strict'
+  var sidebar = document.getElementById('tocSidebar')
+  var floatBtn = document.getElementById('tocFloatBtn')
+  var backdrop = document.getElementById('tocBackdrop')
+  var tocScroll = document.getElementById('tocScroll')
+  var tocNav = sidebar && sidebar.querySelector('.toc-nav')
+  var appScroll = document.getElementById('appScroll')
+  var wide = window.matchMedia('(min-width: 84em)')
+  if (!sidebar || !tocNav || !appScroll) return
 
-  var sidebar = document.getElementById('tocSidebar');
-  var floatBtn = document.getElementById('tocFloatBtn');
-  var closeBtn = document.getElementById('tocCloseBtn');
-  var backdrop = document.getElementById('tocBackdrop');
-  var prevOverflow = '';
+  var links = Array.prototype.slice.call(tocNav.querySelectorAll('a[href^="#"]'))
+
+  function focusable() {
+    return sidebar.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')
+  }
+
+  function setNavTabbable(enabled) {
+    links.forEach(function (link) {
+      if (enabled) link.removeAttribute('tabindex')
+      else link.setAttribute('tabindex', '-1')
+    })
+  }
 
   function openToc() {
-    sidebar.classList.add('toc-open');
-    if (backdrop) backdrop.classList.add('toc-open');
-    if (!window.matchMedia || !window.matchMedia('(min-width: 84em)').matches) {
-      prevOverflow = document.body.style.overflow || '';
-      document.body.style.overflow = 'hidden';
+    if (wide.matches) return
+    sidebar.classList.add('toc-open')
+    sidebar.setAttribute('aria-hidden', 'false')
+    setNavTabbable(true)
+    floatBtn.dataset.state = 'open'
+    floatBtn.setAttribute('aria-expanded', 'true')
+    floatBtn.setAttribute('aria-label', '关闭目录')
+    floatBtn.setAttribute('data-tooltip', '关闭目录')
+    backdrop.classList.add('toc-open')
+    if (window.updateActionTooltip) window.updateActionTooltip(floatBtn)
+    updateTocEdges()
+  }
+
+  function closeToc(returnFocus) {
+    if (wide.matches) return
+    sidebar.classList.remove('toc-open')
+    sidebar.setAttribute('aria-hidden', 'true')
+    setNavTabbable(false)
+    floatBtn.dataset.state = ''
+    floatBtn.setAttribute('aria-expanded', 'false')
+    floatBtn.setAttribute('aria-label', '打开目录')
+    floatBtn.setAttribute('data-tooltip', '打开目录')
+    backdrop.classList.remove('toc-open')
+    if (window.updateActionTooltip) window.updateActionTooltip(floatBtn)
+    if (returnFocus !== false) floatBtn.focus()
+  }
+
+  floatBtn.addEventListener('click', function () {
+    if (sidebar.classList.contains('toc-open')) {
+      closeToc(false)
+    } else {
+      var keyboard = floatBtn.matches(':focus-visible')
+      openToc()
+      if (keyboard && links.length) links[0].focus()
+    }
+  })
+  backdrop.addEventListener('click', function () { closeToc(true) })
+  document.addEventListener('keydown', function (event) {
+    if (!sidebar.classList.contains('toc-open')) return
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      closeToc(true)
+      return
+    }
+    if (event.key !== 'Tab') return
+    var items = focusable()
+    if (!items.length) return
+    var first = items[0]
+    var last = items[items.length - 1]
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  })
+
+  function syncMode() {
+    if (wide.matches) {
+      sidebar.classList.remove('toc-open')
+      sidebar.setAttribute('aria-hidden', 'false')
+      backdrop.classList.remove('toc-open')
+      floatBtn.setAttribute('aria-expanded', 'false')
+      floatBtn.removeAttribute('aria-disabled')
+      setNavTabbable(true)
+    } else {
+      var open = sidebar.classList.contains('toc-open')
+      sidebar.setAttribute('aria-hidden', open ? 'false' : 'true')
+      setNavTabbable(open)
+    }
+    updateTocEdges()
+  }
+  if (wide.addEventListener) wide.addEventListener('change', syncMode)
+  else wide.addListener(syncMode)
+  syncMode()
+
+  function decodeHash(hash) {
+    try {
+      return decodeURIComponent(hash)
+    } catch (error) {
+      return hash
     }
   }
 
-  function closeToc() {
-    sidebar.classList.remove('toc-open');
-    if (backdrop) backdrop.classList.remove('toc-open');
-    document.body.style.overflow = prevOverflow;
-  }
-
-  if (floatBtn) floatBtn.addEventListener('click', openToc);
-  if (closeBtn) closeBtn.addEventListener('click', closeToc);
-  if (backdrop) backdrop.addEventListener('click', closeToc);
-
-  var tocNav = sidebar.querySelector('.toc-nav');
-  if (tocNav) {
-    tocNav.addEventListener('click', function (e) {
-      var link = e.target.closest('a');
-      if (!link) return;
-      var href = link.getAttribute('href');
-      if (!href || href.charAt(0) !== '#') return;
-
-      var id = href.slice(1);
-      if (!id) return;
-      var target = document.getElementById(id);
-      if (!target) return;
-
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      history.pushState(null, '', href);
-      if (sidebar.classList.contains('toc-open')) closeToc();
-    });
-  }
-
-  if (window.matchMedia) {
-    var widthMq = window.matchMedia('(min-width: 84em)');
-    widthMq.addListener(function (e) {
-      if (e.matches && sidebar.classList.contains('toc-open')) {
-        document.body.style.overflow = prevOverflow;
-      }
-    });
-  }
-
-  if (typeof IntersectionObserver === 'undefined') return;
-  var links = tocNav ? tocNav.querySelectorAll('a') : [];
-  if (links.length === 0) return;
-
-  var linkMap = {};
-  var headings = [];
+  var entries = []
   links.forEach(function (link) {
-    var href = link.getAttribute('href');
-    if (href && href.charAt(0) === '#') {
-      var id = href.slice(1);
-      var heading = document.getElementById(id);
-      if (heading) {
-        linkMap[id] = link;
-        headings.push(heading);
-      }
-    }
-  });
-  if (headings.length === 0) return;
+    var id = decodeHash(link.getAttribute('href').slice(1))
+    var heading = document.getElementById(id)
+    if (!heading) return
+    var level = parseInt(heading.tagName.slice(1), 10)
+    entries.push({ link: link, heading: heading, level: level, end: null })
+  })
+  entries.forEach(function (entry, index) {
+    entry.end = entries[index + 1] ? entries[index + 1].heading : null
+  })
 
-  var activeId = null;
-  var intersecting = {};
-
-  function pickActive() {
-    for (var i = 0; i < headings.length; i++) {
-      if (intersecting[headings[i].id]) {
-        switchTo(headings[i].id);
-        return;
-      }
-    }
-
-    var observationTop = 80;
-    var best = headings[0];
-    for (var i = 0; i < headings.length; i++) {
-      var top = headings[i].getBoundingClientRect().top;
-      if (top <= observationTop) {
-        best = headings[i];
+  var indicator = document.getElementById('tocIndicator')
+  function updateActive() {
+    if (!entries.length) return
+    var isBody = wide.matches
+    var scrollRect = appScroll.getBoundingClientRect()
+    var viewportTop = isBody ? 0 : scrollRect.top
+    var viewportBottom = isBody ? window.innerHeight : scrollRect.bottom
+    var visible = []
+    entries.forEach(function (entry) {
+      var start = entry.heading.getBoundingClientRect().top
+      var end
+      if (entry.end) {
+        end = entry.end.getBoundingClientRect().top
       } else {
-        break;
+        end = isBody
+          ? document.documentElement.scrollHeight - window.scrollY
+          : appScroll.scrollHeight - appScroll.scrollTop + scrollRect.top
       }
+      var active = end > viewportTop && start < viewportBottom
+      entry.link.classList.toggle('toc-active', active)
+      if (active) visible.push(entry.link)
+    })
+    if (!visible.length) {
+      indicator.classList.remove('is-visible')
+      return
     }
-    switchTo(best.id);
+    var navRect = tocNav.getBoundingClientRect()
+    var first = visible[0].getBoundingClientRect()
+    var last = visible[visible.length - 1].getBoundingClientRect()
+    indicator.style.top = (first.top - navRect.top) + 'px'
+    indicator.style.bottom = (navRect.bottom - last.bottom) + 'px'
+    indicator.classList.add('is-visible')
+
+    var scrollRect = tocScroll.getBoundingClientRect()
+    var margin = 8
+    var adjust = 0
+    if (first.top < scrollRect.top + margin) {
+      adjust = first.top - scrollRect.top - margin
+    } else if (last.bottom > scrollRect.bottom - margin) {
+      adjust = last.bottom - scrollRect.bottom + margin
+    }
+    if (adjust) {
+      tocScroll.scrollBy({ top: adjust, behavior: 'smooth' })
+    }
   }
 
-  function switchTo(id) {
-    if (id === activeId) return;
-    if (activeId && linkMap[activeId]) linkMap[activeId].classList.remove('toc-active');
-    activeId = id;
-    if (linkMap[id]) linkMap[id].classList.add('toc-active');
+  tocNav.addEventListener('click', function (event) {
+    var link = event.target.closest('a[href^="#"]')
+    if (!link) return
+    var target = document.getElementById(decodeHash(link.getAttribute('href').slice(1)))
+    if (!target) return
+    event.preventDefault()
+    requestAnimationFrame(function () {
+      if (wide.matches) {
+        var targetTop = target.getBoundingClientRect().top + window.scrollY - 64
+        window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' })
+      } else {
+        var scrollRect = appScroll.getBoundingClientRect()
+        var top = target.getBoundingClientRect().top - scrollRect.top + appScroll.scrollTop - 64
+        appScroll.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+      }
+    })
+    if (history && history.pushState) history.pushState(null, '', link.getAttribute('href'))
+    if (!wide.matches) closeToc(true)
+  })
+
+  function updateTocEdges() {
+    if (!tocScroll) return
+    var topEdge = tocScroll.querySelector('.edge-blur-top')
+    var bottomEdge = tocScroll.querySelector('.edge-blur-bottom')
+    if (window.toggleScrollFade) {
+      window.toggleScrollFade(tocScroll, topEdge, bottomEdge, 1, 1)
+      return
+    }
+    var max = tocScroll.scrollHeight - tocScroll.clientHeight
+    var top = tocScroll.scrollTop
+    var fadeTop = max > 1 && top > 1
+    var fadeBottom = max > 1 && top < max - 1
+    tocScroll.classList.toggle('has-fade-top', fadeTop)
+    tocScroll.classList.toggle('has-fade-bottom', fadeBottom)
+    if (topEdge) topEdge.classList.toggle('is-visible', fadeTop)
+    if (bottomEdge) bottomEdge.classList.toggle('is-visible', fadeBottom)
   }
 
-  var observer = new IntersectionObserver(function (entries) {
-    for (var i = 0; i < entries.length; i++) {
-      intersecting[entries[i].target.id] = entries[i].isIntersecting;
-    }
-    pickActive();
-  }, {
-    rootMargin: '-80px 0px -70% 0px',
-    threshold: 0
-  });
-
-  headings.forEach(function (h) { observer.observe(h); });
-
-  if (location.hash) {
-    var initialId = location.hash.slice(1);
-    if (linkMap[initialId]) {
-      activeId = initialId;
-      linkMap[initialId].classList.add('toc-active');
-    }
-  } else {
-    pickActive();
+  var activeFrame = 0
+  function onScroll() {
+    cancelAnimationFrame(activeFrame)
+    activeFrame = requestAnimationFrame(updateActive)
   }
-})();
+  appScroll.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('scroll', onScroll, { passive: true })
+  tocScroll.addEventListener('scroll', updateTocEdges, { passive: true })
+  window.addEventListener('resize', function () {
+    updateActive()
+    updateTocEdges()
+  })
+  updateActive()
+  updateTocEdges()
+})()
 </script>

@@ -14,10 +14,18 @@
           <article class="post {{ .Site.Language.Locale }}" id="article">
             <div class="row">
               <div class="col-xs-12">
-                <div class="post-content markdown-body" style="text-align:center;padding:80px 0;">
-                  <h1 style="font-size:4rem;margin-bottom:0;">404</h1>
-                  <p style="color:var(--color-text-secondary);margin-top:8px;">页面未找到</p>
-                  <p><a href="{{ "/" | relURL }}" style="text-decoration:underline;">← 返回首页</a></p>
+                <h1 class="taxonomy-term">{{ .Data.Plural | humanize }}</h1>
+                <div id="posts-list">
+                  <div class="terms-list">
+                    {{ range .Data.Terms.Alphabetical }}
+                    <div class="terms-item">
+                      <a class="terms-link" href="{{ .Page.RelPermalink }}">
+                        <span class="terms-name">{{ .Page.Title }}</span>
+                        <span class="terms-count">{{ .Count }}</span>
+                      </a>
+                    </div>
+                    {{ end }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -34,7 +42,5 @@
   {{ .Site.Params.extraBody | safeHTML }}
   {{ end }}
   {{ partial "ui.html" . }}
-
 </body>
-
 </html>

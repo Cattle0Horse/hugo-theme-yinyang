@@ -1,0 +1,50 @@
+/* ========================================================================
+   Site Header
+   ======================================================================== */
+
+.site-date-catalog {
+  font-size: 2rem;
+}
+
+.header-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: 32px;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.header-title a {
+  text-decoration: none;
+}
+
+.header-subtitle {
+  color: var(--color-text-secondary);
+}
+
+.header-items {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 10px 0;
+  padding-right: 10px;
+}
+
+.header-item:first-child {
+  margin-right: auto;
+}
+
+.header-item {
+  margin: 0;
+  font-weight: bold;
+}
+
+.header-line {
+  width: 100%;
+  border-width: 2px;
+  border-color: var(--color-header-line);
+  border-style: solid none none none;
+}
+
+

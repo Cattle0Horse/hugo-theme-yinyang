@@ -1,0 +1,127 @@
+<script>
+;(function () {
+  var MAX_LINES = {{ .Site.Params.codeMaxLines | default 15 }}
+  var LANG_MAP = {
+    sh: "Shell", bash: "Bash", zsh: "Zsh", js: "JavaScript", ts: "TypeScript",
+    jsx: "JSX", tsx: "TSX", py: "Python", python: "Python", rb: "Ruby", go: "Go",
+    rs: "Rust", java: "Java", kt: "Kotlin", c: "C", cpp: "C++", cs: "C#",
+    swift: "Swift", html: "HTML", xml: "XML", css: "CSS", scss: "SCSS", less: "Less",
+    json: "JSON", yaml: "YAML", toml: "TOML", sql: "SQL", graphql: "GraphQL",
+    dockerfile: "Dockerfile", docker: "Dockerfile", makefile: "Makefile", cmake: "CMake",
+    markdown: "Markdown", md: "Markdown", diff: "Diff", plaintext: "Plain Text", text: "Plain Text",
+    ini: "INI", conf: "Config", lua: "Lua", r: "R", perl: "Perl", php: "PHP",
+    scala: "Scala", elixir: "Elixir", erlang: "Erlang", powershell: "PowerShell",
+    nginx: "Nginx", apache: "Apache"
+  }
+  var COPY_ICON = '<span class="action-icon state-icon state-icon-default"><svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span>'
+  var SUCCESS_ICON = '<span class="action-icon state-icon state-icon-success"><svg viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></svg></span>'
+  var ERROR_ICON = '<span class="action-icon state-icon state-icon-error"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg></span>'
+  var CHEVRON = '<span class="expand-icon action-icon"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>'
+
+  function langLabel(lang) {
+    if (!lang || lang.toLowerCase() === 'fallback') return ""
+    return LANG_MAP[lang.toLowerCase()] || lang
+  }
+
+  function createCopyButton() {
+    var button = document.createElement('button')
+    button.className = 'code-copy-btn action-button state-button'
+    button.type = 'button'
+    button.setAttribute('aria-label', '复制代码')
+    button.setAttribute('data-tooltip', '复制代码')
+    button.innerHTML = COPY_ICON + SUCCESS_ICON + ERROR_ICON
+    return button
+  }
+
+  function bindCopy(button, codeEl) {
+    if (!button || !codeEl || !window.bindCopyButton) return
+    var text = codeEl.textContent || ''
+    if (text.endsWith('\n')) text = text.slice(0, -1)
+    window.bindCopyButton(button, text, { defaultLabel: '复制代码' })
+  }
+
+  function wrapBlock(hl) {
+    if (hl.parentNode.classList.contains("code-block-wrapper")) return
+    var code = hl.querySelector("code[data-lang]")
+    var lineCount = hl.querySelectorAll(".line").length
+    var label = langLabel(code ? code.getAttribute("data-lang") : "")
+    var copyBtn = createCopyButton()
+    var wrapper = document.createElement("div")
+    wrapper.className = "code-block-wrapper"
+    if (label) {
+      var toolbar = document.createElement("div")
+      toolbar.className = "code-toolbar"
+      var langSpan = document.createElement("span")
+      langSpan.className = "code-lang"
+      langSpan.textContent = label
+      toolbar.appendChild(langSpan)
+      toolbar.appendChild(copyBtn)
+      wrapper.appendChild(toolbar)
+    } else {
+      wrapper.classList.add('no-toolbar')
+      copyBtn.classList.add('floating-code-copy')
+      wrapper.appendChild(copyBtn)
+    }
+    hl.parentNode.insertBefore(wrapper, hl)
+
+    var body = document.createElement("div")
+    body.className = "code-block-body"
+    var viewport = document.createElement("div")
+    viewport.className = "code-scroll-viewport"
+    viewport.appendChild(hl)
+    body.appendChild(viewport)
+    wrapper.appendChild(body)
+
+    if (lineCount > MAX_LINES) {
+      body.classList.add("is-folded")
+      var expandBar = document.createElement("button")
+      expandBar.className = "code-expand-bar action-button"
+      expandBar.type = "button"
+      expandBar.setAttribute('aria-expanded', 'false')
+      function updateExpand() {
+        var folded = body.classList.contains('is-folded')
+        expandBar.innerHTML = CHEVRON + '<span>' + (folded ? '展开全部 (' + lineCount + ' 行)' : '收起') + '</span>'
+        expandBar.setAttribute('aria-label', folded ? '展开全部代码' : '收起代码')
+        expandBar.setAttribute('data-tooltip', folded ? '展开全部代码' : '收起代码')
+        expandBar.setAttribute('aria-expanded', String(!folded))
+      }
+      expandBar.addEventListener("click", function () {
+        body.classList.toggle("is-folded")
+        updateExpand()
+      })
+      updateExpand()
+      body.appendChild(expandBar)
+
+      var renderedHeight = hl.scrollHeight
+      if (renderedHeight > 360) {
+        viewport.style.setProperty('--code-height', renderedHeight + 'px')
+      } else {
+        body.classList.remove('is-folded')
+        expandBar.remove()
+      }
+    }
+    bindCopy(copyBtn, wrapper.querySelector('code'))
+  }
+
+  function enhancePlainPre(pre) {
+    if (pre.closest('.highlight') || pre.closest('.plain-code-wrapper')) return
+    var code = pre.querySelector(':scope > code')
+    if (!code) return
+    var wrapper = document.createElement('div')
+    wrapper.className = 'plain-code-wrapper'
+    var copyBtn = createCopyButton()
+    copyBtn.classList.add('plain-code-copy')
+    pre.parentNode.insertBefore(wrapper, pre)
+    wrapper.appendChild(pre)
+    wrapper.appendChild(copyBtn)
+    bindCopy(copyBtn, code)
+  }
+
+  var blocks = document.querySelectorAll('.markdown-body .highlight, .markdown-body pre')
+  for (var i = 0; i < blocks.length; i++) {
+    var el = blocks[i]
+    if (el.classList.contains('highlight')) wrapBlock(el)
+    else enhancePlainPre(el)
+  }
+})()
+</script>

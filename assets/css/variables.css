@@ -1,0 +1,62 @@
+/* ========================================================================
+   CSS Custom Properties
+   ======================================================================== */
+
+:root {
+  color-scheme: light;
+
+  --scroll-fade-size: 48px;
+  --color-bg: #f8f9fa;
+  --color-text: #000;
+  --color-text-secondary: #666;
+  --color-text-muted: #868e96;
+  --color-text-blockquote: #57606a;
+  --color-border: #d0d7de;
+  --color-border-light: #dee2e6;
+  --color-border-medium: #adb5bd;
+  --color-scrollbar: rgba(128, 128, 128, 0.28);
+  --color-scrollbar-hover: rgba(128, 128, 128, 0.46);
+  --color-code-bg: #e9ecef;
+  --color-header-line: var(--color-text);
+  --color-surface: #fff;
+  --color-surface-hover: #e9ecef;
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --color-backdrop: rgba(0, 0, 0, 0.3);
+  --color-ref-highlight: #ffe066;
+  --color-shimmer-from: #e9ecef;
+  --color-shimmer-to: #dee2e6;
+  --accent-bg: #fdf2e0;
+  --accent-border: #e6a817;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #232323;
+  --color-text: #c4c4bc;
+  --color-text-secondary: #a0a098;
+  --color-text-muted: #7c7c74;
+  --color-text-blockquote: #94948c;
+  --color-border: #4a4a4a;
+  --color-border-light: #3d3d3d;
+  --color-border-medium: #5a5a5a;
+  --color-code-bg: #2a2a2a;
+  --color-header-line: var(--color-text);
+  --color-surface: #2b2b2b;
+  --color-surface-hover: #2e2e2e;
+  --color-shadow: rgba(0, 0, 0, 0.3);
+  --color-backdrop: rgba(0, 0, 0, 0.5);
+  --color-ref-highlight: #315f8a;
+  --color-shimmer-from: #2e2e2e;
+  --color-shimmer-to: #3a3a3a;
+  --accent-bg: #2a3a2a;
+  --accent-border: #569cd6;
+}
+
+:root.theme-changing,
+:root.theme-changing *,
+:root.theme-changing *::before,
+:root.theme-changing *::after {
+  transition: none !important;
+}
+
+

@@ -1,8 +1,41 @@
 {{ if not .IsHome -}}
 <script>
 ;(function () {
-	var FN_RE = /^#fn((ref)?):(\d+)$/
+	var FN_RE = /^#fn((ref)?):(\d+)(?:-(\d+))?$/
 	var lastHighlighted = null
+
+	function addTooltip(link, text) {
+		link.setAttribute("data-tooltip", text)
+		link.setAttribute("aria-label", text)
+	}
+
+	function setupTooltips() {
+		document.querySelectorAll('a[href^="#fn:"]').forEach(function (link) {
+			var match = link.getAttribute("href").match(FN_RE)
+			if (match) addTooltip(link, "查看脚注 " + match[3])
+		})
+
+		document.querySelectorAll('a[href^="#fnref:"]').forEach(function (link) {
+			var match = link.getAttribute("href").match(FN_RE)
+			if (!match) return
+			var occurrence = match[4]
+			addTooltip(link, occurrence ? "返回第 " + occurrence + " 处引用" : "返回引用处")
+		})
+	}
+
+	function scrollToTarget(target) {
+		var scroll = document.getElementById("appScroll")
+		if (!scroll || (window.isWide && window.isWide())) {
+			target.scrollIntoView({ behavior: "smooth", block: "center" })
+			return
+		}
+
+		var scrollRect = scroll.getBoundingClientRect()
+		var targetRect = target.getBoundingClientRect()
+		var centered = scroll.scrollTop + targetRect.top - scrollRect.top - (scroll.clientHeight - targetRect.height) / 2
+		var max = Math.max(0, scroll.scrollHeight - scroll.clientHeight)
+		scroll.scrollTo({ top: Math.max(0, Math.min(centered, max)), behavior: "smooth" })
+	}
 
 	function highlight(hash) {
 		var m = hash.match(FN_RE)
@@ -18,10 +51,11 @@
 		lastHighlighted = target
 
 		requestAnimationFrame(function () {
-			target.scrollIntoView({ behavior: "smooth", block: "center" })
+			scrollToTarget(target)
 		})
 		return true
 	}
+	setupTooltips()
 	document.addEventListener("click", function (e) {
 		var link = e.target.closest("a")
 		if (!link) return

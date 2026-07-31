@@ -1,0 +1,16 @@
+{{- $repo := .Site.Params.editPageRepo -}}
+{{- $branchParts := slice -}}
+{{- range split (.Site.Params.editPageBranch | default "main") "/" -}}
+  {{- $branchParts = $branchParts | append (urls.PathEscape .) -}}
+{{- end -}}
+{{- $branch := delimit $branchParts "/" -}}
+{{- $pathParts := slice -}}
+{{- range split .File.Path "/" -}}
+  {{- $pathParts = $pathParts | append (urls.PathEscape .) -}}
+{{- end -}}
+{{- $path := delimit $pathParts "/" -}}
+{{- $parsed := urls.Parse $repo -}}
+{{- return dict
+  "edit" (printf "%s/edit/%s/content/%s" $repo $branch $path)
+  "raw" (printf "https://raw.githubusercontent.com%s/%s/content/%s" $parsed.Path $branch $path)
+-}}

@@ -1,0 +1,131 @@
+/* ========================================================================
+   Image Loading (shimmer skeleton)
+   ======================================================================== */
+
+@keyframes img-shimmer {
+  from { transform: translateX(-170%); }
+  to { transform: translateX(270%); }
+}
+
+@keyframes img-loading-spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.loading-image-frame {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  aspect-ratio: var(--image-ratio, auto);
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.loading-image-frame.is-loading {
+  min-height: 5rem;
+  background: var(--color-shimmer-from);
+  box-shadow: inset 0 0 0 1px var(--color-border-light);
+}
+
+.loading-image-frame.is-loading::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 1;
+  width: 42%;
+  background: linear-gradient(100deg, transparent, var(--color-shimmer-to), transparent);
+  transform: translateX(-170%);
+  animation: img-shimmer 2.6s linear infinite;
+}
+
+.loading-image-frame.is-loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--color-border-medium);
+  border-right-color: transparent;
+  border-bottom-color: var(--color-text-muted);
+  border-radius: 50%;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  animation: img-loading-spin .8s linear infinite;
+}
+
+.loading-image-frame.is-failed,
+.loading-image-frame.is-retrying {
+  width: min(100%, var(--image-width, 100%));
+  min-height: 7rem;
+}
+
+.loading-image-frame.is-failed {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.loading-image-frame img.loading-img {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  opacity: 0;
+  filter: blur(16px);
+  transform: scale(1.02);
+  transition: opacity 500ms ease, filter 500ms ease, transform 500ms ease;
+}
+
+.loading-image-frame img.loading-img.loading-done { opacity: 1; filter: blur(0); transform: scale(1); }
+.loading-image-frame.is-failed img { display: none; }
+.loading-failed[hidden] { display: none; }
+.loading-failed {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  min-height: 7rem;
+  padding: 16px;
+  background: var(--color-code-bg);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+  box-sizing: border-box;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.loading-failed-icon {
+  width: 22px;
+  height: 22px;
+  opacity: .72;
+}
+
+.loading-image-frame.is-failed:hover .loading-failed {
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+}
+
+.loading-failed:focus-visible {
+  outline: 2px solid var(--accent-border);
+  outline-offset: -2px;
+}
+
+.loading-image-frame.is-narrow .loading-failed {
+  flex-direction: row;
+  gap: 8px;
+  padding: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-image-frame.is-loading::before,
+  .loading-image-frame.is-loading::after {
+    animation: none;
+  }
+}
+
+

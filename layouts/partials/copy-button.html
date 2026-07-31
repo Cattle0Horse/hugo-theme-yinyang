@@ -1,0 +1,53 @@
+<script>
+;(function () {
+  window.bindCopyButton = function (button, text, options) {
+    if (!button) return
+    options = options || {}
+    var defaultLabel = options.defaultLabel || button.getAttribute('aria-label') || ''
+    var resetTimer = 0
+
+    function fallbackCopy(value) {
+      var ta = document.createElement('textarea')
+      ta.value = value
+      ta.style.position = 'fixed'
+      ta.style.left = '-9999px'
+      document.body.appendChild(ta)
+      ta.select()
+      var ok = false
+      try { ok = document.execCommand('copy') } catch (error) {}
+      document.body.removeChild(ta)
+      return ok
+    }
+
+    function setState(success) {
+      button.disabled = false
+      var label = success ? (options.successLabel || '已复制') : (options.errorLabel || '复制失败')
+      button.dataset.state = success ? 'success' : 'error'
+      button.setAttribute('aria-label', label)
+      button.setAttribute('data-tooltip', label)
+      if (window.updateActionTooltip) window.updateActionTooltip(button)
+      clearTimeout(resetTimer)
+      resetTimer = setTimeout(function () {
+        button.dataset.state = ''
+        button.setAttribute('aria-label', defaultLabel)
+        button.setAttribute('data-tooltip', defaultLabel)
+        if (window.updateActionTooltip) window.updateActionTooltip(button)
+      }, options.resetDelay || 2000)
+    }
+
+    button.addEventListener('click', function () {
+      if (button.disabled) return
+      button.disabled = true
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          navigator.clipboard.writeText(text).then(function () { setState(true) }).catch(function () { setState(fallbackCopy(text)) })
+        } catch (error) {
+          setState(fallbackCopy(text))
+        }
+      } else {
+        setState(fallbackCopy(text))
+      }
+    })
+  }
+})()
+</script>

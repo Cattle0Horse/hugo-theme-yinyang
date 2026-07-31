@@ -1,40 +1,88 @@
 {{ if and .Site.Params.imageLoading (not .IsHome) }}
 <script>
-	;(function () {
-		function onLoad(img) {
-			img.classList.add("loading-done")
-		}
-		function onError(img) {
-			if (img.classList.contains("loading-done")) return
-			var alt = img.getAttribute("alt") || img.getAttribute("title");
-			if (!alt) {
-				var src = img.getAttribute("src") || ""
-				alt = src.substring(Math.max(src.lastIndexOf("/"), src.lastIndexOf("\\")) + 1) || "图片加载失败"
-			}
-			var w = img.getAttribute("width") || ""
-			var h = img.getAttribute("height") || ""
-			var div = document.createElement("div")
-			div.className = "loading-failed"
-			div.textContent = alt
-			if (w) div.style.maxWidth = w + "px"
-			if (h) {
-				var hi = parseInt(h, 10)
-				if (!isNaN(hi)) div.style.minHeight = Math.min(hi, 400) + "px"
-			}
-			if (img.parentNode) img.parentNode.replaceChild(div, img)
-		}
-		var handlers = { load: onLoad, error: onError }
-		Object.keys(handlers).forEach(function (type) {
-			document.addEventListener(type, function (e) {
-				if (e.target.tagName === "IMG" && e.target.classList.contains("loading-img")) {
-					handlers[type](e.target)
-				}
-			}, true)
-		})
-		document.querySelectorAll("img.loading-img").forEach(function (img) {
-			if (!img.complete) return
-			if (img.naturalWidth > 0) onLoad(img); else onError(img)
-		})
-	})()
+;(function () {
+  function frameFor(img) { return img.closest('.loading-image-frame') }
+
+  function setFrameState(frame, state) {
+    frame.classList.remove('is-loading', 'is-loaded', 'is-failed', 'is-narrow', 'is-retrying')
+    if (state) frame.classList.add(state)
+  }
+
+  function setRetryLabel(frame, label) {
+    var retry = frame.querySelector('.loading-retry')
+    if (!retry) return
+    retry.setAttribute('aria-label', label)
+    retry.setAttribute('data-tooltip', label)
+    if (window.updateActionTooltip) window.updateActionTooltip(retry)
+  }
+
+  function onLoad(img) {
+    var frame = frameFor(img)
+    if (!frame) return
+    setFrameState(frame, 'is-loaded')
+    img.classList.add('loading-done')
+    var failed = frame.querySelector('.loading-failed')
+    if (failed) failed.hidden = true
+  }
+
+  function onError(img) {
+    if (img.classList.contains('loading-done')) return
+    var frame = frameFor(img)
+    if (!frame) return
+    setFrameState(frame, 'is-failed')
+    var imageWidth = parseInt(img.getAttribute('width'), 10) || 0
+    if (imageWidth > 0 && imageWidth <= 260) frame.classList.add('is-narrow')
+    var failed = frame.querySelector('.loading-failed')
+    if (failed) failed.hidden = false
+    setRetryLabel(frame, '点击重试')
+  }
+
+  function retryFrame(frame) {
+    var img = frame && frame.querySelector('img.loading-img')
+    if (!img || img.classList.contains('loading-done')) return
+    setFrameState(frame, 'is-loading')
+    frame.classList.add('is-retrying')
+    var failed = frame.querySelector('.loading-failed')
+    if (failed) failed.hidden = true
+    setRetryLabel(frame, '正在重新加载')
+    var original = img.getAttribute('data-original-src') || img.src
+    if (/^(?:data|blob):/i.test(original)) {
+      onError(img)
+      return
+    }
+    var hashIndex = original.indexOf('#')
+    var hash = hashIndex === -1 ? '' : original.slice(hashIndex)
+    var base = hashIndex === -1 ? original : original.slice(0, hashIndex)
+    var separator = base.indexOf('?') === -1 ? '?' : '&'
+    img.src = base + separator + 'retry=' + String(Date.now()) + hash
+  }
+
+  document.addEventListener('load', function (event) {
+    if (event.target.matches && event.target.matches('img.loading-img')) onLoad(event.target)
+  }, true)
+  document.addEventListener('error', function (event) {
+    if (event.target.matches && event.target.matches('img.loading-img')) onError(event.target)
+  }, true)
+  document.addEventListener('click', function (event) {
+    var frame = event.target.closest('.loading-image-frame')
+    if (!frame || !frame.classList.contains('is-failed')) return
+    retryFrame(frame)
+  })
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    var frame = event.target.closest('.loading-image-frame')
+    if (!frame || !frame.classList.contains('is-failed')) return
+    event.preventDefault()
+    retryFrame(frame)
+  })
+
+  document.querySelectorAll('.loading-image-frame').forEach(function (frame) {
+    frame.classList.add('is-loading')
+    var img = frame.querySelector('img.loading-img')
+    if (!img || !img.complete) return
+    if (img.naturalWidth > 0) onLoad(img)
+    else onError(img)
+  })
+})()
 </script>
 {{ end }}

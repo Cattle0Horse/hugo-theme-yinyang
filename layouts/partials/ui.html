@@ -1,0 +1,128 @@
+<div class="ui-tooltip" id="uiTooltip" role="tooltip" aria-hidden="true"></div>
+<script>
+;(function () {
+  function toggleScrollFade(scroll, topEdge, bottomEdge, topThreshold, bottomThreshold) {
+    if (!scroll) return
+    topThreshold = topThreshold == null ? 0 : topThreshold
+    bottomThreshold = bottomThreshold == null ? 0 : bottomThreshold
+    var useBody = !!scroll._bodyScroll
+    var max = useBody ? document.documentElement.scrollHeight - window.innerHeight : scroll.scrollHeight - scroll.clientHeight
+    var top = useBody ? window.scrollY : scroll.scrollTop
+    var fadeTop = max > 1 && top > topThreshold
+    var fadeBottom = max > 1 && top < max - bottomThreshold
+    if (!useBody) {
+      scroll.classList.toggle('has-fade-top', fadeTop)
+      scroll.classList.toggle('has-fade-bottom', fadeBottom)
+    }
+    if (topEdge) topEdge.classList.toggle('is-visible', fadeTop)
+    if (bottomEdge) bottomEdge.classList.toggle('is-visible', fadeBottom)
+  }
+
+  window.toggleScrollFade = toggleScrollFade
+
+  var scroll = document.getElementById('appScroll')
+  var header = document.getElementById('appHeader')
+  var topBlur = scroll ? scroll.querySelector('.edge-blur-top') : null
+  var bottomBlur = scroll ? scroll.querySelector('.edge-blur-bottom') : null
+  var wideMq = window.matchMedia('(min-width: 84em)')
+
+  function isWide() { return wideMq.matches }
+  window.isWide = isWide
+
+  if (scroll) {
+    var edgeFrame = 0
+    function updateEdges() {
+      cancelAnimationFrame(edgeFrame)
+      edgeFrame = requestAnimationFrame(function () {
+        scroll._bodyScroll = isWide()
+        toggleScrollFade(scroll, topBlur, bottomBlur, 20, 20)
+      })
+    }
+
+    scroll.addEventListener('scroll', updateEdges, { passive: true })
+    window.addEventListener('scroll', updateEdges, { passive: true })
+    window.addEventListener('resize', updateEdges)
+    wideMq.addEventListener('change', updateEdges)
+    updateEdges()
+    if (location.hash) {
+      requestAnimationFrame(function () {
+        var hash = location.hash.slice(1)
+        try { hash = decodeURIComponent(hash) } catch (error) {}
+        var target = document.getElementById(hash)
+        if (target) {
+          if (isWide()) {
+            var top = target.getBoundingClientRect().top + window.scrollY - 64
+            window.scrollTo({ top: Math.max(0, top), behavior: 'auto' })
+          } else {
+            var scrollRect = scroll.getBoundingClientRect()
+            scroll.scrollTop = Math.max(0, target.getBoundingClientRect().top - scrollRect.top + scroll.scrollTop - 64)
+          }
+        }
+      })
+    }
+  }
+
+  var tooltip = document.getElementById('uiTooltip')
+  var active = null
+  var timer = 0
+
+  function positionTooltip(target) {
+    if (!tooltip || !target) return
+    var rect = target.getBoundingClientRect()
+    var tip = tooltip.getBoundingClientRect()
+    var top = rect.top - tip.height - 8
+    var below = top < 8
+    if (below) top = rect.bottom + 8
+    var left = rect.left + (rect.width - tip.width) / 2
+    left = Math.max(8, Math.min(left, window.innerWidth - tip.width - 8))
+    tooltip.style.left = left + 'px'
+    tooltip.style.top = top + 'px'
+    tooltip.classList.toggle('is-below', below)
+  }
+
+  function show(target, delayed) {
+    clearTimeout(timer)
+    timer = setTimeout(function () {
+      active = target
+      tooltip.textContent = target.getAttribute('data-tooltip') || target.getAttribute('aria-label')
+      tooltip.setAttribute('aria-hidden', 'false')
+      tooltip.classList.add('is-visible')
+      positionTooltip(target)
+    }, delayed ? 300 : 0)
+  }
+
+  function hide(target) {
+    clearTimeout(timer)
+    if (target && active && target !== active) return
+    active = null
+    tooltip.classList.remove('is-visible')
+    tooltip.setAttribute('aria-hidden', 'true')
+  }
+
+  window.updateActionTooltip = function (target) {
+    if (active !== target) return
+    tooltip.textContent = target.getAttribute('data-tooltip') || target.getAttribute('aria-label')
+    positionTooltip(target)
+  }
+
+  if (window.matchMedia('(hover: hover)').matches) {
+    document.addEventListener('mouseover', function (event) {
+      var target = event.target.closest('[data-tooltip]')
+      if (target && !target.contains(event.relatedTarget)) show(target, true)
+    })
+    document.addEventListener('mouseout', function (event) {
+      var target = event.target.closest('[data-tooltip]')
+      if (target && !target.contains(event.relatedTarget)) hide(target)
+    })
+  }
+  document.addEventListener('focusin', function (event) {
+    var target = event.target.closest('[data-tooltip]')
+    if (target && target.matches(':focus-visible')) show(target, false)
+  })
+  document.addEventListener('focusout', function (event) {
+    var target = event.target.closest('[data-tooltip]')
+    if (target) hide(target)
+  })
+  window.addEventListener('resize', function () { if (active) positionTooltip(active) })
+})()
+</script>

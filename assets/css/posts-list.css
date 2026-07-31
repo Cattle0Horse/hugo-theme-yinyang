@@ -1,0 +1,52 @@
+/* ========================================================================
+   Posts List (homepage, section pages)
+   ======================================================================== */
+
+#posts-list {
+  min-height: 600px;
+}
+
+.posts-line {
+  font-size: 1.2rem;
+  margin: 12px 0;
+}
+
+.posts-categories {
+  font-size: 0.8rem;
+  margin: auto;
+  text-align: center;
+}
+
+.posts-category {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.posts-category:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-medium);
+  text-decoration: none;
+}
+
+@media screen and (max-width: 600px) {
+  .posts-line {
+    font-size: 16px;
+  }
+
+  .posts-date {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+}
+
+@media screen and (max-width: 48em) {
+  .posts-category {
+    display: none;
+  }
+}
+
+

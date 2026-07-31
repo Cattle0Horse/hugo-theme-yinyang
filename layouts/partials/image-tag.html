@@ -10,16 +10,27 @@
 {{- end -}}
 
 {{- /* Skip SVG — dimensions may be unreliable (0 or incorrect) */ -}}
-{{- $isSvg := and $img (eq $img.MediaType.SubType "svg") -}}
+{{- $isSvg := or (and $img (eq $img.MediaType.SubType "svg")) (eq (lower (path.Ext $src)) ".svg") -}}
 {{- if and $img (not $isSvg) -}}
   {{- $width = $img.Width -}}
   {{- $height = $img.Height -}}
 {{- end -}}
 
+{{- $enhanced := and $page.Site.Params.imageLoading (not $page.IsHome) (not $isSvg) -}}
+{{- if $enhanced }}
+<span class="loading-image-frame"{{ with $width }} style="--image-width: {{ . }}px;{{ with $height }} --image-ratio: {{ $width }} / {{ . }};{{ end }}"{{ end }}>
+{{- end }}
 <img src="{{ $src }}"
      alt="{{ .Alt }}"
      {{- with .Title }} title="{{ . }}"{{ end -}}
      {{- with $width }} width="{{ . }}"{{ end -}}
      {{- with $height }} height="{{ . }}"{{ end -}}
      {{- if $page.Site.Params.lazyImage }} loading="lazy"{{ end -}}
-     {{- if and $page.Site.Params.imageLoading (not $isSvg) }} class="loading-img"{{ end }}>
+     {{- if $enhanced }} class="loading-img" data-original-src="{{ $src }}"{{ end }}>
+{{- if $enhanced }}
+  <span class="loading-failed loading-retry" role="button" tabindex="0" aria-label="点击重试" data-tooltip="点击重试" hidden>
+    <span class="loading-failed-icon action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m3 16 5-5 4 4 2-2 7 7"/><path d="m17 8-5 5"/><path d="m12 8 5 5"/></svg></span>
+    <span class="loading-failed-text">点击重试</span>
+  </span>
+</span>
+{{- end }}

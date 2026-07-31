@@ -1,6 +1,8 @@
 # YinYang
 
-> Fork 自 [joway/hugo-theme-yinyang](https://github.com/joway/hugo-theme-yinyang)，在其布局基础上增加了部分功能，如 Markdown Action（快捷复制文章）、大纲、脚注跳转及高亮显示等
+> 布局参考 [joway/hugo-theme-yinyang](https://github.com/joway/hugo-theme-yinyang)
+> 在其基础上增加了额外功能，如 Markdown Action（快捷复制文章）、大纲、脚注跳转及高亮显示等
+> 动效参考了 [detail.design](https://detail.design/) 的提示
 
 站点示例：<https://cattle0horse.github.io/>
 
@@ -9,7 +11,7 @@
 在站点根目录执行：
 
 ```shell
-git submodule add https://github.com/joway/hugo-theme-yinyang.git themes/yinyang
+git submodule add https://github.com/Cattle0Horse/hugo-theme-yinyang.git themes/yinyang
 ```
 
 修改 `config.toml`：
@@ -109,6 +111,14 @@ extraCSSFiles = ["css/foo.css", "css/bar.css"]
 postHeaderContent = ""
 postFooterContent = ""
 ```
+
+### 图片、文章操作与目录
+
+`lazyImage` 为文章图片启用原生懒加载；`imageLoading` 额外启用加载占位和失败重试。`markdownActions` 启用原始 Markdown 复制按钮，`tableOfContents` 启用文章目录。文章 front matter 使用 `toc: false` 可单篇禁用目录，旧配置中的 `notoc: true` 也保持兼容。
+
+`editPageRepo` 启用纠错链接和原始文件操作，`editPageBranch` 默认值为 `main`，`editPageText` 可覆盖链接文案；`codeMaxLines`（默认 15）控制长代码块的折叠阈值。
+
+`extraHead`、`extraBody` 和 `postHeaderContent`、`postFooterContent` 会按原样通过 `safeHTML` 注入，仅应填入可信内容。`extraCSSFiles` 则按路径生成样式链接。
 
 ## 示例
 

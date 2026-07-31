@@ -1,11 +1,8 @@
 {{ if and .Site.Params.editPageRepo .File }}
-{{- $repo := .Site.Params.editPageRepo -}}
-{{- $branch := .Site.Params.editPageBranch | default "main" -}}
-{{- $path := replace .File.Path " " "%20" -}}
-{{- $url := printf "%s/edit/%s/content/%s" $repo $branch $path -}}
+{{- $urls := partialCached "edit-urls.html" . .File.Path -}}
 {{- $text := .Site.Params.editPageText | default "有错误？欢迎提交 Pull Request" -}}
 <div class="edit-page">
   <hr>
-  {{ printf "<a href=\"%s\">%s</a>" $url $text | safeHTML }}
+  {{ printf "<a href=\"%s\">%s</a>" ($urls.edit) $text | safeHTML }}
 </div>
 {{ end }}

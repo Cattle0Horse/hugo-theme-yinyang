@@ -1,0 +1,97 @@
+/* ========================================================================
+   Action Buttons & Tooltip
+   ======================================================================== */
+
+.action-button {
+  position: relative;
+  display: inline-flex;
+  appearance: none;
+  -webkit-appearance: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  font-family: inherit;
+  cursor: pointer;
+  transform: scale(1);
+  transition-property: transform, color, background-color, border-color, opacity;
+  transition-duration: 160ms, 300ms, 300ms, 300ms, 150ms;
+  transition-timing-function: ease;
+}
+
+.action-button:active {
+  transform: scale(.94);
+  transition-duration: 100ms, 300ms, 300ms, 300ms, 150ms;
+}
+.action-button:disabled,
+.action-button[aria-disabled="true"] { cursor: default; }
+.action-icon { display: inline-flex; width: 18px; height: 18px; }
+
+.header-item a,
+.posts-title a,
+.terms-link,
+.edit-page a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+}
+.action-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.state-button .state-icon {
+  position: absolute;
+  opacity: 0;
+  filter: blur(4px);
+  transform: scale(.8);
+  transition: opacity 180ms ease, filter 180ms ease, transform 180ms ease;
+}
+
+.state-button .state-icon-default,
+.state-button[data-state="success"] .state-icon-success,
+.state-button[data-state="error"] .state-icon-error {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+}
+
+.state-button[data-state="success"] .state-icon-default,
+.state-button[data-state="error"] .state-icon-default,
+.state-button[data-state="open"] .state-icon-default { opacity: 0; filter: blur(4px); transform: scale(.8); }
+
+.state-button[data-state="open"] .state-icon-open {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+}
+
+.ui-tooltip {
+  position: fixed;
+  z-index: 2000;
+  max-width: calc(100vw - 16px);
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  box-shadow: 0 2px 8px var(--color-shadow);
+  font-size: 12px;
+  line-height: 1.25;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(3px);
+  transition: opacity 120ms ease, transform 120ms ease, background-color 300ms ease, color 300ms ease;
+}
+
+.ui-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -4px;
+  border: 4px solid transparent;
+  border-top-color: var(--color-text);
+}
+
+.ui-tooltip.is-visible { opacity: 1; transform: translateY(0); }
+.ui-tooltip.is-below::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--color-text); }
+
+

@@ -1,16 +1,26 @@
-<header>
+<header class="site-header-content">
   <div class="header-title">
     <a href="/"
       >{{ or .Site.Params.headTitle .Site.Params.author.name }}</a
     >
   </div>
   <div class="header-subtitle">{{ .Site.Params.Description }}</div>
-</header>
-<div class="row end-md header-items">
-  {{ range .Site.Params.socials }}
-  <div class="header-item">
-    <a href="{{ .link }}" target="_blank">{{ .name }}</a>
+  <div class="header-items">
+    <div class="header-item">
+      <button class="theme-toggle action-button" id="theme-toggle" type="button" aria-label="切换至深色模式" data-tooltip="切换至深色模式">
+        <span class="action-icon theme-toggle-dark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </span>
+        <span class="action-icon theme-toggle-light" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </span>
+      </button>
+    </div>
+    {{ range .Site.Params.socials }}
+    <div class="header-item">
+      <a href="{{ .link }}"{{ if hasPrefix .link "http" }} target="_blank" rel="noopener"{{ end }}>{{ .name }}</a>
+    </div>
+    {{ end }}
   </div>
-  {{ end }}
-</div>
-<div class="header-line"></div>
+  <div class="header-line"></div>
+</header>

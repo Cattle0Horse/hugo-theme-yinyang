@@ -1,0 +1,54 @@
+/* ========================================================================
+   Footnotes
+   ======================================================================== */
+
+.footnotes li {
+  scroll-margin-top: 20px;
+}
+
+.footnotes li.footnote-highlight {
+  position: relative;
+}
+
+.footnotes li.footnote-highlight::before,
+sup.ref-highlight::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  animation: highlight-fade 2.5s ease-out forwards;
+}
+
+@keyframes highlight-fade {
+  0%   { opacity: 1; }
+  10%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.footnotes li.footnote-highlight::before {
+  inset: -4px -8px;
+  background: var(--accent-bg);
+  box-shadow: inset 3px 0 0 var(--accent-border);
+  border-radius: 0 4px 4px 0;
+  animation-duration: 3s;
+}
+
+sup.ref-highlight {
+  display: inline-block;
+  position: relative;
+  border-radius: 4px;
+  animation: ref-pop 2.5s ease-out forwards;
+}
+
+@keyframes ref-pop {
+  0%   { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+sup.ref-highlight::before {
+  inset: -3px -7px;
+  background: var(--color-ref-highlight);
+  border-radius: 4px;
+}
+
+

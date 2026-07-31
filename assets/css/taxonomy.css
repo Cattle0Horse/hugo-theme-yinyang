@@ -1,0 +1,47 @@
+/* ========================================================================
+   Taxonomy Terms
+   ======================================================================== */
+
+.taxonomy-term {
+  font-size: 3rem;
+}
+
+.terms-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.terms-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 1rem;
+  transition-property: background, border-color, color;
+  transition-duration: 0.15s;
+}
+
+.terms-link:hover {
+  font-weight: normal;
+  text-decoration: none;
+  background: var(--color-surface-hover);
+  border-color: var(--color-border);
+}
+
+.terms-count {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  background: var(--color-code-bg);
+  border-radius: 10px;
+  padding: 0 6px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+
