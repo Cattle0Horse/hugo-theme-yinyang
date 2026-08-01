@@ -31,13 +31,61 @@
 
   if (scroll) {
     var edgeFrame = 0
+    var activeScrollEl = isWide() ? document.documentElement : scroll
+
     function updateEdges() {
       cancelAnimationFrame(edgeFrame)
       edgeFrame = requestAnimationFrame(function () {
         scroll._bodyScroll = isWide()
         toggleScrollFade(scroll, topBlur, bottomBlur, 20, 20)
       })
+      // swap active scroll target on breakpoint change
+      var next = isWide() ? document.documentElement : scroll
+      if (next !== activeScrollEl) {
+        activeScrollEl.classList.remove('show-scrollbar')
+        activeScrollEl = next
+      }
+      nearScrollbar = false
     }
+
+    // ---- scrollbar visibility: show only when scrolling or near scrollbar ----
+    var scrollTimer = 0
+    var SCROLLBAR_VISIBLE_MS = 600
+    var nearScrollbar = false
+    var cachedRect = null
+    var mouseFrame = 0
+
+    function requestHideScrollbar(el) {
+      clearTimeout(scrollTimer)
+      scrollTimer = setTimeout(function () {
+        if (!nearScrollbar) el.classList.remove('show-scrollbar')
+      }, SCROLLBAR_VISIBLE_MS)
+    }
+    function showScrollbarTemporary() {
+      activeScrollEl.classList.add('show-scrollbar')
+      requestHideScrollbar(activeScrollEl)
+    }
+
+    scroll.addEventListener('scroll', showScrollbarTemporary, { passive: true })
+    window.addEventListener('scroll', showScrollbarTemporary, { passive: true })
+
+    document.addEventListener('mousemove', function (e) {
+      cancelAnimationFrame(mouseFrame)
+      mouseFrame = requestAnimationFrame(function () {
+        if (!cachedRect) cachedRect = activeScrollEl.getBoundingClientRect()
+        var wasNear = nearScrollbar
+        nearScrollbar = e.clientX > cachedRect.right - 24
+        if (nearScrollbar) {
+          activeScrollEl.classList.add('show-scrollbar')
+          clearTimeout(scrollTimer)
+        } else if (wasNear) {
+          requestHideScrollbar(activeScrollEl)
+        }
+      })
+    }, { passive: true })
+
+    window.addEventListener('resize', function () { cachedRect = null })
+    wideMq.addEventListener('change', function () { cachedRect = null })
 
     scroll.addEventListener('scroll', updateEdges, { passive: true })
     window.addEventListener('scroll', updateEdges, { passive: true })

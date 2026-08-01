@@ -55,6 +55,11 @@ body {
   box-sizing: border-box;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s;
+}
+
+.app-scroll.show-scrollbar {
   scrollbar-color: var(--color-scrollbar) transparent;
 }
 
@@ -70,11 +75,16 @@ body {
 }
 
 .app-scroll::-webkit-scrollbar-thumb {
-  background: var(--color-scrollbar);
+  background: transparent;
   border-radius: 3px;
+  transition: background 0.3s;
 }
 
-.app-scroll::-webkit-scrollbar-thumb:hover {
+.app-scroll.show-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+}
+
+.app-scroll.show-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--color-scrollbar-hover);
 }
 
@@ -124,13 +134,19 @@ body {
     height: auto;
     min-height: 100%;
     scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s;
+  }
+
+  html.show-scrollbar {
     scrollbar-color: var(--color-scrollbar) transparent;
   }
 
   html::-webkit-scrollbar { width: 6px; }
   html::-webkit-scrollbar-track { background: transparent; }
-  html::-webkit-scrollbar-thumb { background: var(--color-scrollbar); border-radius: 3px; }
-  html::-webkit-scrollbar-thumb:hover { background: var(--color-scrollbar-hover); }
+  html::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; transition: background 0.3s; }
+  html.show-scrollbar::-webkit-scrollbar-thumb { background: var(--color-scrollbar); }
+  html.show-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-scrollbar-hover); }
 
   .app-shell {
     height: auto;
