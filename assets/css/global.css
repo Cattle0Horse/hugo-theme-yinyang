@@ -21,6 +21,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
   font-weight: normal;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   margin: 0;
   color: var(--color-text);
 }
@@ -51,6 +52,7 @@ a:hover {
 .markdown-body {
   font-size: 18px;
   max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .markdown-body a {

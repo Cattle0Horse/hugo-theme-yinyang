@@ -17,7 +17,7 @@
   padding: 2px 10px;
   margin: 2px 6px 2px 0;
   border: 1px solid var(--color-border);
-  border-radius: 5px;
+  border-radius: 4px;
   color: var(--color-text-secondary);
   text-decoration: none;
 }
@@ -124,6 +124,7 @@
 }
 
 .markdown-action-btn {
+  position: relative;
   font-size: 12px;
   font-weight: 600;
   font-style: normal;
@@ -142,6 +143,12 @@
   width: 26px;
   height: 26px;
   line-height: 1;
+}
+
+.markdown-action-btn::after {
+  content: "";
+  position: absolute;
+  inset: -9px;
 }
 
 .markdown-action-btn:hover {
