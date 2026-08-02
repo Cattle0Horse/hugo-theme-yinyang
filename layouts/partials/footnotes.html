@@ -1,7 +1,7 @@
 {{ if not .IsHome -}}
 <script>
 ;(function () {
-	var FN_RE = /^#fn((ref)?):(\d+)(?:-(\d+))?$/
+	var FN_RE = /^#fn(?:(ref)(\d*))?:([\d]+)(?:-(\d+))?$/
 	var lastHighlighted = null
 
 	function addTooltip(link, text) {
@@ -15,10 +15,10 @@
 			if (match) addTooltip(link, "查看脚注 " + match[3])
 		})
 
-		document.querySelectorAll('a[href^="#fnref:"]').forEach(function (link) {
+		document.querySelectorAll('a[href^="#fnref"]').forEach(function (link) {
 			var match = link.getAttribute("href").match(FN_RE)
 			if (!match) return
-			var occurrence = match[4]
+			var occurrence = match[2]
 			addTooltip(link, occurrence ? "返回第 " + occurrence + " 处引用" : "返回引用处")
 		})
 	}
