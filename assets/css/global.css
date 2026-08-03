@@ -26,6 +26,10 @@ body {
   color: var(--color-text);
 }
 
+::selection {
+  background-color: var(--color-selection);
+}
+
 article {
   max-width: 800px;
   margin-left: auto;

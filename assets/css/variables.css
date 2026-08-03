@@ -23,6 +23,7 @@
   --color-shadow: rgba(0, 0, 0, 0.1);
   --color-backdrop: rgba(0, 0, 0, 0.3);
   --color-ref-highlight: #ffe066;
+  --color-selection: #fff3b0;
   --color-shimmer-from: #e9ecef;
   --color-shimmer-to: #dee2e6;
   --accent-bg: #fdf2e0;
@@ -46,6 +47,7 @@
   --color-shadow: rgba(0, 0, 0, 0.3);
   --color-backdrop: rgba(0, 0, 0, 0.5);
   --color-ref-highlight: #315f8a;
+  --color-selection: var(--color-ref-highlight);
   --color-shimmer-from: #2e2e2e;
   --color-shimmer-to: #3a3a3a;
   --accent-bg: #2a3a2a;
