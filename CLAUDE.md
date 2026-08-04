@@ -63,6 +63,20 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 - `theme-toggle.html` 提供切换按钮交互，切换时短暂添加 `theme-changing` class 禁用 CSS transition（避免颜色渐变闪烁）。
 - 主题按钮嵌入在 `header.html` 中。
 
+### 跨功能通用约定
+
+以下约定由 TOC / 脚注 / 图片加载 / 代码块等功能的实现中提炼，**新增任何浮层、模态或动态 UI 时应遵循**：
+
+- **颜色必须走 CSS 变量**：任何可见颜色不得硬编码，先在 `variables.css` 的亮/暗两套 `:root` 中定义变量（如 `--color-xxx`），再在样式中引用。这样主题切换时颜色自动跟随（`data-theme` 属性驱动）。
+- **主题切换表现**：切换瞬间 `theme-changing` class 会以 `transition: none !important` 禁用全局过渡，属预期机制——避免颜色渐变闪烁。新增 UI 无需为此特判，但应确保其颜色由 CSS 变量驱动而非硬编码。
+- **动画与 reduced-motion**：所有动画必须尊重 `prefers-reduced-motion: reduce`（无动画降级，参考 `image-loading.css`）。打开/关闭类动画，销毁 DOM 前须等动画结束（`transitionend` + `setTimeout` 兜底，reduced-motion 下直接销毁）。
+- **模态键盘可达性**：`role="dialog"` + `aria-modal="true"` 的模态须支持：打开时焦点移入容器（`tabindex="-1"`）、Esc 关闭、关闭时焦点归还触发元素（参考 TOC 浮层）。模态内有可聚焦控件时用 Tab 焦点陷阱循环；无控件时拦截 Tab、焦点保持在其容器。
+- **双模式滚动锁定**：任何需要锁背景滚动的模态，必须同时处理宽屏 `html/body` 与窄屏 `#appScroll` 两个滚动容器；用 `html.xxx-open` class + CSS 规则实现（非内联样式），并记录/还原各自滚动位置。
+- **事件委托**：交互统一用 `document` 级委托 + 打开态 guard（如 `document.querySelector('.xxx')` 已存在则 return），避免重复触发；多个监听器对同一事件按注册顺序执行，先注册先处理。
+- **按需创建销毁 DOM**：模态按需 `createElement` + append 到 body，关闭后 `remove()`，不预置空 DOM；动态插入的文本一律用 `textContent`（防 XSS），不用 `innerHTML`。
+- **z-index 分层**：TOC backdrop `998` / 面板 `1000` / 浮层按钮 `1001`；全屏模态（如灯箱）`2000`（最顶层）。新增浮层参照此表选层级。
+- **tooltip 边界**：`data-tooltip` 用于 hover/focus 提示（由 `ui.html` 统一处理）；模态内的控件用 `aria-label` 标注，不挂 `data-tooltip`，避免模态中出现多余浮层。
+
 ### Partial 及其职责与加载位置
 
 | Partial | 加载位置 | 条件 |
