@@ -122,6 +122,26 @@ postFooterContent = ""
 
 `extraHead`、`extraBody` 和 `postHeaderContent`、`postFooterContent` 会按原样通过 `safeHTML` 注入，仅应填入可信内容。`extraCSSFiles` 则按路径生成样式链接。
 
+### Gallery 图库
+
+`gallery` 是一个专门渲染图片网格的内容类型。在 `content/gallery/` 目录下创建文章，front matter 声明 `gallery` 数组即可，无需正文：
+
+```toml
+---
+title: "相册示例"
+date: 2026-08-04
+gallery:
+  - url: "/images/little-bear-light.png"
+    name: "白日小熊"
+  - url: "https://example.com/photo.jpg"
+    name: "远程图片"
+---
+```
+
+每张图片由共享的 `image-tag.html` 渲染，自动获得与正文图片一致的懒加载、骨架屏和失败重试能力（受 `lazyImage` / `imageLoading` 控制），并以两列网格布局展示，`name` 显示为图片下方的说明文字。
+
+> 注意：`gallery` 不属于 `mainSections`（默认 `["posts"]`），因此不会出现在首页或 `/gallery/` 列表页，需通过文章 URL 直接访问。可参考 `exampleSite/content/gallery/sample.md`。
+
 ## 示例
 
 ```toml
