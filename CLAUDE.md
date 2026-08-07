@@ -96,20 +96,31 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 | `actions-state.html` | `markdown-actions.html`、`edit-page.html`、`single.html`、`gallery/single.html` | 始终（计算 `hasGitHub`/`hasMarkdown`/`hasAny` 谓词，供文章操作区 gate 共用） |
 | `ai-label.html` | `single.html`（`post-header` 内 meta 行之后） | 文章 `ai` 为 `assisted`/`generated` 且 `aiLabel.enabled` 非 `false` |
 | `copy-button.html` | `single.html`、`gallery/single.html`（`<body>` 最顶部） | 始终（定义 `bindCopyButton` 全局函数） |
-| `code-toolbar.html` | `single.html`、`gallery/single.html`（`</body>` 前） | 始终（自动为所有 `.highlight` 和 `pre` 包装工具栏） |
+| `code-toolbar.html` | `single.html`、`gallery/single.html`（`</body>` 前） | 始终（运行时：绑定复制、折叠交互、缩进块包装） |
 | `image-loading.html` | `single.html`、`gallery/single.html`（`</body>` 前） | `image.enabled` + `image.loading` 启用且非首页 |
 | `image-tag.html` | `_markup/render-image.html`、`gallery/single.html` | 始终（共享 `<img>` 尺寸解析与骨架屏渲染） |
 | `edit-page.html` | `single.html`、`gallery/single.html`（文章底部） | `actions.enabled` + `actions.editPage.enabled` 且 `.File` 存在 |
 | `edit-urls.html` | `edit-page.html`、`markdown-actions.html` | `actions.editPage` 配置且 `.File` 存在 |
+| `icon.html` | 各模板（图标处） | 始终（内联 SVG 图标 partial，源在 `assets/icons/*.svg`） |
+
+### 图标系统
+
+- **源**：所有图标为独立 SVG 文件，位于 `assets/icons/*.svg`（含 `xmlns`，可被图像软件独立查看/预览）。
+- **渲染**：`partials/icon.html` 在构建期 `resources.Get` 读取图标文件并内联进 HTML。内联时**去除 `xmlns`**（HTML 中 svg 无需命名空间）并按参数注入 `class`。
+- **用法**：
+  - `{{ partial "icon.html" (dict "name" "copy") }}` → 裸 svg
+  - `{{ partial "icon.html" (dict "name" "copy" "wrap" "action-icon" "wrapClass" "state-icon state-icon-default") }}` → `<span class="action-icon..."><svg>...</svg></span>`
+- **着色**：`.action-icon svg { stroke: currentColor }`（actions.css），图标不硬编码颜色，跟随主题 CSS 变量。
+- **运行时 JS**：`code-toolbar.html` 缩进块运行时包装用的图标保留单处 `COPY_ICONS` 常量（构建期 partial 无法进入 JS 字符串）。
 
 ### 代码块工具栏
 
-`code-toolbar.html`（约 130 行 JS）在客户端自动增强所有代码块：
-
-1. 为 `.highlight` 块包装 `.code-block-wrapper`，添加语言标签和复制按钮。
-2. 行数超过 `codeMaxLines`（默认 15）时折叠，底部显示展开按钮。折叠通过 `max-height: 360px` + `is-folded` class 实现；若渲染高度不超过 360px 则自动移除折叠。
-3. 无语言标签的 `<pre>` 块包装为 `.plain-code-wrapper`，添加浮动复制按钮。
-4. 复制功能由 `copy-button.html` 提供的 `bindCopyButton()` 实现，优先级 `navigator.clipboard.writeText` → `document.execCommand('copy')` 降级。
+- `_markup/render-codeblock.html`：**构建期**复刻 Chroma 输出（`transform.HighlightCodeBlock`，保留 fence 的 `.Options`/`.Attributes` 并尊重站点 `[markup.highlight]`），并预构建工具栏结构：`.code-block-wrapper` + 语言标签（`LANG_MAP` 映射，构建期生成）+ 复制按钮（`data-copy-block`）。行数超过 `codeMaxLines`（默认 15）时预置 `is-folded` + 展开按钮（`data-lines`）。
+- `code-toolbar.html`（运行时，约 50 行 JS）只做交互部分：
+  1. 给构建期 `[data-copy-block]` 按钮绑定复制（取同 wrapper 的 `code` 文本）。
+  2. 折叠交互：toggle `is-folded`；**高度校验**——实际渲染高度 ≤ `--code-fold-max`（CSS 变量，variables.css，默认 360px）时移除折叠（构建期按行数预判，运行时按真实高度校正），展开动画用 `--code-height`。
+  3. 缩进式代码块（裸 `<pre>`，`render-codeblock` 不接管）运行时包装 `.plain-code-wrapper` + 浮动复制按钮。
+  4. 复制由 `copy-button.html` 的 `bindCopyButton()` 实现（`navigator.clipboard` → `execCommand` 降级）。
 
 ### 图片增强
 
@@ -117,7 +128,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 
 1. **页面资源解析**：尝试以 `Resources.GetMatch` 解析图片尺寸（跳过 SVG）。
 2. **懒加载**：`image.lazy` 启用时添加原生 `loading="lazy"`。
-3. **骨架屏与失败重试**：`image.loading` 启用时（且 `image.enabled`、非首页、非 SVG），包装 `.loading-image-frame`，内嵌 shimmer 骨架和失败占位。加载失败后点击重试（URL 追加 `?retry=` 参数破缓存）。
+3. **骨架屏与失败重试**：`image.loading` 启用时（且 `image.enabled`、非首页、非 SVG），包装 `.loading-image-frame`（构建期预置 `is-loading` 初始态），内嵌 shimmer 骨架和失败占位。加载失败后点击重试（URL 追加 `?retry=` 参数破缓存）。`image-loading.html` 运行时仅处理浏览器缓存图（`img.complete` 检查）与 load/error/retry 事件。
 
 ### TOC 系统
 
@@ -125,7 +136,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 
 - **宽屏（≥84em）**：侧边栏固定在页面右侧 `left: calc(50% + 432px)`，始终可见。
 - **窄屏**：浮动按钮 `#tocFloatBtn` + 全屏遮罩 `#tocBackdrop`，点击展开滑出面板。Esc 关闭、Tab 焦点锁定、点击外部关闭。
-- **Scroll-spy**：解析 TOC 链接对应的 heading，计算当前视口内可见的 heading，高亮对应链接并移动 `.toc-indicator` 指示条位置。滚动自动跟随（`scrollBy` + `smooth`）。
+- **Scroll-spy**：解析 TOC 链接对应的 heading，计算当前视口内可见的 heading，高亮对应链接并移动 `.toc-indicator` 指示条位置。滚动自动跟随（`scrollBy`，平滑由 CSS `scroll-behavior: smooth` 驱动，reduced-motion 禁用）。
 - **边缘模糊**：TOC 滚动区复用 `edge-blur.html` 并绑定 `toggleScrollFade`。
 
 ### 脚注系统

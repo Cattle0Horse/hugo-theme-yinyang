@@ -76,8 +76,8 @@
     retryFrame(frame)
   })
 
+  // is-loading 初始态已由构建期输出（image-tag.html），此处仅处理浏览器缓存图
   document.querySelectorAll('.loading-image-frame').forEach(function (frame) {
-    frame.classList.add('is-loading')
     var img = frame.querySelector('img.loading-img')
     if (!img || !img.complete) return
     if (img.naturalWidth > 0) onLoad(img)

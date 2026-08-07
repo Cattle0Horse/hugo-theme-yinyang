@@ -6,6 +6,7 @@
   color-scheme: light;
 
   --scroll-fade-size: 48px;
+  --code-fold-max: 360px;
   --color-bg: #f8f9fa;
   --color-text: #000;
   --color-text-secondary: #666;

@@ -111,6 +111,7 @@
   padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
+  scroll-behavior: smooth;
 }
 
 .toc-scroll:hover {

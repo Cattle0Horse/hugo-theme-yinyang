@@ -1,0 +1,56 @@
+{{- /* 构建期渲染代码块：复刻 Chroma 输出并预构建工具栏（语言标签/复制按钮/折叠结构）。
+  DOM 结构由构建期生成（零运行时构建），交互保留运行时（code-toolbar.html 绑定 is-folded toggle、
+  高度测量与展开动画）。使用 transform.HighlightCodeBlock 以保留 fence 的 .Options/.Attributes
+  （linenos/hl_lines 等）并尊重站点 [markup.highlight] 配置。 */ -}}
+{{- $maxLines := $.Page.Site.Params.codeMaxLines | default 15 -}}
+{{- $lang := .Type -}}
+{{- $lines := len (split .Inner "\n") -}}
+{{- $folded := gt $lines $maxLines -}}
+{{- /* 语言标签映射 */ -}}
+{{- $langMap := dict
+  "sh" "Shell" "bash" "Bash" "zsh" "Zsh" "js" "JavaScript" "ts" "TypeScript"
+  "jsx" "JSX" "tsx" "TSX" "py" "Python" "python" "Python" "rb" "Ruby" "go" "Go"
+  "rs" "Rust" "java" "Java" "kt" "Kotlin" "c" "C" "cpp" "C++" "cs" "C#"
+  "swift" "Swift" "html" "HTML" "xml" "XML" "css" "CSS" "scss" "SCSS" "less" "Less"
+  "json" "JSON" "yaml" "YAML" "toml" "TOML" "sql" "SQL" "graphql" "GraphQL"
+  "dockerfile" "Dockerfile" "docker" "Dockerfile" "makefile" "Makefile" "cmake" "CMake"
+  "markdown" "Markdown" "md" "Markdown" "diff" "Diff" "plaintext" "Plain Text" "text" "Plain Text"
+  "ini" "INI" "conf" "Config" "lua" "Lua" "r" "R" "perl" "Perl" "php" "PHP"
+  "scala" "Scala" "elixir" "Elixir" "erlang" "Erlang" "powershell" "PowerShell"
+  "nginx" "Nginx" "apache" "Apache" -}}
+{{- $label := or (index $langMap (lower $lang)) $lang -}}
+{{- /* 复制按钮三态图标（构建期生成，来自 assets/icons/ 文件） */ -}}
+{{- $iconDefault := partial "icon.html" (dict "name" "copy" "wrap" "action-icon" "wrapClass" "state-icon state-icon-default") -}}
+{{- $iconSuccess := partial "icon.html" (dict "name" "check" "wrap" "action-icon" "wrapClass" "state-icon state-icon-success") -}}
+{{- $iconError := partial "icon.html" (dict "name" "error" "wrap" "action-icon" "wrapClass" "state-icon state-icon-error") -}}
+{{- /* Chroma 高亮（保留 fence options，尊重站点 highlight 配置） */ -}}
+{{- $r := transform.HighlightCodeBlock . (dict "noClasses" false) -}}
+{{- $highlighted := $r.Wrapped -}}
+{{- if $lang -}}
+{{- /* 带语言围栏块：工具栏 + 折叠结构 */ -}}
+<div class="code-block-wrapper">
+  <div class="code-toolbar">
+    <span class="code-lang">{{ $label }}</span>
+    <button class="code-copy-btn action-button state-button" type="button" aria-label="复制代码" data-tooltip="复制代码" data-copy-block>
+      {{ $iconDefault }}{{ $iconSuccess }}{{ $iconError }}
+    </button>
+  </div>
+  <div class="code-block-body{{ if $folded }} is-folded{{ end }}">
+    <div class="code-scroll-viewport">{{ $highlighted }}</div>
+{{ if $folded }}
+    <button class="code-expand-bar action-button" type="button" aria-expanded="false" data-lines="{{ $lines }}">
+      <span class="expand-icon action-icon">{{ partial "icon.html" (dict "name" "chevron") }}</span>
+      <span class="expand-text">展开全部 ({{ $lines }} 行)</span>
+    </button>
+{{ end }}
+  </div>
+</div>
+{{- else -}}
+{{- /* 无语言围栏块：浮动复制，无工具栏 */ -}}
+<div class="code-block-wrapper no-toolbar">
+  <div class="code-scroll-viewport">{{ $highlighted }}</div>
+  <button class="floating-code-copy code-copy-btn action-button state-button" type="button" aria-label="复制代码" data-tooltip="复制代码" data-copy-block>
+    {{ $iconDefault }}{{ $iconSuccess }}{{ $iconError }}
+  </button>
+</div>
+{{- end -}}

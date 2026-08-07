@@ -1,0 +1,24 @@
+{{- /* 内联 SVG 图标 partial。
+  用法：
+    {{ partial "icon.html" (dict "name" "copy") }}                          → 裸 svg
+    {{ partial "icon.html" (dict "name" "copy" "class" "action-icon") }}    → 裸 svg + class
+    {{ partial "icon.html" (dict "name" "copy" "wrap" "action-icon" "wrapClass" "state-icon state-icon-default") }}
+        → <span class="action-icon state-icon..."><svg>...</svg></span>
+  图标源：assets/icons/<name>.svg（构建期内联，零请求、currentColor 跟随主题）。
+*/ -}}
+{{- $name := .name | default "copy" -}}
+{{- $svg := "" -}}
+{{- with resources.Get (printf "icons/%s.svg" $name) -}}
+  {{- $svg = .Content -}}
+{{- end -}}
+{{- /* 独立 SVG 文件含 xmlns 以便图像软件直接查看；内联到 HTML 时去除（HTML 中 svg 无需命名空间） */ -}}
+{{- $svg = replace $svg "xmlns=\"http://www.w3.org/2000/svg\" " "" -}}
+{{- /* 注入 svg class */ -}}
+{{- with .class -}}
+  {{- $svg = replace $svg "<svg " (printf "<svg class=\"%s\" " .) -}}
+{{- end -}}
+{{- if .wrap -}}
+<span class="{{ .wrap }}{{ with .wrapClass }} {{ . }}{{ end }}">{{ $svg | safeHTML }}</span>
+{{- else -}}
+{{- $svg | safeHTML -}}
+{{- end -}}

@@ -163,7 +163,7 @@
       adjust = last.bottom - scrollRect.bottom + margin
     }
     if (adjust) {
-      tocScroll.scrollBy({ top: adjust, behavior: 'smooth' })
+      tocScroll.scrollBy({ top: adjust })
     }
   }
 
@@ -176,11 +176,11 @@
     requestAnimationFrame(function () {
       if (wide.matches) {
         var targetTop = target.getBoundingClientRect().top + window.scrollY - 64
-        window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' })
+        window.scrollTo({ top: Math.max(0, targetTop) })
       } else {
         var scrollRect = appScroll.getBoundingClientRect()
         var top = target.getBoundingClientRect().top - scrollRect.top + appScroll.scrollTop - 64
-        appScroll.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+        appScroll.scrollTo({ top: Math.max(0, top) })
       }
     })
     if (history && history.pushState) history.pushState(null, '', link.getAttribute('href'))

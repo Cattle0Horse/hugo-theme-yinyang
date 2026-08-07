@@ -92,7 +92,7 @@
 }
 
 .code-block-body.is-folded .code-scroll-viewport {
-  max-height: 360px;
+  max-height: var(--code-fold-max);
   mask-image: linear-gradient(to bottom, #000 calc(100% - 72px), rgba(0, 0, 0, .35) 100%);
   -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 72px), rgba(0, 0, 0, .35) 100%);
 }

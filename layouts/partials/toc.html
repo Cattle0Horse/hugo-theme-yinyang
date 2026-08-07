@@ -14,8 +14,8 @@
 </aside>
 
 <button class="toc-float-btn action-button state-button" id="tocFloatBtn" type="button" aria-label="打开目录" data-tooltip="打开目录" aria-controls="tocSidebar" aria-expanded="false">
-  <span class="action-icon state-icon state-icon-default"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span>
-  <span class="action-icon state-icon state-icon-open"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></span>
+  {{ partial "icon.html" (dict "name" "list" "wrap" "action-icon" "wrapClass" "state-icon state-icon-default") }}
+  {{ partial "icon.html" (dict "name" "close" "wrap" "action-icon" "wrapClass" "state-icon state-icon-open") }}
 </button>
 <div class="toc-backdrop" id="tocBackdrop"></div>
 {{ partial "toc-script.html" . }}

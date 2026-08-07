@@ -26,7 +26,7 @@
 	function scrollToTarget(target) {
 		var scroll = document.getElementById("appScroll")
 		if (!scroll || (window.isWide && window.isWide())) {
-			target.scrollIntoView({ behavior: "smooth", block: "center" })
+			target.scrollIntoView({ block: "center" })
 			return
 		}
 
@@ -34,7 +34,7 @@
 		var targetRect = target.getBoundingClientRect()
 		var centered = scroll.scrollTop + targetRect.top - scrollRect.top - (scroll.clientHeight - targetRect.height) / 2
 		var max = Math.max(0, scroll.scrollHeight - scroll.clientHeight)
-		scroll.scrollTo({ top: Math.max(0, Math.min(centered, max)), behavior: "smooth" })
+		scroll.scrollTo({ top: Math.max(0, Math.min(centered, max)) })
 	}
 
 	function highlight(hash) {
