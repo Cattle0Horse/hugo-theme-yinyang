@@ -18,8 +18,9 @@
 {{- end -}}
 
 {{- $enhanced := and $imgCfg.enabled $imgCfg.loading (not $page.IsHome) (not $isSvg) -}}
+{{- $sizeKnown := and $width $height -}}
 {{- if $enhanced }}
-<span class="loading-image-frame is-loading"{{ with $width }} style="--image-width: {{ . }}px;{{ with $height }} --image-ratio: {{ $width }} / {{ . }};{{ end }}"{{ end }}>
+<span class="loading-image-frame is-loading{{ if not $sizeKnown }} size-unknown{{ end }}"{{ with $width }} style="--image-width: {{ . }}px;{{ with $height }} --image-ratio: {{ $width }} / {{ . }};{{ end }}"{{ end }}>
 {{- end }}
 <img src="{{ $src }}"
      alt="{{ .Alt }}"

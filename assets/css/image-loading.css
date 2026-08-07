@@ -17,7 +17,7 @@
   width: fit-content;
   max-width: 100%;
   aspect-ratio: var(--image-ratio, auto);
-  margin-top: 6px;
+  margin: 6px auto 0;
   overflow: hidden;
   border-radius: 6px;
 }
@@ -119,6 +119,28 @@
   flex-direction: row;
   gap: 8px;
   padding: 12px;
+}
+
+/* 构建期解析不到尺寸的图片（远程 URL / 缺失的本地文件）：
+   无法预置 --image-width / --image-ratio，若照常做骨架屏会把 frame
+   收缩成零宽竖条，加载完成时再突然撑开 → 布局跳变。
+   对这类图降级为「自然渐进加载」：不藏图、无 shimmer、不强制占高，
+   frame 按图片真实尺寸流入；失败占位仍由 is-failed 全宽兜底。 */
+.loading-image-frame.size-unknown:not(.is-failed):not(.is-retrying) {
+  min-height: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.loading-image-frame.size-unknown:not(.is-failed):not(.is-retrying)::before,
+.loading-image-frame.size-unknown:not(.is-failed):not(.is-retrying)::after {
+  display: none;
+}
+
+.loading-image-frame.size-unknown img.loading-img {
+  opacity: 1;
+  filter: none;
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
