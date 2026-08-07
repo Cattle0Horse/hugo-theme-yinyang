@@ -72,12 +72,11 @@
   max-width: 100%;
   margin: 0;
   opacity: 0;
-  filter: blur(16px);
   transform: scale(1.02);
-  transition: opacity 500ms ease, filter 500ms ease, transform 500ms ease;
+  transition: opacity 200ms ease, transform 200ms ease;
 }
 
-.loading-image-frame img.loading-img.loading-done { opacity: 1; filter: blur(0); transform: scale(1); }
+.loading-image-frame img.loading-img.loading-done { opacity: 1; transform: scale(1); }
 .loading-image-frame.is-failed img { display: none; }
 .loading-failed[hidden] { display: none; }
 .loading-failed {
@@ -139,7 +138,6 @@
 
 .loading-image-frame.size-unknown img.loading-img {
   opacity: 1;
-  filter: none;
   transform: none;
 }
 
@@ -148,6 +146,7 @@
   .loading-image-frame.is-loading::after {
     animation: none;
   }
+  .loading-image-frame img.loading-img { transition: none; }
 }
 
 

@@ -28,7 +28,7 @@
      {{- with $width }} width="{{ . }}"{{ end -}}
      {{- with $height }} height="{{ . }}"{{ end -}}
      {{- if and $imgCfg.enabled $imgCfg.lazy }} loading="lazy"{{ end -}}
-     {{- if $enhanced }} class="loading-img" data-original-src="{{ $src }}"{{ end }}>
+     {{- if $enhanced }} class="loading-img" decoding="async" data-original-src="{{ $src }}"{{ end }}>
 {{- if $enhanced }}
   <span class="loading-failed loading-retry" role="button" tabindex="0" aria-label="点击重试" data-tooltip="点击重试" hidden>
     <span class="loading-failed-icon action-icon" aria-hidden="true">{{ partial "icon.html" (dict "name" "image") }}</span>

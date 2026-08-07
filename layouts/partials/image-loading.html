@@ -16,13 +16,24 @@
     if (window.updateActionTooltip) window.updateActionTooltip(retry)
   }
 
-  function onLoad(img) {
-    var frame = frameFor(img)
-    if (!frame) return
+  function finishLoad(img, frame) {
     setFrameState(frame, 'is-loaded')
     img.classList.add('loading-done')
     var failed = frame.querySelector('.loading-failed')
     if (failed) failed.hidden = true
+  }
+
+  function onLoad(img) {
+    var frame = frameFor(img)
+    if (!frame) return
+    // load 事件（decoding="async"）在字节到位即触发，不一定已解码。
+    // 用 img.decode() 保证可绘制后再上屏，避免骨架消失 → 空白 → 闪现。
+    if (img.decode) {
+      img.decode().then(function () { finishLoad(img, frame) })
+              .catch(function () { finishLoad(img, frame) })
+    } else {
+      finishLoad(img, frame)
+    }
   }
 
   function onError(img) {
