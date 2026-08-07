@@ -18,7 +18,6 @@ body {
   position: relative;
   height: 100vh;
   height: 100dvh;
-  padding: 0 20px;
   box-sizing: border-box;
 }
 
@@ -54,8 +53,11 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   box-sizing: border-box;
+  /* 左右留白放在滚动容器内部，使滚动条贴窗口边 */
+  padding: 0 20px;
   scrollbar-gutter: stable;
-  scrollbar-width: thin;
+  /* 窄屏滚动条更宽，便于识别（宽屏 body 滚动仍为 6px） */
+  scrollbar-width: auto;
   scrollbar-color: transparent transparent;
   transition: scrollbar-color 0.3s;
   scroll-behavior: smooth;
@@ -65,7 +67,11 @@ body {
   scrollbar-color: var(--color-scrollbar) transparent;
 }
 
-.app-scroll::-webkit-scrollbar,
+.app-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
 .toc-scroll::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -78,7 +84,7 @@ body {
 
 .app-scroll::-webkit-scrollbar-thumb {
   background: transparent;
-  border-radius: 3px;
+  border-radius: 5px;
   transition: background 0.3s;
 }
 
@@ -171,6 +177,7 @@ body {
     overflow: visible;
     height: auto;
     scrollbar-gutter: auto;
+    padding: 0;
   }
 
   /* TOC fixed to the right of centered content */
