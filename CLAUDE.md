@@ -92,6 +92,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 | `toc.html` | `single.html`、baseof（`"toc"` block） | `tableOfContents` 启用且文章 `toc` 不为 `false` |
 | `toc-script.html` | `toc.html` 内 | 同上 |
 | `markdown-actions.html` | `single.html`、`gallery/single.html`（文章标题下方） | `markdownActions` 或 `editPageRepo` 启用 |
+| `ai-label.html` | `single.html`（`post-header` 内 meta 行之后） | 文章 `ai` 为 `assisted`/`generated` 且 `aiLabel.enabled` 非 `false` |
 | `copy-button.html` | `single.html`、`gallery/single.html`（`<body>` 最顶部） | 始终（定义 `bindCopyButton` 全局函数） |
 | `code-toolbar.html` | `single.html`、`gallery/single.html`（`</body>` 前） | 始终（自动为所有 `.highlight` 和 `pre` 包装工具栏） |
 | `image-loading.html` | `single.html`、`gallery/single.html`（`</body>` 前） | `imageLoading` 启用且非首页 |
@@ -165,3 +166,5 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 - `codeMaxLines` — 代码块折叠阈值，默认 15
 - `album` — 单页 Open Graph 图片覆盖（字符串数组）
 - `toc` — 文章 front matter（布尔值），单篇禁用 TOC；也兼容旧字段 `notoc`
+- `ai` — 文章 front matter（字符串），标注 AI 创作方式：`none`（纯人，缺省等同）/ `assisted`（AI 辅助创作）/ `generated`（AI 生成·经人工编辑）。`assisted`/`generated` 时由 `ai-label.html` partial（`single.html` 的 `post-header` 内 meta 行之后调用）渲染 `.ai-label` 标注行（复用 `.action-icon` 图标约定 + 弱色小字，CSS 在 `post-page.css`）；`none`、缺省或未知值不渲染。仅覆盖 `single`，gallery 不进
+- `aiLabel` — 站点配置（映射），AI 标注总开关与文案：`enabled`（布尔值，缺省视为开启，`false` 关闭所有标注渲染）、`assisted` / `generated`（字符串，自定义文案，缺省回退默认 `AI 辅助创作` / `AI 生成 · 经人工编辑`）

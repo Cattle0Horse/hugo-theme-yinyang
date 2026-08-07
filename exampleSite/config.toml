@@ -51,6 +51,11 @@ codeMaxLines = 15
 editPageBranch = "main"
 editPageText = "有错误？欢迎提交 Pull Request"
 
+[params.aiLabel]
+enabled = true
+assisted = "AI 辅助创作"
+generated = "AI 生成 · 经人工编辑"
+
 [params.author]
 homepage = "https://github.com/cattle0horse"
 name = "CattleHorse"

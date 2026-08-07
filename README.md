@@ -122,6 +122,27 @@ postFooterContent = ""
 
 `extraHead`、`extraBody` 和 `postHeaderContent`、`postFooterContent` 会按原样通过 `safeHTML` 注入，仅应填入可信内容。`extraCSSFiles` 则按路径生成样式链接。
 
+### AI 创作标注
+
+文章 front matter 使用 `ai` 声明创作方式，会在文章标题下方的元信息区显示一个低调的标注行（SVG 图标 + 弱色小字）：
+
+| `ai` 值 | 含义 | 标题下方显示 |
+|---|---|---|
+| `none` | 纯人创作（默认，缺省等同此值） | 不显示 |
+| `assisted` | AI 辅助创作 | `AI 辅助创作` |
+| `generated` | AI 生成，经人工编辑 | `AI 生成 · 经人工编辑` |
+
+`ai` 缺省、为 `none` 或其他未知值时，标注行均不显示。
+
+标注行为可通过站点配置 `[params.aiLabel]` 控制：`enabled` 为总开关（缺省开启，`false` 时即使文章声明 `ai` 也不渲染），`assisted` / `generated` 可自定义文案（缺省回退上表默认文案）：
+
+```toml
+[params.aiLabel]
+enabled = true
+assisted = "由 AI 协助撰写"
+generated = "由 AI 生成，经人工校对"
+```
+
 ### Gallery 图库
 
 `gallery` 是一个专门渲染图片网格的内容类型。在 `content/gallery/` 目录下创建文章，front matter 声明 `gallery` 数组即可，无需正文：

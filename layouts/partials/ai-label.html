@@ -1,0 +1,14 @@
+{{ $ai := .Params.ai }}
+{{ $aiCfg := .Site.Params.aiLabel }}
+{{ if and (default true $aiCfg.enabled) (in (slice "assisted" "generated") $ai) }}
+<div class="ai-label">
+  <span class="ai-label-icon action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4L12 3z"/></svg></span>
+  <span class="ai-label-text">
+    {{- if eq $ai "assisted" -}}
+    {{ default "AI 辅助创作" $aiCfg.assisted }}
+    {{- else -}}
+    {{ default "AI 生成 · 经人工编辑" $aiCfg.generated }}
+    {{- end -}}
+  </span>
+</div>
+{{ end }}
