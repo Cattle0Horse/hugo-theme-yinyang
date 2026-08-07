@@ -1,5 +1,6 @@
 {{- $page := .Page -}}
 {{- $src := .Src -}}
+{{- $imgCfg := $page.Site.Params.image -}}
 {{- $width := "" -}}
 {{- $height := "" -}}
 
@@ -16,7 +17,7 @@
   {{- $height = $img.Height -}}
 {{- end -}}
 
-{{- $enhanced := and $page.Site.Params.imageLoading (not $page.IsHome) (not $isSvg) -}}
+{{- $enhanced := and $imgCfg.enabled $imgCfg.loading (not $page.IsHome) (not $isSvg) -}}
 {{- if $enhanced }}
 <span class="loading-image-frame"{{ with $width }} style="--image-width: {{ . }}px;{{ with $height }} --image-ratio: {{ $width }} / {{ . }};{{ end }}"{{ end }}>
 {{- end }}
@@ -25,7 +26,7 @@
      {{- with .Title }} title="{{ . }}"{{ end -}}
      {{- with $width }} width="{{ . }}"{{ end -}}
      {{- with $height }} height="{{ . }}"{{ end -}}
-     {{- if $page.Site.Params.lazyImage }} loading="lazy"{{ end -}}
+     {{- if and $imgCfg.enabled $imgCfg.lazy }} loading="lazy"{{ end -}}
      {{- if $enhanced }} class="loading-img" data-original-src="{{ $src }}"{{ end }}>
 {{- if $enhanced }}
   <span class="loading-failed loading-retry" role="button" tabindex="0" aria-label="点击重试" data-tooltip="点击重试" hidden>

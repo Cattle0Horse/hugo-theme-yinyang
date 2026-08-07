@@ -1,0 +1,6 @@
+{{ $actions := .Site.Params.actions }}
+{{ return dict
+  "hasGitHub" (and $actions.enabled $actions.editPage.enabled .File $actions.editPage.repo)
+  "hasMarkdown" (and $actions.enabled .RawContent $actions.copyMarkdown)
+  "hasAny" (or (and $actions.enabled $actions.editPage.enabled .File $actions.editPage.repo) (and $actions.enabled .RawContent $actions.copyMarkdown))
+}}

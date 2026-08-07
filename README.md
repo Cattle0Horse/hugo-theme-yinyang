@@ -108,19 +108,45 @@ extraCSSFiles = ["css/foo.css", "css/bar.css"]
 
 ### 文章首尾插入内容
 
+`[params.postContent]` 控制文章正文前后的注入内容，`enabled` 为总开关，`header` / `footer` 按原样通过 `safeHTML` 注入：
+
 ```toml
-[params]
-postHeaderContent = ""
-postFooterContent = ""
+[params.postContent]
+enabled = true
+header = ""
+footer = ""
 ```
 
 ### 图片、文章操作与目录
 
-`lazyImage` 为文章图片启用原生懒加载；`imageLoading` 额外启用加载占位和失败重试。`markdownActions` 启用原始 Markdown 复制按钮，`tableOfContents` 启用文章目录。文章 front matter 使用 `toc: false` 可单篇禁用目录，旧配置中的 `notoc: true` 也保持兼容。
+`[params.image]` 控制图片增强，`enabled` 为总开关，`lazy` 启用原生懒加载，`loading` 额外启用加载占位和失败重试：
 
-`editPageRepo` 启用纠错链接和原始文件操作，`editPageBranch` 默认值为 `main`，`editPageText` 可覆盖链接文案；`codeMaxLines`（默认 15）控制长代码块的折叠阈值。
+```toml
+[params.image]
+enabled = true
+lazy = true
+loading = true
+```
 
-`extraHead`、`extraBody` 和 `postHeaderContent`、`postFooterContent` 会按原样通过 `safeHTML` 注入，仅应填入可信内容。`extraCSSFiles` 则按路径生成样式链接。
+`tableOfContents` 启用文章目录。文章 frontmatter 使用 `toc: false` 可单篇禁用目录，旧配置中的 `notoc: true` 也保持兼容。
+
+文章操作区（标题下方按钮）由 `[params.actions]` 控制：`enabled` 为总开关，`copyMarkdown` 启用"复制 Markdown"按钮，嵌套 `editPage` 启用编辑原文 / 查看 Raw 按钮和底部纠错链接，`branch` 默认值为 `main`，`text` 可覆盖链接文案：
+
+```toml
+[params.actions]
+enabled = true
+copyMarkdown = true
+
+[params.actions.editPage]
+enabled = true
+repo = "https://github.com/Cattle0Horse/Cattle0Horse.github.io"
+branch = "main"
+text = "有错误？欢迎提交 Pull Request"
+```
+
+`codeMaxLines`（默认 15）控制长代码块的折叠阈值。
+
+`extraHead`、`extraBody` 和 `postContent.header`、`postContent.footer` 会按原样通过 `safeHTML` 注入，仅应填入可信内容。`extraCSSFiles` 则按路径生成样式链接。
 
 ### AI 创作标注
 
@@ -159,7 +185,7 @@ gallery:
 ---
 ```
 
-每张图片由共享的 `image-tag.html` 渲染，自动获得与正文图片一致的懒加载、骨架屏和失败重试能力（受 `lazyImage` / `imageLoading` 控制），并以两列网格布局展示，`name` 显示为图片下方的说明文字。
+每张图片由共享的 `image-tag.html` 渲染，自动获得与正文图片一致的懒加载、骨架屏和失败重试能力（受 `[params.image]` 的 `lazy` / `loading` 控制），并以两列网格布局展示，`name` 显示为图片下方的说明文字。
 
 > 注意：`gallery` 不属于 `mainSections`（默认 `["posts"]`），因此不会出现在首页或 `/gallery/` 列表页，需通过文章 URL 直接访问。可参考 `exampleSite/content/gallery/sample.md`。
 
@@ -194,10 +220,12 @@ extraHead = ''
 favicon = "/logo.png"
 headTitle = "CattleHorse's Blog"
 mainSections = ["posts"]
-postFooterContent = ''
-postHeaderContent = ''
 staticPrefix = "https://cdn.jsdelivr.net/gh/cattle0horse/blog"
-lazyImage = true
+
+[params.image]
+enabled = true
+lazy = true
+loading = true
 
 # ---------- 作者 ----------
 [params.author]

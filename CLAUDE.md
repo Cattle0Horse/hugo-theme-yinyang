@@ -91,14 +91,15 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 | `edge-blur.html` | 所有模板，在 header 后和内容末尾各一次 | 始终 |
 | `toc.html` | `single.html`、baseof（`"toc"` block） | `tableOfContents` 启用且文章 `toc` 不为 `false` |
 | `toc-script.html` | `toc.html` 内 | 同上 |
-| `markdown-actions.html` | `single.html`、`gallery/single.html`（文章标题下方） | `markdownActions` 或 `editPageRepo` 启用 |
+| `markdown-actions.html` | `single.html`、`gallery/single.html`（文章标题下方） | `$s.hasAny`（由 `actions-state.html` 计算） |
+| `actions-state.html` | `markdown-actions.html`、`edit-page.html`、`single.html`、`gallery/single.html` | 始终（计算 `hasGitHub`/`hasMarkdown`/`hasAny` 谓词，供文章操作区 gate 共用） |
 | `ai-label.html` | `single.html`（`post-header` 内 meta 行之后） | 文章 `ai` 为 `assisted`/`generated` 且 `aiLabel.enabled` 非 `false` |
 | `copy-button.html` | `single.html`、`gallery/single.html`（`<body>` 最顶部） | 始终（定义 `bindCopyButton` 全局函数） |
 | `code-toolbar.html` | `single.html`、`gallery/single.html`（`</body>` 前） | 始终（自动为所有 `.highlight` 和 `pre` 包装工具栏） |
-| `image-loading.html` | `single.html`、`gallery/single.html`（`</body>` 前） | `imageLoading` 启用且非首页 |
+| `image-loading.html` | `single.html`、`gallery/single.html`（`</body>` 前） | `image.enabled` + `image.loading` 启用且非首页 |
 | `image-tag.html` | `_markup/render-image.html`、`gallery/single.html` | 始终（共享 `<img>` 尺寸解析与骨架屏渲染） |
-| `edit-page.html` | `single.html`、`gallery/single.html`（文章底部） | `editPageRepo` 且 `.File` 存在 |
-| `edit-urls.html` | `edit-page.html`、`markdown-actions.html` | `editPageRepo` 且 `.File` 存在 |
+| `edit-page.html` | `single.html`、`gallery/single.html`（文章底部） | `actions.enabled` + `actions.editPage.enabled` 且 `.File` 存在 |
+| `edit-urls.html` | `edit-page.html`、`markdown-actions.html` | `actions.editPage` 配置且 `.File` 存在 |
 
 ### 代码块工具栏
 
@@ -114,8 +115,8 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 `image-tag.html` 统一处理三种场景：
 
 1. **页面资源解析**：尝试以 `Resources.GetMatch` 解析图片尺寸（跳过 SVG）。
-2. **懒加载**：`lazyImage` 启用时添加原生 `loading="lazy"`。
-3. **骨架屏与失败重试**：`imageLoading` 启用时（非首页、非 SVG），包装 `.loading-image-frame`，内嵌 shimmer 骨架和失败占位。加载失败后点击重试（URL 追加 `?retry=` 参数破缓存）。
+2. **懒加载**：`image.lazy` 启用时添加原生 `loading="lazy"`。
+3. **骨架屏与失败重试**：`image.loading` 启用时（且 `image.enabled`、非首页、非 SVG），包装 `.loading-image-frame`，内嵌 shimmer 骨架和失败占位。加载失败后点击重试（URL 追加 `?retry=` 参数破缓存）。
 
 ### TOC 系统
 
@@ -153,15 +154,11 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 - `favicon` — 网站图标路径
 - `extraHead` — 注入 `</head>` 前的原始 HTML
 - `extraBody` — 注入 `</body>` 前的原始 HTML
-- `postHeaderContent` / `postFooterContent` — 文章正文前后的注入 HTML
+- `postContent` — 站点配置（映射），文章首尾注入：`enabled`（布尔值，总闸）、`header` / `footer`（文章正文前后的注入 HTML，`safeHTML`）
 - `extraCSSFiles` — 额外 CSS 路径数组，以 `<link>` 加载
 - `staticPrefix` — CDN 前缀，同时生成 `dns-prefetch`
-- `lazyImage` — 布尔值，为 `<img>` 添加 `loading="lazy"`
-- `imageLoading` — 布尔值，启用骨架屏 + 加载失败重试（首页不生效）
-- `markdownActions` — 布尔值，启用"复制 Markdown"按钮（默认关闭）
-- `editPageRepo` — GitHub 仓库 URL，启用"编辑原文"/"查看 Raw"按钮和底部纠错链接
-- `editPageBranch` — 仓库分支名，默认 `main`
-- `editPageText` — 纠错链接文字
+- `image` — 站点配置（映射），图片增强：`enabled`（布尔值，总闸）、`lazy`（布尔值，为 `<img>` 添加 `loading="lazy"`）、`loading`（布尔值，启用骨架屏 + 加载失败重试，首页不生效）
+- `actions` — 站点配置（映射），文章操作区总开关与子功能：`enabled`（布尔值，总闸，`false` 或未配时编辑/复制按钮全部不渲染）、`copyMarkdown`（布尔值，启用"复制 Markdown"按钮）、嵌套 `editPage`（`enabled` 布尔值 + `repo` GitHub 仓库 URL + `branch` 分支名默认 `main` + `text` 纠错链接文字）。编辑按钮需 `actions.enabled` + `editPage.enabled` + `editPage.repo` 同时满足
 - `tableOfContents` — 布尔值，启用 TOC 侧边栏
 - `codeMaxLines` — 代码块折叠阈值，默认 15
 - `album` — 单页 Open Graph 图片覆盖（字符串数组）

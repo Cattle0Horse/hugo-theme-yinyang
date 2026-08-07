@@ -1,6 +1,6 @@
-{{- $repo := .Site.Params.editPageRepo -}}
+{{- $repo := .Site.Params.actions.editPage.repo -}}
 {{- $branchParts := slice -}}
-{{- range split (.Site.Params.editPageBranch | default "main") "/" -}}
+{{- range split (.Site.Params.actions.editPage.branch | default "main") "/" -}}
   {{- $branchParts = $branchParts | append (urls.PathEscape .) -}}
 {{- end -}}
 {{- $branch := delimit $branchParts "/" -}}

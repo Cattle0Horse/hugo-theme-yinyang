@@ -1,4 +1,4 @@
-{{ if and .Site.Params.imageLoading (not .IsHome) }}
+{{ if and .Site.Params.image.enabled .Site.Params.image.loading (not .IsHome) }}
 <script>
 ;(function () {
   function frameFor(img) { return img.closest('.loading-image-frame') }

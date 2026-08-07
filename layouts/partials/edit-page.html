@@ -1,6 +1,7 @@
-{{ if and .Site.Params.editPageRepo .File }}
+{{ $s := partial "actions-state.html" . }}
+{{ if $s.hasGitHub }}
 {{- $urls := partialCached "edit-urls.html" . .File.Path -}}
-{{- $text := .Site.Params.editPageText | default "有错误？欢迎提交 Pull Request" -}}
+{{- $text := .Site.Params.actions.editPage.text | default "有错误？欢迎提交 Pull Request" -}}
 <div class="edit-page">
   <hr>
   {{ printf "<a href=\"%s\">%s</a>" ($urls.edit) $text | safeHTML }}
