@@ -17,6 +17,8 @@
   --color-scrollbar: rgba(128, 128, 128, 0.28);
   --color-scrollbar-hover: rgba(128, 128, 128, 0.46);
   --color-code-bg: #e9ecef;
+  --color-table-bg: #f1f3f5;
+  --color-table-code-bg: #e4e7eb;
   --color-header-line: var(--color-text);
   --color-surface: #fff;
   --color-surface-hover: #e9ecef;
@@ -41,6 +43,8 @@
   --color-border-light: #3d3d3d;
   --color-border-medium: #5a5a5a;
   --color-code-bg: #2a2a2a;
+  --color-table-bg: #2e2e2e;
+  --color-table-code-bg: #383838;
   --color-header-line: var(--color-text);
   --color-surface: #2b2b2b;
   --color-surface-hover: #2e2e2e;
