@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-YinYang 是一个极简 Hugo 博客主题，fork 自 `joway/hugo-theme-yinyang`。功能包括：暗色/亮色主题切换、MathJax 3 数学公式、图片懒加载与骨架屏、代码块工具栏（语言标签/复制/折叠）、TOC 目录滚动监听、脚注高亮跳转、SEO JSON-LD、Gallery 内容类型、CJK 排版优化。
+YinYang 是一个极简 Hugo 博客主题，fork 自 `joway/hugo-theme-yinyang`。功能包括：暗色/亮色主题切换、构建期 KaTeX 服务端渲染的数学公式、图片懒加载与骨架屏、代码块工具栏（语言标签/复制/折叠）、TOC 目录滚动监听、脚注高亮跳转、SEO JSON-LD、Gallery 内容类型、CJK 排版优化。
 
 ## 开发命令
 
@@ -46,11 +46,12 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 
 ### CSS 处理流程
 
-16 个 CSS 文件位于 `assets/css/`，由 `head.html` 通过 Hugo 资源管线处理：
+17 个 CSS 文件位于 `assets/css/`，由 `head.html` 通过 Hugo 资源管线处理：
 
-1. **`bundle.css`**：通过 `resources.Concat` 合并 14 个文件再 `minify`，内联到 `<style>` 标签。按加载顺序：
+1. **`bundle.css`**：通过 `resources.Concat` 合并 15 个文件再 `minify`，内联到 `<style>` 标签。按加载顺序：
    `variables` → `global` → `site-header` → `theme-toggle` → `posts-list` → `post-page` → `taxonomy` → `gallery` → `footnotes` → `app-shell` → `code-blocks` → `actions` → `toc` → `image-loading` → `mobile`（最后装载以便覆盖）
 2. **`syntax.css`**：独立 minify 并内联（来自 Hugo 的 Chroma 语法高亮样式）。
+3. **`katex.min.css`**：KaTeX 样式，不进入 bundle，由 `math.html` 按需单独内联（见「数学公式」节）。
 
 `extraCSSFiles` 参数可通过 `<link>` 加载额外 CSS（用于自定义字体、背景等，不受 Hugo minify 处理）。
 
@@ -84,7 +85,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 | `head.html` | 所有独立模板 + baseof | 始终 |
 | `header.html` | 所有独立模板 + baseof | 始终 |
 | `seo.html` | `head.html` 内 | 始终 |
-| `math.html` | `head.html` 内 | `partialCached`，仅在内容含 `$$`/`$...$` 时加载 MathJax CDN |
+| `math.html` | `head.html` 内 | `partialCached`，仅在内容含 `$$`/`$...$` 时内联 KaTeX CSS |
 | `theme-toggle.html` | 所有独立模板 + baseof（`</body>` 前） | 始终 |
 | `footnotes.html` | 所有独立模板 + baseof（`</body>` 前） | 首页跳过 |
 | `ui.html` | 所有独立模板 + baseof（`</body>` 末尾） | 始终（tooltip DOM + 滚动/边缘模糊/tooltip 脚本） |
@@ -137,8 +138,9 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 
 ### 数学公式
 
-- `_markup/render-passthrough.html`：配合 Goldmark passthrough 扩展，将 `$...$` / `$$...$$` 原样输出。
-- `math.html`：通过正则扫描 `.RawContent` 中的 `$$` / `$...$`，仅在检测到公式时才加载 MathJax 3 CDN（`partialCached` 按 `RelPermalink` 缓存检测结果）。MathJax 配置使用 `ui/safe` 扩展以防御 XSS。
+- `_markup/render-passthrough.html`：配合 Goldmark passthrough 扩展，在构建期调用 Hugo 内置 `transform.ToMath`（内嵌 KaTeX 引擎）将 `$...$` / `$$...$$` 服务端渲染为 KaTeX HTML（`output: htmlAndMathml`，`displayMode` 按 `.Type`，`throwOnError: false`）。`hugo server` 与生产构建均零 JS、零跳变。
+- `math.html`：正则扫描 `.RawContent` 中的 `$$` / `$...$`，仅在检测到公式时内联 `assets/css/katex.min.css`（`partialCached` 按 `RelPermalink` 缓存检测结果），并把 CSS 内字体 URL 改写为绝对路径 `/fonts/katex/...`。字体 vendored 于 `static/fonts/katex/`（KaTeX 0.17.0，须与 Hugo 内置版本保持一致；0.18 起 class 有 breaking change）。
+- 书写注意：裸 `<`/`>` 请用 `\lt`/`\gt`，对齐 `&` 用 `\&`；换行用 `\\`（双反斜杠）；**块级公式内 `=`/`-` 等标记不能单独成行**（会被 markdown 解析为 setext 标题，打断 `$$` 块导致公式失效，如 `\begin{pmatrix} x \\ y \end{pmatrix}\n=`）；非法 LaTeX 渲染为红色内联标注（默认色 `#cc0000`）而非阻断构建。`copyMarkdown` 复制的仍是原始 `$...$` markdown，不受影响。
 
 ### Gallery 内容类型
 

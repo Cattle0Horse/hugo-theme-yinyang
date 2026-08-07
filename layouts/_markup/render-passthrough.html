@@ -1,1 +1,2 @@
-{{- if eq .Type "inline" -}}${{ .Inner | safeHTML }}${{- else -}}$${{ .Inner | safeHTML }}$${{- end -}}
+{{- $opts := dict "output" "htmlAndMathml" "displayMode" (eq .Type "block") "throwOnError" false "strict" "warn" -}}
+{{- transform.ToMath .Inner $opts -}}
