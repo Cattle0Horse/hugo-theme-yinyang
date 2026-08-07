@@ -6,17 +6,22 @@
   scroll-margin-top: 20px;
 }
 
+/* ---- 查看脚注：高亮脚注条目 ---- */
+
 .footnotes li.footnote-highlight {
   position: relative;
 }
 
-.footnotes li.footnote-highlight::before,
-sup.ref-highlight::before {
+.footnotes li.footnote-highlight::before {
   content: '';
   position: absolute;
   z-index: -1;
   pointer-events: none;
-  animation: highlight-fade 2.5s ease-out forwards;
+  inset: -4px -8px;
+  background: var(--accent-bg);
+  box-shadow: inset 3px 0 0 var(--accent-border);
+  border-radius: 0 4px 4px 0;
+  animation: highlight-fade 3s ease-out forwards;
 }
 
 @keyframes highlight-fade {
@@ -25,30 +30,43 @@ sup.ref-highlight::before {
   100% { opacity: 0; }
 }
 
-.footnotes li.footnote-highlight::before {
-  inset: -4px -8px;
-  background: var(--accent-bg);
-  box-shadow: inset 3px 0 0 var(--accent-border);
-  border-radius: 0 4px 4px 0;
-  animation-duration: 3s;
-}
+/* ---- 返回引用处：分句级衬底高亮 ----
+   覆盖层方案：点击正文内 #fnref:* 上标跳回正文时，用 Range 测量
+   上标所在分句每行的矩形，在段落内 absolute 叠加高亮块（文本下方，
+   随内容滚动）。正文文本节点从不移动，淡出后移除覆盖层，布局零变化。
+   分句边界优先取最近句标点（句号/分号/问号等，不含逗号顿号等词组标点）；
+   若上标位于未闭合括号内（如 （内容¹），则取到最内层开括号为止。 */
 
-sup.ref-highlight {
-  display: inline-block;
+.ref-hl-container {
   position: relative;
-  border-radius: 4px;
-  animation: ref-pop 2.5s ease-out forwards;
+  z-index: 0;
 }
 
-@keyframes ref-pop {
-  0%   { transform: scale(1.35); }
-  100% { transform: scale(1); }
+.ref-highlight-overlay {
+  position: absolute;
+  /* 铺满 block 的 padding box，作为 bar 的定位基准
+     （否则 0×0 的 static position 会让 bar 画到 block 末尾的空白处） */
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
 }
 
-sup.ref-highlight::before {
-  inset: -3px -7px;
-  background: var(--color-ref-highlight);
+.ref-highlight-bar {
+  position: absolute;
   border-radius: 4px;
+  background-color: var(--color-ref-highlight);
+  /* 复用 highlight-fade（opacity 淡出）——bars 在文本下方，露出的是页面背景，
+     与 background-color 淡出视觉等价，且 opacity 走合成器更省 */
+  animation: highlight-fade 3.5s ease-out forwards;
+}
+
+/* reduced-motion：禁用所有高亮动画（动画禁用时 animationend 不触发，
+   JS 侧用短 timeout 直接销毁覆盖层） */
+@media (prefers-reduced-motion: reduce) {
+  .footnotes li.footnote-highlight::before,
+  .ref-highlight-bar {
+    animation: none;
+  }
 }
 
 
