@@ -1,12 +1,28 @@
 # YinYang
 
-> 布局参考 [joway/hugo-theme-yinyang](https://github.com/joway/hugo-theme-yinyang)
-> 
-> 在其基础上增加了额外功能，如 Markdown Action（快捷复制文章）、大纲、脚注跳转及高亮显示等
-> 
-> 动效参考了 [detail.design](https://detail.design/) 的提示
+一个极简的 Hugo 博客主题，fork 自 [joway/hugo-theme-yinyang](https://github.com/joway/hugo-theme-yinyang)，并在此基础上做了大量增强。
 
-站点示例：<https://cattle0horse.github.io/>
+**在线演示**：[https://cattle0horse.github.io/](https://cattle0horse.github.io/)
+
+![亮色主题](./images/home-light.png)
+
+![暗色主题](./images/home-dark.png)
+
+## 与原版 yinyang 相比
+
+除了继承原版的极简布局，这个 fork 新增了以下能力：
+
+| 功能 | 说明 |
+|---|---|
+| 🌓 亮暗主题切换 | 一键在亮色 / 暗色间切换，跟随系统偏好，无闪屏（FOUC） |
+| 📐 数学公式 | 构建期服务端渲染 KaTeX，页面加载零 JS、零跳变 |
+| 💻 代码块工具栏 | 语言标签、一键复制、超长代码自动折叠 |
+| 🖼 图片增强 | 原生懒加载、骨架屏占位、加载失败重试 |
+| 📑 文章目录 | 宽屏侧边栏 / 窄屏浮层，滚动自动高亮当前位置 |
+| 📌 脚注跳转 | 点击跳转脚注，返回引用处并脉冲高亮 |
+| 🗂 Gallery 图库 | 专门的内容类型，两列网格展示图片 |
+| ⚡ 文章操作区 | 复制 Markdown、查看 Raw、编辑原文纠错 |
+| 🤖 AI 创作标注 | frontmatter 声明创作方式，标题下方低调标注 |
 
 ## 安装
 
@@ -106,15 +122,38 @@ extraHead = '<script src="xxxx.js"></script>'
 extraCSSFiles = ["css/foo.css", "css/bar.css"]
 ```
 
-### 文章首尾插入内容
+### 数学公式
 
-`[params.postContent]` 控制文章正文前后的注入内容，`enabled` 为总开关，`header` / `footer` 按原样通过 `safeHTML` 注入：
+本主题在构建期将 `$...$` / `$$...$$` 渲染为 KaTeX HTML，页面加载时**无需加载任何 JS**、公式不会跳动。使用前需启用 Goldmark 的 passthrough 扩展：
 
 ```toml
-[params.postContent]
-enabled = true
-header = ""
-footer = ""
+[markup]
+[markup.goldmark.extensions]
+[markup.goldmark.extensions.passthrough]
+enable = true
+delimiters = { block = ["$$", "$$"], inline = ["$", "$"] }
+```
+
+在正文中直接书写 LaTeX 即可：
+
+```markdown
+行内公式 $E = mc^2$
+
+块级公式：
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$
+```
+
+书写注意：块级公式内的 `=` / `-` 等标记**不能单独成行**（会被 markdown 解析为 setext 标题打断公式），裸 `<` / `>` 请用 `\lt` / `\gt`。
+
+### 代码块
+
+代码块自动获得语言标签、复制按钮，超过 `codeMaxLines`（默认 15）行的代码块自动折叠：
+
+```toml
+[params]
+codeMaxLines = 15
 ```
 
 ### 图片、文章操作与目录
@@ -143,8 +182,6 @@ repo = "https://github.com/Cattle0Horse/Cattle0Horse.github.io"
 branch = "main"
 text = "有错误？欢迎提交 Pull Request"
 ```
-
-`codeMaxLines`（默认 15）控制长代码块的折叠阈值。
 
 `extraHead`、`extraBody` 和 `postContent.header`、`postContent.footer` 会按原样通过 `safeHTML` 注入，仅应填入可信内容。`extraCSSFiles` 则按路径生成样式链接。
 
@@ -188,6 +225,17 @@ gallery:
 每张图片由共享的 `image-tag.html` 渲染，自动获得与正文图片一致的懒加载、骨架屏和失败重试能力（受 `[params.image]` 的 `lazy` / `loading` 控制），并以两列网格布局展示，`name` 显示为图片下方的说明文字。
 
 > 注意：`gallery` 不属于 `mainSections`（默认 `["posts"]`），因此不会出现在首页或 `/gallery/` 列表页，需通过文章 URL 直接访问。可参考 `exampleSite/content/gallery/sample.md`。
+
+### 文章首尾插入内容
+
+`[params.postContent]` 控制文章正文前后的注入内容，`enabled` 为总开关，`header` / `footer` 按原样通过 `safeHTML` 注入：
+
+```toml
+[params.postContent]
+enabled = true
+header = ""
+footer = ""
+```
 
 ## 示例
 
