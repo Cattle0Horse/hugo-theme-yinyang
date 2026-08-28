@@ -138,6 +138,15 @@
 .code-expand-bar .expand-icon { transition: transform 180ms ease, filter 180ms ease; }
 .code-block-body:not(.is-folded) .expand-icon { transform: rotate(180deg); }
 
+@media (prefers-reduced-motion: reduce) {
+  .code-scroll-viewport,
+  .code-expand-bar.action-button,
+  .code-expand-bar.action-button:active,
+  .code-expand-bar .expand-icon {
+    transition: none;
+  }
+}
+
 /* plain pre / code */
 
 .plain-code-wrapper {

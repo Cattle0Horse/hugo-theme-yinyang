@@ -31,6 +31,15 @@
   }
 
   // 2) 折叠交互：构建期已按行数决定 is-folded，这里做运行时高度校验 + toggle
+  var foldInstances = []
+
+  function updateExpandedHeight(instance) {
+    var renderedHeight = instance.hl.scrollHeight
+    var scrollbarGutter = Math.max(0, instance.viewport.offsetHeight - instance.viewport.clientHeight)
+    var expandedHeight = Math.ceil(renderedHeight + scrollbarGutter + 1)
+    instance.viewport.style.setProperty('--code-height', expandedHeight + 'px')
+  }
+
   var foldedBodies = document.querySelectorAll('.code-block-body.is-folded')
   for (var f = 0; f < foldedBodies.length; f++) {
     ;(function (body) {
@@ -49,7 +58,10 @@
         expandBar.remove()
         return
       }
-      viewport.style.setProperty('--code-height', renderedHeight + 'px')
+
+      var instance = { viewport: viewport, hl: hl }
+      foldInstances.push(instance)
+      updateExpandedHeight(instance)
 
       function updateExpand() {
         var folded = body.classList.contains('is-folded')
@@ -64,6 +76,21 @@
       })
       updateExpand()
     })(foldedBodies[f])
+  }
+
+  if (foldInstances.length) {
+    var heightUpdateFrame = 0
+
+    function scheduleHeightUpdate() {
+      if (heightUpdateFrame) return
+      heightUpdateFrame = requestAnimationFrame(function () {
+        heightUpdateFrame = 0
+        for (var i = 0; i < foldInstances.length; i++) updateExpandedHeight(foldInstances[i])
+      })
+    }
+
+    window.addEventListener('resize', scheduleHeightUpdate)
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleHeightUpdate)
   }
 
   // 3) 缩进代码块（裸 pre，非 .highlight）：构建期无法介入，运行时包装浮动复制按钮
