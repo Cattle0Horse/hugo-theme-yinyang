@@ -26,12 +26,15 @@
   <link rel="icon" href="{{ .Site.Params.favicon }}" />
   <link rel="shortcut" href="{{ .Site.Params.favicon }}" />
   {{- end -}}
-  <link
-    rel="alternate"
-    type="application/rss+xml"
-    href="{{.Site.BaseURL}}index.xml"
-    title="{{ .Site.Title }}"
-  />
+  {{- $feedPage := site.Home -}}
+  {{- if eq .Section "notes" -}}
+    {{- with site.GetPage "/notes" -}}
+      {{- $feedPage = . -}}
+    {{- end -}}
+  {{- end -}}
+  {{- with $feedPage.OutputFormats.Get "RSS" }}
+  {{ printf `<link rel=%q type=%q href=%q title=%q>` .Rel .MediaType.Type .Permalink $feedPage.Title | safeHTML }}
+  {{- end }}
 
   {{ partial "seo" . }}
 

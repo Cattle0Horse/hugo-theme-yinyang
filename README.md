@@ -69,6 +69,31 @@ mainSections = ["posts"]
 
 `mainSections` 只控制 Blog 首页，Notes 固定从 `content/notes/` 读取并显示在 `/notes/`。
 
+### RSS
+
+主题将 Blog 和 Notes 分成两个 feed：Blog 使用 `/index.xml`，且只包含 `mainSections` 中的内容；Notes 使用 `/notes/index.xml`。tags 和 categories 的总览页及条目页均不生成 RSS。
+
+Hugo 的 `outputs` 决定文件是否真正生成。以下配置同时开启 Blog RSS 和 Notes RSS：
+
+```toml
+[outputs]
+home = ["HTML", "RSS"]
+section = ["HTML"]
+taxonomy = ["HTML"]
+term = ["HTML"]
+
+[[cascade]]
+outputs = ["HTML", "RSS"]
+
+[cascade.target]
+kind = "section"
+path = "/notes"
+```
+
+- 禁用 Blog RSS：将 `home` 改为 `["HTML"]`。
+- 禁用 Notes RSS：删除上述 `[[cascade]]` 配置，或将其 `outputs` 改为 `["HTML"]`。
+- 不要给全局 `section` 加入 `"RSS"`，否则 Gallery 等其他 Section 也会生成 feed。
+
 ### Notes 短记录
 
 Notes 用于直接留下不要求完整的短记录。每条 Note 是独立页面，按月份目录和月内三位序号组织：
@@ -94,11 +119,11 @@ draft: false
 一句话也算写作。先留下，再回头。
 ```
 
-- 未设置 `title` 时，页面保持无标题；浏览器标题、SEO 和 RSS 使用正文前 60 个字符，空正文回退到日期时间。
+- 未设置 `title` 时，页面保持无标题；浏览器标题和 SEO 使用正文前 60 个字符，空正文回退到日期时间。
 - `source_url` 表示这条 Note 针对的外部文章，列表和详情页会在正文前显示来源域名。
 - `/notes/` 每页显示 30 条，完整正文直接在时间线中展开；每条记录仍有独立固定链接。
 - Note 详情页复用 Blog 的标签、复制 Markdown、编辑原文、查看 Raw 和底部纠错入口。
-- 所有公开 Notes 与 Blog 一起进入主 RSS，不区分发布与广播。
+- Notes 不进入 Blog RSS；启用 Notes RSS 时，只进入独立的 `/notes/index.xml`。
 
 主题的 `archetypes/notes.md` 提供上述 front matter。示例站根目录还包含无参数创建脚本；在示例站中使用：
 
@@ -322,6 +347,20 @@ title = "CattleHorse's Blog"
 # ---------- URL ----------
 [permalinks]
 posts = "/blog/:title/"
+
+# ---------- RSS ----------
+[outputs]
+home = ["HTML", "RSS"]
+section = ["HTML"]
+taxonomy = ["HTML"]
+term = ["HTML"]
+
+[[cascade]]
+outputs = ["HTML", "RSS"]
+
+[cascade.target]
+kind = "section"
+path = "/notes"
 
 # ---------- Markdown / 代码高亮 ----------
 [markup]

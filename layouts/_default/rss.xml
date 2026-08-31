@@ -1,4 +1,4 @@
-{{- /* Hugo v0.165 embedded RSS template with Note title fallback. */ -}}
+{{- /* Hugo v0.165 embedded RSS template, with separate Blog and Notes feeds. */ -}}
 {{- $authorEmail := "" }}
 {{- with site.Params.author }}
 	{{- if reflect.IsMap . }}
@@ -18,13 +18,13 @@
 		{{- $authorName = . }}
 	{{- end }}
 {{- end }}
-{{- $pctx := . }}
-{{- if .IsHome }}{{ $pctx = .Site }}{{ end }}
 {{- $pages := slice }}
-{{- if or $.IsHome $.IsSection }}
-	{{- $pages = $pctx.RegularPages }}
+{{- if $.IsHome }}
+	{{- $pages = where site.RegularPages "Type" "in" site.Params.mainSections }}
+{{- else if $.IsSection }}
+	{{- $pages = .RegularPages }}
 {{- else }}
-	{{- $pages = $pctx.Pages }}
+	{{- $pages = .Pages }}
 {{- end }}
 {{- $limit := .Site.Config.Services.RSS.Limit }}
 {{- if ge $limit 1 }}
