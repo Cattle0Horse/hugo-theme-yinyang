@@ -1,0 +1,20 @@
+{{ define "main" }}
+{{ partial "copy-button.html" . }}
+<article class="note-single {{ .Site.Language.Locale }}">
+  <div class="row"><div class="col-xs-12">
+    <header class="note-single-header">
+      {{ with .Params.title }}<h1 class="note-single-title">{{ . }}</h1>{{ end }}
+      <div class="note-single-meta">
+        <time class="note-single-time" datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+          {{ .Date.Format "2006.01.02 · 15:04" }}
+        </time>
+        {{ partial "markdown-actions.html" . }}
+      </div>
+    </header>
+    {{ partial "note-source.html" . }}
+    <div class="note-content note-single-content markdown-body">{{ .Content }}</div>
+    {{ partial "post-tags.html" . }}
+  </div></div>
+</article>
+{{ partial "edit-page.html" . }}
+{{ end }}

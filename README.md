@@ -23,6 +23,7 @@
 | 🗂 Gallery 图库 | 专门的内容类型，两列网格展示图片 |
 | ⚡ 文章操作区 | 复制 Markdown、查看 Raw、编辑原文纠错 |
 | 🤖 AI 创作标注 | frontmatter 声明创作方式，标题下方低调标注 |
+| 📝 Notes 短记录 | 无标题正文时间线、独立链接、来源文章与分页 |
 
 ## 安装
 
@@ -64,6 +65,76 @@ headTitle = "CattleHorse"
 ```toml
 [params]
 mainSections = ["posts"]
+```
+
+`mainSections` 只控制 Blog 首页，Notes 固定从 `content/notes/` 读取并显示在 `/notes/`。
+
+### Notes 短记录
+
+Notes 用于直接留下不要求完整的短记录。每条 Note 是独立页面，按月份目录和月内三位序号组织：
+
+```text
+content/notes/
+└── 2026-08/
+    ├── 001.md
+    └── 002.md
+```
+
+最小内容只有日期和正文；`title`、`tags`、`source_url` 都是可选字段：
+
+```yaml
+---
+date: 2026-08-31T14:19:47+08:00
+draft: false
+# title: ""
+# tags: []
+# source_url: ""
+---
+
+一句话也算写作。先留下，再回头。
+```
+
+- 未设置 `title` 时，页面保持无标题；浏览器标题、SEO 和 RSS 使用正文前 60 个字符，空正文回退到日期时间。
+- `source_url` 表示这条 Note 针对的外部文章，列表和详情页会在正文前显示来源域名。
+- `/notes/` 每页显示 30 条，完整正文直接在时间线中展开；每条记录仍有独立固定链接。
+- Note 详情页复用 Blog 的标签、复制 Markdown、编辑原文、查看 Raw 和底部纠错入口。
+- 所有公开 Notes 与 Blog 一起进入主 RSS，不区分发布与广播。
+
+主题的 `archetypes/notes.md` 提供上述 front matter。示例站根目录还包含无参数创建脚本；在示例站中使用：
+
+```powershell
+cd exampleSite
+nu note.nu
+```
+
+脚本会找到当前月份的最大三位序号，创建下一条 Note 并通过 VS Code 打开。实际内容站点使用时，将 `exampleSite/note.nu` 复制到站点根目录后运行同一命令。脚本只负责创建，不执行构建、提交或发布。
+
+### 快速新建 Blog
+
+Blog 使用独立 Page Bundle，便于把正文、图片和附件放在同一目录。示例站中运行：
+
+```powershell
+cd exampleSite
+nu blog.nu
+```
+
+脚本会创建 `content/posts/YYYY-MM-DD-HHMMSS/index.md` 并通过 VS Code 打开。新文章默认 `draft: true`，必须填写标题并在完成后手动改为 `false`。实际内容站点使用时，将 `exampleSite/blog.nu` 复制到站点根目录；发布仍由独立流程负责。
+
+Blog archetype 会把所有主题支持的页面级 front matter 作为注释提供，需要时直接取消注释：
+
+```yaml
+---
+title: ""
+date: 2026-08-31T16:30:00+08:00
+draft: true
+# summary: ""
+# description: ""
+# tags: []
+# categories: []
+# ai: none # none | assisted | generated
+# toc: true # false disables the table of contents
+# album: [] # Open Graph image URLs
+---
 ```
 
 ### 字体
@@ -283,6 +354,9 @@ homepage = "https://github.com/cattle0horse"
 name = "CattleHorse"
 
 # ---------- 社交链接 ----------
+[[params.socials]]
+name = "Notes"
+link = "/notes/"
 [[params.socials]]
 name = "RSS"
 link = "/index.xml"

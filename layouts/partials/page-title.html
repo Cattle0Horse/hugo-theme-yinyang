@@ -1,0 +1,14 @@
+{{- $title := .Title -}}
+{{- if eq .Section "notes" -}}
+  {{- with .Params.title -}}
+    {{- $title = . -}}
+  {{- else -}}
+    {{- $plain := .Plain | replaceRE `\s+` " " | strings.TrimSpace -}}
+    {{- if $plain -}}
+      {{- $title = $plain | truncate 60 -}}
+    {{- else if not .Date.IsZero -}}
+      {{- $title = .Date.Format "2006.01.02 15:04" -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $title -}}

@@ -5,7 +5,8 @@
 {{- end -}}
 {{- $branch := delimit $branchParts "/" -}}
 {{- $pathParts := slice -}}
-{{- range split .File.Path "/" -}}
+{{- $filePath := replace .File.Path "\\" "/" -}}
+{{- range split $filePath "/" -}}
   {{- $pathParts = $pathParts | append (urls.PathEscape .) -}}
 {{- end -}}
 {{- $path := delimit $pathParts "/" -}}

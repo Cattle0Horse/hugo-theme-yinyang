@@ -1,0 +1,61 @@
+{{ define "main" }}
+<article class="notes {{ .Site.Language.Locale }}">
+  <div class="row"><div class="col-xs-12">
+    <header class="notes-header">
+      {{ with .Title }}<h1 class="notes-page-title">{{ . }}</h1>{{ end }}
+      {{ with .Content }}<div class="notes-intro markdown-body">{{ . }}</div>{{ end }}
+    </header>
+
+    {{ $paginator := .Paginate (.RegularPages.ByDate.Reverse) 30 }}
+    <div class="notes-list">
+      {{ range $paginator.Pages.GroupByDate "2006-01" }}
+      <section class="notes-month">
+        <h2 class="notes-month-title">{{ replace .Key "-" " / " }}</h2>
+        {{ range .Pages }}
+        {{ $note := . }}
+        <article class="note-entry">
+          <div class="note-entry-time">
+            <a href="{{ .RelPermalink }}">
+              <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "01.02 · 15:04" }}</time>
+            </a>
+          </div>
+          <div class="note-entry-main">
+            {{ with .Params.title }}
+            <h3 class="note-entry-title"><a href="{{ $note.RelPermalink }}">{{ . }}</a></h3>
+            {{ end }}
+            {{ partial "note-source.html" . }}
+            <div class="note-content markdown-body">{{ .Content }}</div>
+            {{ partial "note-tags.html" . }}
+          </div>
+        </article>
+        {{ end }}
+      </section>
+      {{ end }}
+    </div>
+
+    {{ if gt $paginator.TotalPages 1 }}
+    <nav class="notes-pagination" aria-label="Notes 分页">
+      {{ with $paginator.Prev }}
+      <a class="notes-page-link notes-page-prev" href="{{ .URL }}" rel="prev" aria-label="上一页">
+        {{ partial "icon.html" (dict "name" "chevron" "class" "notes-page-icon") }}
+      </a>
+      {{ else }}
+      <span class="notes-page-link notes-page-prev is-disabled" aria-hidden="true">
+        {{ partial "icon.html" (dict "name" "chevron" "class" "notes-page-icon") }}
+      </span>
+      {{ end }}
+      <span class="notes-page-count">{{ $paginator.PageNumber }} / {{ $paginator.TotalPages }}</span>
+      {{ with $paginator.Next }}
+      <a class="notes-page-link notes-page-next" href="{{ .URL }}" rel="next" aria-label="下一页">
+        {{ partial "icon.html" (dict "name" "chevron" "class" "notes-page-icon") }}
+      </a>
+      {{ else }}
+      <span class="notes-page-link notes-page-next is-disabled" aria-hidden="true">
+        {{ partial "icon.html" (dict "name" "chevron" "class" "notes-page-icon") }}
+      </span>
+      {{ end }}
+    </nav>
+    {{ end }}
+  </div></div>
+</article>
+{{ end }}

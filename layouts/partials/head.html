@@ -42,8 +42,9 @@
   <meta property="og:description" content="{{ .Site.Params.description }}" />
   <meta name="description" content="{{ .Site.Params.description }}" />
   {{- else -}}
-  <title>{{ .Title }}</title>
-  <meta property="og:title" content="{{ .Title }}" />
+  {{- $pageTitle := partial "page-title.html" . -}}
+  <title>{{ $pageTitle }}</title>
+  <meta property="og:title" content="{{ $pageTitle }}" />
   <meta property="og:type" content="article" />
   <meta
     property="og:description"
@@ -67,6 +68,7 @@
     "css/site-header.css"
     "css/theme-toggle.css"
     "css/posts-list.css"
+    "css/notes.css"
     "css/post-page.css"
     "css/taxonomy.css"
     "css/gallery.css"

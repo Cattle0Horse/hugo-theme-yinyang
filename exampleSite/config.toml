@@ -1,6 +1,7 @@
 baseURL = "https://cattle0horse.github.io"
 locale = "zh-cn"
 theme = "yinyang"
+title = "CattleHorse's Blog"
 
 [permalinks]
 posts = "/blog/:title/"
@@ -76,6 +77,10 @@ name = "CattleHorse"
 [[params.socials]]
 name = "Tags"
 link = "/tags/"
+
+[[params.socials]]
+name = "Notes"
+link = "/notes/"
 
 [[params.socials]]
 name = "Categories"

@@ -11,7 +11,7 @@ draft: false
 
 ## 错误路径图片（应显示失败占位）
 
-![本地不存在的图片](attachments/does-not-exist.png)
+![本地不存在的图片](attachments/does-not-exist.png) <!-- rumdl-disable-line existing-relative-links -->
 
 ## 远程无效图片（应显示失败占位）
 

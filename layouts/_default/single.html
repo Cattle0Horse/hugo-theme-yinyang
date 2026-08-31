@@ -44,13 +44,7 @@
                   {{ .Content }}
                 </div>
 
-                <div class="row middle-xs">
-                  <div class="col-xs-12">
-                    {{ range .Params.tags }}
-                    <a class="post-tag" href="/tags/{{ lower . | urlize }}/">{{ . }}</a>
-                    {{ end }}
-                  </div>
-                </div>
+                {{ partial "post-tags.html" . }}
                 {{ if in .Site.Params.mainSections .Type }}
                   <div class="row">
                     <div class="col-xs-12">

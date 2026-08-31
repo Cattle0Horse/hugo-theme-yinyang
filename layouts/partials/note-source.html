@@ -1,0 +1,15 @@
+{{- with $source := .Params.source_url -}}
+  {{- $label := "原文" -}}
+  {{- with try (urls.Parse $source) -}}
+    {{- with .Value -}}
+      {{- with .Host -}}
+        {{- $label = . -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  <a class="note-source" href="{{ $source }}" target="_blank" rel="noopener noreferrer">
+    <span aria-hidden="true">↗</span>
+    <span>{{ $label }}</span>
+  </a>
+{{- end -}}
+

@@ -1,4 +1,5 @@
 <script type="application/ld+json">
+  {{- $pageTitle := cond .IsHome .Site.Title (partial "page-title.html" .) -}}
   {
       "@context" : "https://schema.org",
       "@type" : "BlogPosting",
@@ -7,8 +8,8 @@
            "@id": "{{ .Site.BaseURL }}"
       },
       "articleSection" : "{{ .Section }}",
-      "name" : "{{ .Title }}",
-      "headline" : "{{ .Title }}",
+      "name" : {{ $pageTitle | jsonify | safeJS }},
+      "headline" : {{ $pageTitle | jsonify | safeJS }},
       {{ if .IsHome -}}
       "description" : "{{ .Site.Params.description | plainify }}",
       {{- else -}}
