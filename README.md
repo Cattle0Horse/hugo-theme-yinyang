@@ -14,7 +14,7 @@
 
 | 功能 | 说明 |
 |---|---|
-| 🌓 亮暗主题切换 | 一键在亮色 / 暗色间切换，跟随系统偏好，无闪屏（FOUC） |
+| 🌓 外观切换 | YinYang / Solarized 配色与亮色 / 暗色独立选择，跟随系统偏好，无闪屏（FOUC） |
 | 📐 数学公式 | 构建期服务端渲染 KaTeX，页面加载零 JS、零跳变 |
 | 💻 代码块工具栏 | 语言标签、一键复制、超长代码自动折叠 |
 | 🖼 图片增强 | 原生懒加载、异步解码、骨架屏占位、加载失败重试 |
@@ -68,6 +68,23 @@ mainSections = ["posts"]
 ```
 
 `mainSections` 只控制 Blog 首页，Notes 固定从 `content/notes/` 读取并显示在 `/notes/`。
+
+### 配色与明暗模式
+
+主题内置 `yinyang` 和 `solarized` 两套配色，每套均支持亮色与暗色。明暗模式跟随系统偏好，访客手动选择后，配色与明暗状态会分别保存在浏览器中。
+
+```toml
+[params.colorScheme]
+default = "yinyang"
+available = ["yinyang", "solarized"]
+allowUserChoice = true
+```
+
+- `default`：首次访问时使用的配色，必须同时出现在 `available` 中。
+- `available`：站点允许的配色；目前支持 `yinyang`、`solarized`，无效值会被忽略。
+- `allowUserChoice`：至少有两套可用配色时，在页头显示配色选择按钮。
+
+不配置 `[params.colorScheme]` 时保持原有行为：使用 YinYang 配色且不显示配色选择按钮。明暗切换按钮始终保留。
 
 ### RSS
 
@@ -381,6 +398,11 @@ favicon = "/logo.png"
 headTitle = "CattleHorse's Blog"
 mainSections = ["posts"]
 staticPrefix = "https://cdn.jsdelivr.net/gh/cattle0horse/blog"
+
+[params.colorScheme]
+default = "yinyang"
+available = ["yinyang", "solarized"]
+allowUserChoice = true
 
 [params.image]
 enabled = true

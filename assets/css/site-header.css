@@ -15,6 +15,7 @@
   letter-spacing: 2px;
 }
 .header-title a {
+  color: var(--color-heading);
   text-decoration: none;
 }
 

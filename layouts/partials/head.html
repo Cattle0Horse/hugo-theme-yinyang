@@ -1,12 +1,20 @@
 <head>
+  {{- $paletteState := partial "palette-state.html" . -}}
   <script>
     ;(function () {
       var t = null
+      var p = null
+      var palettes = {{ $paletteState.available | jsonify | safeJS }}
+      var defaultPalette = {{ $paletteState.default | jsonify | safeJS }}
       try {
         t = localStorage.getItem("theme")
+        p = localStorage.getItem("palette")
       } catch (error) {}
+      if (t !== "light" && t !== "dark") t = null
       if (!t) t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+      if (!p || palettes.indexOf(p) === -1) p = defaultPalette
       document.documentElement.setAttribute("data-theme", t)
+      document.documentElement.setAttribute("data-palette", p)
     })();
   </script>
   <meta charset="utf-8" />

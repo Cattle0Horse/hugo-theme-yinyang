@@ -57,14 +57,15 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 
 `extraCSSFiles` 参数可通过 `<link>` 加载额外 CSS（用于自定义字体、背景等，不受 Hugo minify 处理）。
 
-### 主题系统
+### 主题与配色系统
 
-暗色/亮色切换通过 `data-theme` 属性配合 CSS 变量实现：
+外观分为两个独立维度：`data-theme` 控制 `light` / `dark`，`data-palette` 控制 `yinyang` / `solarized`：
 
-- `head.html` 顶部内联脚本在 HTML 解析前同步执行，从 `localStorage` 或 `prefers-color-scheme` 读取主题，设置 `document.documentElement.setAttribute("data-theme", ...)`，避免 FOUC。
-- `variables.css` 定义 `:root`（亮色）和 `:root[data-theme="dark"]`（暗色）两套 CSS 自定义属性。
-- `theme-toggle.html` 提供切换按钮交互，切换时短暂添加 `theme-changing` class 禁用 CSS transition（避免颜色渐变闪烁）。
-- 主题按钮嵌入在 `header.html` 中。
+- `palette-state.html` 过滤站点配置，只允许主题内置配色，并计算默认值及是否显示选择器。
+- `head.html` 顶部内联脚本在 HTML 解析前同步执行：明暗模式读取 `localStorage.theme` 或 `prefers-color-scheme`，配色读取 `localStorage.palette` 或站点默认值，设置两个 data 属性以避免 FOUC。
+- `variables.css` 定义 YinYang / Solarized 各自的亮暗 CSS 变量；`syntax.css` 只消费 `--syntax-*` 变量，不硬编码主题颜色。
+- `theme-toggle.html` 同时管理明暗切换和按需创建销毁的配色菜单；两种切换都短暂添加 `theme-changing` class 禁用 CSS transition。
+- 明暗按钮与配色按钮嵌入在 `header.html` 的 `.appearance-controls` 中；未启用用户选择时不渲染配色按钮。
 
 ### 跨功能通用约定
 
@@ -89,6 +90,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 | `seo.html` | `head.html` 内 | 始终 |
 | `math.html` | `head.html` 内 | `partialCached`，仅在内容含 `$$`/`$...$` 时内联 KaTeX CSS |
 | `theme-toggle.html` | 所有独立模板 + baseof（`</body>` 前） | 始终 |
+| `palette-state.html` | `head.html`、`header.html`、`theme-toggle.html` | 始终（过滤内置配色、计算默认值和选择器 gate） |
 | `footnotes.html` | 所有独立模板 + baseof（`</body>` 前） | 首页跳过 |
 | `ui.html` | 所有独立模板 + baseof（`</body>` 末尾） | 始终（tooltip DOM + 滚动/边缘模糊/tooltip 脚本） |
 | `edge-blur.html` | 所有模板，在 header 后和内容末尾各一次 | 始终 |
@@ -157,7 +159,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 
 - `_markup/render-passthrough.html`：配合 Goldmark passthrough 扩展，在构建期调用 Hugo 内置 `transform.ToMath`（内嵌 KaTeX 引擎）将 `$...$` / `$$...$$` 服务端渲染为 KaTeX HTML（`output: htmlAndMathml`，`displayMode` 按 `.Type`，`throwOnError: false`）。`hugo server` 与生产构建均零 JS、零跳变。
 - `math.html`：正则扫描 `.RawContent` 中的 `$$` / `$...$`，仅在检测到公式时内联 `assets/css/katex.min.css`（`partialCached` 按 `RelPermalink` 缓存检测结果），并把 CSS 内字体 URL 改写为绝对路径 `/fonts/katex/...`。字体 vendored 于 `static/fonts/katex/`（KaTeX 0.17.0，须与 Hugo 内置版本保持一致；0.18 起 class 有 breaking change）。
-- 书写注意：裸 `<`/`>` 请用 `\lt`/`\gt`，对齐 `&` 用 `\&`；换行用 `\\`（双反斜杠）；**块级公式内 `=`/`-` 等标记不能单独成行**（会被 markdown 解析为 setext 标题，打断 `$$` 块导致公式失效，如 `\begin{pmatrix} x \\ y \end{pmatrix}\n=`）；非法 LaTeX 渲染为红色内联标注（默认色 `#cc0000`）而非阻断构建。`copyMarkdown` 复制的仍是原始 `$...$` markdown，不受影响。
+- 书写注意：裸 `<`/`>` 请用 `\lt`/`\gt`，对齐 `&` 用 `\&`；换行用 `\\`（双反斜杠）；**块级公式内 `=`/`-` 等标记不能单独成行**（会被 markdown 解析为 setext 标题，打断 `$$` 块导致公式失效，如 `\begin{pmatrix} x \\ y \end{pmatrix}\n=`）；非法 LaTeX 使用当前配色的 `--color-error` 渲染为内联标注而非阻断构建。`copyMarkdown` 复制的仍是原始 `$...$` markdown，不受影响。
 
 ### Gallery 内容类型
 
@@ -186,6 +188,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 - `extraBody` — 注入 `</body>` 前的原始 HTML
 - `postContent` — 站点配置（映射），文章首尾注入：`enabled`（布尔值，总闸）、`header` / `footer`（文章正文前后的注入 HTML，`safeHTML`）
 - `extraCSSFiles` — 额外 CSS 路径数组，以 `<link>` 加载
+- `colorScheme` — 站点配置（映射），配色方案：`default`（默认 `yinyang`）、`available`（允许 `yinyang` / `solarized`）、`allowUserChoice`（多于一套有效配色时显示选择器）
 - `staticPrefix` — CDN 前缀，同时生成 `dns-prefetch`
 - `image` — 站点配置（映射），图片增强：`enabled`（布尔值，总闸）、`lazy`（布尔值，为 `<img>` 添加 `loading="lazy"`）、`loading`（布尔值，启用骨架屏 + 加载失败重试，首页不生效）
 - `actions` — 站点配置（映射），文章操作区总开关与子功能：`enabled`（布尔值，总闸，`false` 或未配时编辑/复制按钮全部不渲染）、`copyMarkdown`（布尔值，启用"复制 Markdown"按钮）、嵌套 `editPage`（`enabled` 布尔值 + `repo` GitHub 仓库 URL + `branch` 分支名默认 `main` + `text` 纠错链接文字）。编辑按钮需 `actions.enabled` + `editPage.enabled` + `editPage.repo` 同时满足

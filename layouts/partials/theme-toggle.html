@@ -2,6 +2,15 @@
 ;(function () {
   var btn = document.getElementById("theme-toggle")
   if (!btn) return
+  var paletteBtn = document.getElementById("palette-toggle")
+  var paletteState = {{ partial "palette-state.html" . | jsonify | safeJS }}
+  var paletteNames = {
+    yinyang: "YinYang",
+    solarized: "Solarized"
+  }
+  var menu = null
+  var closeTimer = 0
+  var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
 
   function updateLabel() {
     var dark = document.documentElement.getAttribute("data-theme") === "dark"
@@ -10,20 +19,204 @@
     btn.setAttribute("data-tooltip", label)
   }
 
-  updateLabel()
-  btn.addEventListener("click", function () {
+  function currentPalette() {
+    return document.documentElement.getAttribute("data-palette") || paletteState.default
+  }
+
+  function updatePaletteLabel() {
+    if (!paletteBtn) return
+    var label = "选择配色，当前：" + (paletteNames[currentPalette()] || currentPalette())
+    paletteBtn.setAttribute("aria-label", label)
+    paletteBtn.setAttribute("data-tooltip", label)
+    if (window.updateActionTooltip) window.updateActionTooltip(paletteBtn)
+  }
+
+  function updateMenuSelection() {
+    if (!menu) return
+    var selected = currentPalette()
+    menu.querySelectorAll("[data-palette-value]").forEach(function (option) {
+      var active = option.getAttribute("data-palette-value") === selected
+      option.setAttribute("aria-checked", active ? "true" : "false")
+      var status = option.querySelector(".palette-option-status")
+      if (status) status.textContent = active ? "已选择" : ""
+    })
+  }
+
+  function applyAppearanceChange(callback) {
     var html = document.documentElement
-    var next = html.getAttribute("data-theme") === "dark" ? "light" : "dark"
     html.classList.add("theme-changing")
     html.offsetWidth
-    html.setAttribute("data-theme", next)
+    callback(html)
+    requestAnimationFrame(function () {
+      html.classList.remove("theme-changing")
+    })
+  }
+
+  function setPalette(value) {
+    if (paletteState.available.indexOf(value) === -1) return
+    applyAppearanceChange(function (html) {
+      html.setAttribute("data-palette", value)
+    })
+    try {
+      localStorage.setItem("palette", value)
+    } catch (error) {}
+    updatePaletteLabel()
+    updateMenuSelection()
+  }
+
+  function positionMenu() {
+    if (!menu || !paletteBtn) return
+    var anchor = paletteBtn.getBoundingClientRect()
+    var bounds = menu.getBoundingClientRect()
+    var left = Math.max(8, Math.min(anchor.left, window.innerWidth - bounds.width - 8))
+    var top = anchor.bottom + 8
+    if (top + bounds.height > window.innerHeight - 8) top = Math.max(8, anchor.top - bounds.height - 8)
+    menu.style.left = left + "px"
+    menu.style.top = top + "px"
+  }
+
+  function finishClose(node) {
+    clearTimeout(closeTimer)
+    if (node && node.parentNode) node.remove()
+    if (menu === node) menu = null
+  }
+
+  function closeMenu(returnFocus) {
+    if (!menu || menu.classList.contains("is-closing")) return
+    var node = menu
+    node.classList.add("is-closing")
+    node.classList.remove("is-open")
+    paletteBtn.setAttribute("aria-expanded", "false")
+
+    if (returnFocus) paletteBtn.focus()
+    if (reducedMotion.matches) {
+      finishClose(node)
+      return
+    }
+
+    node.addEventListener("transitionend", function (event) {
+      if (event.target === node && event.propertyName === "opacity") finishClose(node)
+    }, { once: true })
+    closeTimer = setTimeout(function () { finishClose(node) }, 220)
+  }
+
+  function createMenu() {
+    if (!paletteBtn) return
+    if (menu) {
+      if (menu.classList.contains("is-closing")) finishClose(menu)
+      else return
+    }
+
+    menu = document.createElement("div")
+    menu.id = "palette-menu"
+    menu.className = "palette-menu"
+    menu.setAttribute("role", "menu")
+    menu.setAttribute("aria-label", "配色方案")
+
+    paletteState.available.forEach(function (palette) {
+      var option = document.createElement("button")
+      var swatch = document.createElement("span")
+      var label = document.createElement("span")
+      var status = document.createElement("span")
+
+      option.type = "button"
+      option.className = "palette-option"
+      option.setAttribute("role", "menuitemradio")
+      option.setAttribute("data-palette-value", palette)
+      swatch.className = "palette-swatch"
+      swatch.setAttribute("data-palette-swatch", palette)
+      swatch.setAttribute("aria-hidden", "true")
+      label.className = "palette-option-label"
+      label.textContent = paletteNames[palette] || palette
+      status.className = "palette-option-status"
+      option.appendChild(swatch)
+      option.appendChild(label)
+      option.appendChild(status)
+      menu.appendChild(option)
+    })
+
+    document.body.appendChild(menu)
+    updateMenuSelection()
+    positionMenu()
+    paletteBtn.setAttribute("aria-expanded", "true")
+    if (window.hideActionTooltip) window.hideActionTooltip(paletteBtn)
+    requestAnimationFrame(function () {
+      if (!menu) return
+      menu.classList.add("is-open")
+      var selected = menu.querySelector('[aria-checked="true"]') || menu.querySelector(".palette-option")
+      if (selected) selected.focus()
+    })
+  }
+
+  function moveFocusPastMenu(backwards) {
+    var controls = Array.prototype.slice.call(document.querySelectorAll(".header-items a, .header-items button"))
+    var index = controls.indexOf(paletteBtn)
+    var target = controls[index + (backwards ? -1 : 1)]
+    closeMenu(false)
+    if (target) target.focus()
+  }
+
+  updateLabel()
+  updatePaletteLabel()
+  btn.addEventListener("click", function () {
+    var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"
+    applyAppearanceChange(function (html) {
+      html.setAttribute("data-theme", next)
+    })
     try {
       localStorage.setItem("theme", next)
     } catch (error) {}
     updateLabel()
-    requestAnimationFrame(function () {
-      html.classList.remove("theme-changing")
-    })
   })
+
+  if (!paletteBtn) return
+
+  document.addEventListener("click", function (event) {
+    var trigger = event.target.closest("#palette-toggle")
+    if (trigger) {
+      event.preventDefault()
+      if (menu && !menu.classList.contains("is-closing")) closeMenu(true)
+      else createMenu()
+      return
+    }
+
+    var option = event.target.closest("[data-palette-value]")
+    if (menu && option && menu.contains(option)) {
+      setPalette(option.getAttribute("data-palette-value"))
+      closeMenu(true)
+      return
+    }
+
+    if (menu && !menu.contains(event.target)) closeMenu(false)
+  })
+
+  document.addEventListener("keydown", function (event) {
+    if (event.target === paletteBtn && event.key === "ArrowDown") {
+      event.preventDefault()
+      createMenu()
+      return
+    }
+    if (!menu || !menu.contains(event.target)) return
+
+    var options = Array.prototype.slice.call(menu.querySelectorAll(".palette-option"))
+    var index = options.indexOf(document.activeElement)
+    if (event.key === "Escape") {
+      event.preventDefault()
+      closeMenu(true)
+    } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault()
+      var offset = event.key === "ArrowDown" ? 1 : -1
+      options[(index + offset + options.length) % options.length].focus()
+    } else if (event.key === "Home" || event.key === "End") {
+      event.preventDefault()
+      options[event.key === "Home" ? 0 : options.length - 1].focus()
+    } else if (event.key === "Tab") {
+      event.preventDefault()
+      moveFocusPastMenu(event.shiftKey)
+    }
+  })
+
+  window.addEventListener("resize", function () { if (menu) positionMenu() })
+  document.addEventListener("scroll", function () { if (menu) closeMenu(false) }, true)
 })()
 </script>

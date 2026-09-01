@@ -1,0 +1,34 @@
+{{- $supported := slice "yinyang" "solarized" -}}
+{{- $available := slice "yinyang" -}}
+{{- $default := "yinyang" -}}
+{{- $allowUserChoice := false -}}
+
+{{- with .Site.Params.colorScheme -}}
+  {{- with .available -}}
+    {{- $configured := slice -}}
+    {{- range . -}}
+      {{- $name := lower (printf "%v" .) -}}
+      {{- if and (in $supported $name) (not (in $configured $name)) -}}
+        {{- $configured = $configured | append $name -}}
+      {{- end -}}
+    {{- end -}}
+    {{- if gt (len $configured) 0 -}}
+      {{- $available = $configured -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- with .default -}}
+    {{- $candidate := lower (printf "%v" .) -}}
+    {{- if in $available $candidate -}}
+      {{- $default = $candidate -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- $allowUserChoice = and .allowUserChoice (gt (len $available) 1) -}}
+{{- end -}}
+
+{{- return (dict
+  "available" $available
+  "default" $default
+  "allowUserChoice" $allowUserChoice
+) -}}

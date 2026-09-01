@@ -153,6 +153,10 @@
     positionTooltip(target)
   }
 
+  window.hideActionTooltip = function (target) {
+    hide(target)
+  }
+
   if (window.matchMedia('(hover: hover)').matches) {
     document.addEventListener('mouseover', function (event) {
       var target = event.target.closest('[data-tooltip]')

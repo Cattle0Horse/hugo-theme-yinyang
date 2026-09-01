@@ -60,6 +60,11 @@ extraHead = '''
 tableOfContents = true
 codeMaxLines = 15
 
+[params.colorScheme]
+default = "yinyang"
+available = ["yinyang", "solarized"]
+allowUserChoice = true
+
 [params.image]
 enabled = true
 lazy = true

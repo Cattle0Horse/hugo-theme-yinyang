@@ -1,2 +1,5 @@
 {{- $opts := dict "output" "htmlAndMathml" "displayMode" (eq .Type "block") "throwOnError" false "strict" "warn" -}}
-{{- transform.ToMath .Inner $opts -}}
+{{- $math := transform.ToMath .Inner $opts -}}
+{{- $math = replace $math "mathcolor=\"#cc0000\"" "style=\"color:var(--color-error)\"" -}}
+{{- $math = replace $math "color:#cc0000" "color:var(--color-error)" -}}
+{{- $math | safeHTML -}}

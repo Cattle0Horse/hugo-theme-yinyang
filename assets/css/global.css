@@ -26,6 +26,15 @@ body {
   color: var(--color-text);
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--color-heading);
+}
+
 ::selection {
   background-color: var(--color-selection);
 }
@@ -60,8 +69,9 @@ a:hover {
 }
 
 .markdown-body a {
+  color: var(--color-link);
   text-decoration: underline;
-  text-decoration-color: var(--color-text);
+  text-decoration-color: var(--color-link);
 }
 
 .markdown-body hr {
