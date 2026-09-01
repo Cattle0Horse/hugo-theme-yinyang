@@ -1,5 +1,6 @@
 {{- $page := .Page -}}
 {{- $src := .Src -}}
+{{- $resolvedSrc := $src -}}
 {{- $imgCfg := $page.Site.Params.image -}}
 {{- $width := "" -}}
 {{- $height := "" -}}
@@ -8,6 +9,9 @@
 {{- $img := $page.Resources.GetMatch (strings.TrimPrefix "./" $src) -}}
 {{- if not $img -}}
   {{- $img = $page.Resources.GetMatch (printf "*%s" (path.Base $src)) -}}
+{{- end -}}
+{{- with $img -}}
+  {{- $resolvedSrc = .RelPermalink -}}
 {{- end -}}
 
 {{- /* Skip SVG — dimensions may be unreliable (0 or incorrect) */ -}}
@@ -22,13 +26,13 @@
 {{- if $enhanced }}
 <span class="loading-image-frame is-loading{{ if not $sizeKnown }} size-unknown{{ end }}"{{ with $width }} style="--image-width: {{ . }}px;{{ with $height }} --image-ratio: {{ $width }} / {{ . }};{{ end }}"{{ end }}>
 {{- end }}
-<img src="{{ $src }}"
+<img src="{{ $resolvedSrc }}"
      alt="{{ .Alt }}"
      {{- with .Title }} title="{{ . }}"{{ end -}}
      {{- with $width }} width="{{ . }}"{{ end -}}
      {{- with $height }} height="{{ . }}"{{ end -}}
      {{- if and $imgCfg.enabled $imgCfg.lazy }} loading="lazy"{{ end -}}
-     {{- if $enhanced }} class="loading-img" decoding="async" data-original-src="{{ $src }}"{{ end }}>
+     {{- if $enhanced }} class="loading-img" decoding="async" data-original-src="{{ $resolvedSrc }}"{{ end }}>
 {{- if $enhanced }}
   <span class="loading-failed loading-retry" role="button" tabindex="0" aria-label="点击重试" data-tooltip="点击重试" hidden>
     <span class="loading-failed-icon action-icon" aria-hidden="true">{{ partial "icon.html" (dict "name" "image") }}</span>

@@ -70,6 +70,7 @@
 .loading-image-frame img.loading-img {
   width: 100%;
   max-width: 100%;
+  height: auto;
   margin: 0;
   opacity: 0;
   transform: scale(1.02);
