@@ -1,15 +1,30 @@
-{{- with $source := .Params.source_url -}}
-  {{- $label := "原文" -}}
-  {{- with try (urls.Parse $source) -}}
-    {{- with .Value -}}
-      {{- with .Host -}}
-        {{- $label = . -}}
+{{- with $sources := .Params.source -}}
+  <div class="note-sources">
+    {{- range $index, $sourceValue := $sources -}}
+      {{- if gt $index 0 -}}<span class="note-source-separator" aria-hidden="true">·</span>{{- end -}}
+      {{- $source := printf "%v" $sourceValue -}}
+      {{- if $source -}}
+        {{- $label := $source -}}
+        {{- $isURL := false -}}
+        {{- with try (urls.Parse $source) -}}
+          {{- with .Value -}}
+            {{- if or .Host .Scheme -}}
+              {{- $isURL = true -}}
+              {{- with .Host -}}
+                {{- $label = . -}}
+              {{- end -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+        {{- if $isURL -}}
+          <a class="note-source" href="{{ $source }}" target="_blank" rel="noopener noreferrer">
+            <span aria-hidden="true">↗</span>
+            <span>{{ $label }}</span>
+          </a>
+        {{- else -}}
+          <span class="note-source"><span>{{ $label }}</span></span>
+        {{- end -}}
       {{- end -}}
     {{- end -}}
-  {{- end -}}
-  <a class="note-source" href="{{ $source }}" target="_blank" rel="noopener noreferrer">
-    <span aria-hidden="true">↗</span>
-    <span>{{ $label }}</span>
-  </a>
+  </div>
 {{- end -}}
-

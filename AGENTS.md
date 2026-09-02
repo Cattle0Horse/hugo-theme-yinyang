@@ -100,7 +100,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 | `actions-state.html` | `markdown-actions.html`、`edit-page.html`、各 single 模板 | 始终（计算 `hasGitHub`/`hasMarkdown`/`hasAny` 谓词，供文章操作区 gate 共用） |
 | `ai-label.html` | `single.html`（`post-header` 内 meta 行之后） | 文章 `ai` 为 `assisted`/`generated` 且 `aiLabel.enabled` 非 `false` |
 | `page-title.html` | `head.html`、`seo.html`、`_default/rss.xml` | 始终（Notes 提供无标题回退） |
-| `note-source.html` | `notes/list.html`、`notes/single.html` | Note 设置 `source_url` |
+| `note-source.html` | `notes/list.html`、`notes/single.html` | Note 设置 `source` 列表 |
 | `note-tags.html` | `notes/list.html` | Note 设置 `tags` |
 | `post-tags.html` | `single.html`、`notes/single.html` | 始终（共享 Blog 标签样式） |
 | `copy-button.html` | `single.html`、`gallery/single.html`、`notes/single.html` | 始终（在操作按钮前定义 `bindCopyButton`） |
@@ -171,7 +171,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 - `notes/list.html`：每页固定 30 条，倒序后按月分组；直接展开完整正文，日期时间链接到独立页面。
 - `notes/single.html`：渲染日期、可选标题、来源、正文和共享 Blog 标签，并复用 Markdown 复制、GitHub 编辑/Raw 与底部纠错入口；不加载 TOC、AI 标注或文章首尾注入。
 - `page-title.html`：Notes 无显式标题时使用纯文本正文前 60 个字符，空正文回退日期时间；head、JSON-LD 和 Notes RSS 共享此结果。
-- `note-source.html`：解析 `source_url` 并显示来源域名，不抓取远端标题。
+- `note-source.html`：遍历 `source` 列表；URL 显示来源域名并链接到原地址，普通文字直接显示，不抓取远端标题。
 - `_default/rss.xml`：基于 Hugo v0.165 内置模板，首页 Blog feed 仅包含 `mainSections`，Notes section feed 仅包含 Notes。`[outputs].home` 和定向 `/notes` 的 `cascade.outputs` 分别控制两者；taxonomy/term 仅输出 HTML。
 - `exampleSite/note.nu`：无参数创建脚本，计算当月下一序号后调用 `hugo new content` 并以 VS Code 打开；发布流程不在脚本内。
 - `exampleSite/blog.nu`：无参数长文创建脚本，以时间戳创建 `posts` Page Bundle，套用 `archetypes/posts/index.md` 后以 VS Code 打开；默认草稿且不负责发布。

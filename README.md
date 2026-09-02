@@ -122,7 +122,7 @@ content/notes/
     └── 002.md
 ```
 
-最小内容只有日期和正文；`title`、`tags`、`source_url` 都是可选字段：
+最小内容只有日期和正文；`title`、`tags`、`source` 都是可选字段：
 
 ```yaml
 ---
@@ -130,14 +130,14 @@ date: 2026-08-31T14:19:47+08:00
 draft: false
 # title: ""
 # tags: []
-# source_url: ""
+# source: []
 ---
 
 一句话也算写作。先留下，再回头。
 ```
 
 - 未设置 `title` 时，页面保持无标题；浏览器标题和 SEO 使用正文前 60 个字符，空正文回退到日期时间。
-- `source_url` 表示这条 Note 针对的外部文章，列表和详情页会在正文前显示来源域名。
+- `source` 是来源列表，每项可以是普通文字或 URL。URL 会链接到原地址并只显示域名，普通文字直接显示；列表和详情页会在正文前显示来源。
 - `/notes/` 每页显示 30 条，完整正文直接在时间线中展开；每条记录仍有独立固定链接。
 - Note 详情页复用 Blog 的标签、复制 Markdown、编辑原文、查看 Raw 和底部纠错入口。
 - Notes 不进入 Blog RSS；启用 Notes RSS 时，只进入独立的 `/notes/index.xml`。

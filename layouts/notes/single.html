@@ -10,8 +10,8 @@
         </time>
         {{ partial "markdown-actions.html" . }}
       </div>
+      {{ partial "note-source.html" . }}
     </header>
-    {{ partial "note-source.html" . }}
     <div class="note-content note-single-content markdown-body">{{ .Content }}</div>
     {{ partial "post-tags.html" . }}
   </div></div>
