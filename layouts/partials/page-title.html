@@ -1,5 +1,7 @@
 {{- $title := .Title -}}
-{{- if eq .Section "notes" -}}
+{{- if and (eq .Kind "taxonomy") (eq .Data.Plural "note_tags") -}}
+  {{- $title = "Notes Tags" -}}
+{{- else if eq .Section "notes" -}}
   {{- with .Params.title -}}
     {{- $title = . -}}
   {{- else -}}

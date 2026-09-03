@@ -1,7 +1,7 @@
-{{- with .Params.tags -}}
+{{- with .GetTerms "note_tags" -}}
 <div class="note-tags" aria-label="标签">
   {{- range . -}}
-  <a class="note-tag" href="{{ (printf "/tags/%s/" (. | urlize)) | relURL }}">#{{ . }}</a>
+  <a class="note-tag" href="{{ .RelPermalink }}">#{{ .LinkTitle }}</a>
   {{- end -}}
 </div>
 {{- end -}}

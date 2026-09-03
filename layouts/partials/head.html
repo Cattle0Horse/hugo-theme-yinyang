@@ -35,7 +35,7 @@
   <link rel="shortcut" href="{{ .Site.Params.favicon }}" />
   {{- end -}}
   {{- $feedPage := site.Home -}}
-  {{- if eq .Section "notes" -}}
+  {{- if or (eq .Section "notes") (eq .Data.Plural "note_tags") -}}
     {{- with site.GetPage "/notes" -}}
       {{- $feedPage = . -}}
     {{- end -}}

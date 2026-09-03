@@ -1,0 +1,17 @@
+{{ define "main" }}
+<article class="post {{ .Site.Language.Locale }}">
+  <div class="row"><div class="col-xs-12">
+    <h1 class="taxonomy-term">{{ partial "page-title.html" . }}</h1>
+    <div class="terms-list">
+      {{ range .Data.Terms.Alphabetical }}
+      <div class="terms-item">
+        <a class="terms-link" href="{{ .Page.RelPermalink }}">
+          <span class="terms-name">{{ .Page.Title }}</span>
+          <span class="terms-count">{{ .Count }}</span>
+        </a>
+      </div>
+      {{ end }}
+    </div>
+  </div></div>
+</article>
+{{ end }}

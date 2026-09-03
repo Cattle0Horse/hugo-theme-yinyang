@@ -69,6 +69,25 @@ mainSections = ["posts"]
 
 `mainSections` 只控制 Blog 首页，Notes 固定从 `content/notes/` 读取并显示在 `/notes/`。
 
+### Notes 标签
+
+Notes 使用独立的 `note_tags` taxonomy，不会进入 Blog 的 `tags`。站点必须保留 Hugo 默认 taxonomy，并同时注册 `note_tags`：
+
+```toml
+[taxonomies]
+category = "categories"
+tag = "tags"
+note_tag = "note_tags"
+
+[permalinks.taxonomy]
+note_tags = "/notes/tags/"
+
+[permalinks.term]
+note_tags = "/notes/tags/:slug/"
+```
+
+Blog 标签继续使用 `tags`，链接到 `/tags/<tag>/`；Note 标签写在 `note_tags`，链接到 `/notes/tags/<tag>/`。两个 taxonomy 即使使用相同名称的标签，也会分别统计和展示。
+
 ### 配色与明暗模式
 
 主题内置 `yinyang` 和 `solarized` 两套配色，每套均支持亮色与暗色。明暗模式跟随系统偏好，访客手动选择后，配色与明暗状态会分别保存在浏览器中。
@@ -122,14 +141,14 @@ content/notes/
     └── 002.md
 ```
 
-最小内容只有日期和正文；`title`、`tags`、`source` 都是可选字段：
+最小内容只有日期和正文；`title`、`note_tags`、`source` 都是可选字段：
 
 ```yaml
 ---
 date: 2026-08-31T14:19:47+08:00
 draft: false
 # title: ""
-# tags: []
+# note_tags: []
 # source: []
 ---
 
@@ -139,7 +158,8 @@ draft: false
 - 未设置 `title` 时，页面保持无标题；浏览器标题和 SEO 使用正文前 60 个字符，空正文回退到日期时间。
 - `source` 是来源列表，每项可以是普通文字或 URL。URL 会链接到原地址并只显示域名，普通文字直接显示；列表和详情页会在正文前显示来源。
 - `/notes/` 每页显示 30 条，完整正文直接在时间线中展开；每条记录仍有独立固定链接。
-- Note 详情页复用 Blog 的标签、复制 Markdown、编辑原文、查看 Raw 和底部纠错入口。
+- `/notes/tags/<tag>/` 只显示拥有对应 `note_tags` 的 Note，并复用 `/notes/` 的时间线、按月分组和分页样式。
+- Note 详情页使用独立的 Notes 标签，并复用复制 Markdown、编辑原文、查看 Raw 和底部纠错入口。
 - Notes 不进入 Blog RSS；启用 Notes RSS 时，只进入独立的 `/notes/index.xml`。
 
 主题的 `archetypes/notes.md` 提供上述 front matter。示例站根目录还包含无参数创建脚本；在示例站中使用：
@@ -364,6 +384,18 @@ title = "CattleHorse's Blog"
 # ---------- URL ----------
 [permalinks]
 posts = "/blog/:title/"
+
+[permalinks.taxonomy]
+note_tags = "/notes/tags/"
+
+[permalinks.term]
+note_tags = "/notes/tags/:slug/"
+
+# ---------- Taxonomy ----------
+[taxonomies]
+category = "categories"
+tag = "tags"
+note_tag = "note_tags"
 
 # ---------- RSS ----------
 [outputs]

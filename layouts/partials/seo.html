@@ -1,5 +1,7 @@
 <script type="application/ld+json">
   {{- $pageTitle := cond .IsHome .Site.Title (partial "page-title.html" .) -}}
+  {{- $keywords := default (slice) .Params.tags -}}
+  {{- with .Params.note_tags }}{{ $keywords = . }}{{ end -}}
   {
       "@context" : "https://schema.org",
       "@type" : "BlogPosting",
@@ -24,6 +26,6 @@
       "datePublished": "{{ .Date }}",
       "dateModified" : "{{ .Date }}",
       "url" : "{{ .Permalink }}",
-      "keywords" : [ {{ if isset .Params "tags" }}{{ range .Params.tags }}"{{ . }}",{{ end }}{{ end }} ]
+      "keywords" : {{ $keywords | jsonify | safeJS }}
   }
 </script>

@@ -28,6 +28,8 @@ hugo -s exampleSite --themesDir ../.. --theme $(basename $(pwd))
 | `_default/list.html` | 是（`{{ define "main" }}`） |
 | `notes/list.html` | 是（`{{ define "main" }}`） |
 | `notes/single.html` | 是（`{{ define "main" }}`） |
+| `note_tags/taxonomy.html` | 是（`{{ define "main" }}`） |
+| `note_tags/term.html` | 是（`{{ define "main" }}`） |
 | `_default/single.html` | **否** — 独立完整 HTML |
 | `gallery/single.html` | **否** — 独立完整 HTML |
 | `_default/terms.html` | **否** — 独立完整 HTML |
@@ -35,7 +37,7 @@ hugo -s exampleSite --themesDir ../.. --theme $(basename $(pwd))
 
 `single.html`、`gallery/single.html` 和 `terms.html`、`404.html` 各自包含完整的 `<html>`/`<head>`/`<body>`。这意味着对页面外壳做结构性修改时，需要同时更新 baseof 和这些独立模板。
 
-baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` block 目前未被任何子模板覆盖。
+baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表、详情页与 `note_tags` 条目页通过 `runtime` block 加载图片增强。
 
 ### 双模式滚动架构
 
@@ -100,12 +102,14 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 | `actions-state.html` | `markdown-actions.html`、`edit-page.html`、各 single 模板 | 始终（计算 `hasGitHub`/`hasMarkdown`/`hasAny` 谓词，供文章操作区 gate 共用） |
 | `ai-label.html` | `single.html`（`post-header` 内 meta 行之后） | 文章 `ai` 为 `assisted`/`generated` 且 `aiLabel.enabled` 非 `false` |
 | `page-title.html` | `head.html`、`seo.html`、`_default/rss.xml` | 始终（Notes 提供无标题回退） |
-| `note-source.html` | `notes/list.html`、`notes/single.html` | Note 设置 `source` 列表 |
-| `note-tags.html` | `notes/list.html` | Note 设置 `tags` |
-| `post-tags.html` | `single.html`、`notes/single.html` | 始终（共享 Blog 标签样式） |
+| `note-source.html` | `notes-list.html`、`notes/single.html` | Note 设置 `source` 列表 |
+| `note-tags.html` | `notes-list.html` | Note 列表使用 `note_tags` 的 `#tag` 展示 |
+| `notes-list.html` | `notes/list.html`、`note_tags/term.html` | 渲染 Notes 时间线、按月分组与分页 |
+| `note-detail-tags.html` | `notes/single.html` | Note 详情使用 `note_tags`，保留 `.post-tag` 展示样式 |
+| `post-tags.html` | `_default/single.html` | Blog 使用 `tags` 的标签展示 |
 | `copy-button.html` | `single.html`、`gallery/single.html`、`notes/single.html` | 始终（在操作按钮前定义 `bindCopyButton`） |
 | `code-toolbar.html` | `single.html`、`gallery/single.html`（`</body>` 前） | 始终（运行时：绑定复制、折叠交互、缩进块包装） |
-| `image-loading.html` | `single.html`、`gallery/single.html`（`</body>` 前） | `image.enabled` + `image.loading` 启用且非首页 |
+| `image-loading.html` | `_default/single.html`、`gallery/single.html`、Notes 列表/详情、`note_tags/term.html` | `image.enabled` + `image.loading` 启用且非首页 |
 | `image-tag.html` | `_markup/render-image.html`、`gallery/single.html` | 始终（共享 `<img>` 尺寸解析与骨架屏渲染） |
 | `edit-page.html` | `single.html`、`gallery/single.html`、`notes/single.html`（内容底部） | `actions.enabled` + `actions.editPage.enabled` 且 `.File` 存在 |
 | `edit-urls.html` | `edit-page.html`、`markdown-actions.html` | `actions.editPage` 配置且 `.File` 存在 |
@@ -168,8 +172,9 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。`runtime` blo
 ### Notes 内容类型
 
 - `content/notes/YYYY-MM/NNN.md`：目录决定内容类型，文件名是当月三位递增序号；默认 URL 与内容路径一致。
-- `notes/list.html`：每页固定 30 条，倒序后按月分组；直接展开完整正文，日期时间链接到独立页面。
-- `notes/single.html`：渲染日期、可选标题、来源、正文和共享 Blog 标签，并复用 Markdown 复制、GitHub 编辑/Raw 与底部纠错入口；不加载 TOC、AI 标注或文章首尾注入。
+- `notes/list.html`：对 Notes 分页后调用 `notes-list.html`；每页固定 30 条，倒序后按月分组，直接展开完整正文。
+- `notes/single.html`：渲染日期、可选标题、来源、正文和独立 `note_tags`，并复用 Markdown 复制、GitHub 编辑/Raw 与底部纠错入口；不加载 TOC、AI 标注或文章首尾注入。
+- `note_tags` taxonomy：与 Blog 的 `tags` 完全隔离；总览位于 `/notes/tags/`，条目页位于 `/notes/tags/<tag>/`，并通过 `note_tags/term.html` 复用 Notes 时间线样式。
 - `page-title.html`：Notes 无显式标题时使用纯文本正文前 60 个字符，空正文回退日期时间；head、JSON-LD 和 Notes RSS 共享此结果。
 - `note-source.html`：遍历 `source` 列表；URL 显示来源域名并链接到原地址，普通文字直接显示，不抓取远端标题。
 - `_default/rss.xml`：基于 Hugo v0.165 内置模板，首页 Blog feed 仅包含 `mainSections`，Notes section feed 仅包含 Notes。`[outputs].home` 和定向 `/notes` 的 `cascade.outputs` 分别控制两者；taxonomy/term 仅输出 HTML。
