@@ -5,19 +5,29 @@
       {{- $source := printf "%v" $sourceValue -}}
       {{- if $source -}}
         {{- $label := $source -}}
+        {{- $url := $source -}}
+        {{- $hasMarkdownLabel := false -}}
+        {{- with findRESubmatch `^\[([^\]]+)\]\((https?://[^)]+)\)$` $source 1 -}}
+          {{- $match := index . 0 -}}
+          {{- $label = index $match 1 -}}
+          {{- $url = index $match 2 -}}
+          {{- $hasMarkdownLabel = true -}}
+        {{- end -}}
         {{- $isURL := false -}}
-        {{- with try (urls.Parse $source) -}}
+        {{- with try (urls.Parse $url) -}}
           {{- with .Value -}}
             {{- if or .Host .Scheme -}}
               {{- $isURL = true -}}
-              {{- with .Host -}}
-                {{- $label = . -}}
+              {{- if not $hasMarkdownLabel -}}
+                {{- with .Host -}}
+                  {{- $label = . -}}
+                {{- end -}}
               {{- end -}}
             {{- end -}}
           {{- end -}}
         {{- end -}}
         {{- if $isURL -}}
-          <a class="note-source" href="{{ $source }}" target="_blank" rel="noopener noreferrer">
+          <a class="note-source" href="{{ $url }}" target="_blank" rel="noopener noreferrer">
             <span aria-hidden="true">↗</span>
             <span>{{ $label }}</span>
           </a>

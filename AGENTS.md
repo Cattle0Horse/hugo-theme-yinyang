@@ -176,7 +176,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 - `notes/single.html`：渲染日期、可选标题、来源、正文和独立 `note_tags`，并复用 Markdown 复制、GitHub 编辑/Raw 与底部纠错入口；不加载 TOC、AI 标注或文章首尾注入。
 - `note_tags` taxonomy：与 Blog 的 `tags` 完全隔离；总览位于 `/notes/tags/`，条目页位于 `/notes/tags/<tag>/`，并通过 `note_tags/term.html` 复用 Notes 时间线样式。
 - `page-title.html`：Notes 无显式标题时使用纯文本正文前 60 个字符，空正文回退日期时间；head、JSON-LD 和 Notes RSS 共享此结果。
-- `note-source.html`：遍历 `source` 列表；URL 显示来源域名并链接到原地址，普通文字直接显示，不抓取远端标题。
+- `note-source.html`：遍历 `source` 列表；`[标题](URL)` 显示指定标题，裸 URL 显示来源域名，普通文字直接显示，不抓取远端标题。
 - `_default/rss.xml`：基于 Hugo v0.165 内置模板，首页 Blog feed 仅包含 `mainSections`，Notes section feed 仅包含 Notes。`[outputs].home` 和定向 `/notes` 的 `cascade.outputs` 分别控制两者；taxonomy/term 仅输出 HTML。
 - `exampleSite/note.nu`：无参数创建脚本，计算当月下一序号后调用 `hugo new content` 并以 VS Code 打开；发布流程不在脚本内。
 - `exampleSite/blog.nu`：无参数长文创建脚本，以时间戳创建 `posts` Page Bundle，套用 `archetypes/posts/index.md` 后以 VS Code 打开；默认草稿且不负责发布。
