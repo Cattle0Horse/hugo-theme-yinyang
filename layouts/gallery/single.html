@@ -19,6 +19,7 @@
                   <h1 class="post-title">{{ .Title }}</h1>
                   <div class="row post-desc">
                     <div class="col-xs-12 post-desc-inner">
+                      {{ if .Site.Params.busuanzi.enabled }}<span class="post-meta-group">{{ partial "busuanzi-page.html" . }}</span>{{ end }}
                       {{ partial "markdown-actions.html" . }}
                     </div>
                   </div>

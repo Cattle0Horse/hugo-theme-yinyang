@@ -255,6 +255,17 @@ extraHead = '<script src="xxxx.js"></script>'
 extraCSSFiles = ["css/foo.css", "css/bar.css"]
 ```
 
+### 访问统计
+
+不蒜子统计在未配置时关闭。启用后，所有页面都会采集全站 UV/PV，但暂不展示；Blog、Gallery、Note 详情页的标题下显示本页阅读量，Notes 时间线不为每条 Note 单独计数。示例站已启用。
+
+```toml
+[params.busuanzi]
+enabled = true
+```
+
+启用后，浏览器会从 `busuanzi.ibruce.info` 加载脚本并向其发送统计请求；本地预览的访问也可能进入统计。计数由第三方服务提供，脚本被拦截或服务不可用时数字不会显示。
+
 ### 数学公式
 
 本主题在构建期将 `$...$` / `$$...$$` 渲染为 KaTeX HTML，页面加载时**无需加载任何 JS**、公式不会跳动。使用前需启用 Goldmark 的 passthrough 扩展：

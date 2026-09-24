@@ -177,6 +177,7 @@
 
 .note-single-meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   min-height: 26px;
 }

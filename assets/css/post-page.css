@@ -135,6 +135,40 @@
   align-items: center;
 }
 
+.post-meta-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+}
+
+.busuanzi-page-count {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.post .busuanzi-page-count {
+  font-style: italic;
+}
+
+.busuanzi-page-count:not(:first-child)::before {
+  content: "·";
+  margin: 0 16px;
+  color: var(--color-text);
+}
+
+@media screen and (max-width: 600px) {
+  .busuanzi-page-count:not(:first-child) {
+    margin-left: 12px;
+  }
+
+  .busuanzi-page-count:not(:first-child)::before {
+    content: none;
+  }
+}
+
 .markdown-actions {
   display: flex;
   gap: 6px;

@@ -71,6 +71,9 @@ extraHead = '''
 tableOfContents = true
 codeMaxLines = 15
 
+[params.busuanzi]
+enabled = true
+
 [params.colorScheme]
 default = "yinyang"
 available = ["yinyang", "solarized"]
