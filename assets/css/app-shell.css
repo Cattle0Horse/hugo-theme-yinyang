@@ -220,7 +220,8 @@ body {
   }
 
   .app-main:has(.post-toc-sidebar) .toc-float-btn,
-  .app-main:has(.post-toc-sidebar) .toc-backdrop {
+  .app-main:has(.post-toc-sidebar) .toc-backdrop,
+  .app-main:has(.post-toc-sidebar) .toc-close {
     display: none;
   }
 

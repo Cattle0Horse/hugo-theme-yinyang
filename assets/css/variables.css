@@ -50,6 +50,7 @@
   --color-accent: var(--palette-accent-light);
   --color-accent-hover: var(--palette-accent-hover);
   --color-accent-soft: color-mix(in srgb, var(--color-accent) 9%, var(--color-bg));
+  --color-toc-active: color-mix(in srgb, var(--color-accent) 55%, var(--color-text-muted));
 
   --syntax-text: var(--color-text);
   --syntax-comment: #8f5902;

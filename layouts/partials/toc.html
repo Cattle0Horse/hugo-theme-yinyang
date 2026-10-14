@@ -1,7 +1,8 @@
 {{ if and .Site.Params.tableOfContents .TableOfContents (not (eq .Params.toc false)) }}
-<aside class="post-toc-sidebar" id="tocSidebar" aria-label="文章目录" aria-hidden="true">
+<aside class="post-toc-sidebar" id="tocSidebar" tabindex="-1" aria-label="文章目录" aria-hidden="true">
   <div class="toc-sidebar-header">
     <span class="toc-sidebar-title">目录</span>
+    <button class="toc-close action-button" type="button" aria-label="关闭目录">{{ partial "icon.html" (dict "name" "close" "wrap" "action-icon") }}</button>
   </div>
   <div class="toc-scroll" id="tocScroll">
     {{ partial "edge-blur.html" "top" }}

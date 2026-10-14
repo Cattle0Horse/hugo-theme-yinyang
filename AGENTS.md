@@ -35,7 +35,7 @@ hugo -s exampleSite --themesDir ../.. --theme $(basename $(pwd))
 
 `single.html`、`gallery/single.html` 和 `terms.html`、`404.html` 各自包含完整的 `<html>`/`<head>`/`<body>`。这意味着对页面外壳做结构性修改时，需要同时更新 baseof 和这些独立模板。
 
-baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表、详情页与 `note_tags` 条目页通过 `runtime` block 加载图片增强。
+baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表、详情页与 `note_tags` 条目页通过 `runtime` block 加载图片增强和代码块交互；列表与标签时间线在代码块脚本之前加载复制 helper。
 
 ### 双模式滚动架构
 
@@ -44,7 +44,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 - **窄屏**：`body` 满屏固定（`overflow: hidden`），滚动发生在 `#appScroll` 元素内部。TOC 作为浮层滑出。
 - **宽屏**：`body` 自身可滚动，`app-scroll` 退化为普通流（`overflow: visible`）。TOC 固定在内容区右侧（`left: calc(50% + 432px)`）。Edge blur 从 CSS mask 切换为 `position: fixed` 渐变叠加。
 
-`ui.html` 中的 `toggleScrollFade()` 和 `isWide()` 分别管理边缘模糊检测和宽屏判断，供所有脚本共享。
+`ui.html` 中的 `toggleScrollFade()` 和 `isWide()` 分别管理边缘模糊检测和宽屏判断，供所有脚本共享。跨越 84em 断点时记录正文锚点及其视口偏移，并转移到新的滚动容器，保持阅读位置。
 
 ### CSS 处理流程
 
@@ -64,7 +64,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 - `palette-state.html` 过滤站点配置，只允许主题内置配色，并计算默认值及是否显示选择器。
 - `head.html` 顶部内联脚本在 HTML 解析前同步执行：明暗偏好读取 `localStorage.theme`（`light` / `dark`，缺省为跟随浏览器），通过 `prefers-color-scheme` 解析实际明暗模式并设置 `data-theme-mode`，配色读取 `localStorage.palette` 或站点默认值，设置外观 data 属性以避免 FOUC。
 - `variables.css` 定义共用的亮暗中性色与靛蓝 / 紫罗兰 / 石墨强调色变量；`syntax.css` 只消费 `--syntax-*` 变量，不硬编码主题颜色。
-- `theme-toggle.html` 同时管理明暗切换和按需创建销毁的圆形色点调色盘与明暗菜单（亮色 / 暗色 / 跟随浏览器）；跟随浏览器时监听 `prefers-color-scheme` 变化，两种切换都短暂添加 `theme-changing` class 禁用 CSS transition。
+- `theme-toggle.html` 同时管理明暗切换和按需创建销毁的色点调色盘；明暗按钮点击轮换亮色 / 暗色 / 跟随浏览器，跟随浏览器时监听 `prefers-color-scheme` 变化，两种切换都短暂添加 `theme-changing` class 禁用 CSS transition。
 - 明暗按钮与配色按钮嵌入在 `header.html` 的 `.appearance-controls` 中；未启用用户选择时不渲染配色按钮。
 
 ### 跨功能通用约定
@@ -105,13 +105,15 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 | `notes-list.html` | `notes/list.html`、`note_tags/term.html` | 渲染 Notes 时间线、按月分组与分页 |
 | `note-detail-tags.html` | `notes/single.html` | Note 详情使用 `note_tags`，保留 `.post-tag` 展示样式 |
 | `post-tags.html` | `_default/single.html` | Blog 使用 `tags` 的标签展示 |
-| `copy-button.html` | `single.html`、`gallery/single.html`、`notes/single.html` | 始终（在操作按钮前定义 `bindCopyButton`） |
-| `code-toolbar.html` | `single.html`、`gallery/single.html`（`</body>` 前） | 始终（运行时：绑定复制、折叠交互、缩进块包装） |
+| `copy-button.html` | `single.html`、`gallery/single.html`、Notes 列表/详情、`note_tags/term.html` | 始终（在操作按钮前定义 `bindCopyButton`） |
+| `code-toolbar.html` | `single.html`、`gallery/single.html`、Notes 列表/详情、`note_tags/term.html`（`</body>` 前） | 始终（运行时：绑定复制、折叠交互、缩进块包装） |
 | `image-loading.html` | `_default/single.html`、`gallery/single.html`、Notes 列表/详情、`note_tags/term.html` | `image.enabled` + `image.loading` 启用且非首页 |
 | `image-tag.html` | `_markup/render-image.html`、`gallery/single.html` | 始终（共享 `<img>` 尺寸解析与骨架屏渲染） |
 | `edit-page.html` | `single.html`、`gallery/single.html`、`notes/single.html`（内容底部） | `actions.enabled` + `actions.editPage.enabled` 且 `.File` 存在 |
 | `edit-urls.html` | `edit-page.html`、`markdown-actions.html` | `actions.editPage` 配置且 `.File` 存在 |
 | `icon.html` | 各模板（图标处） | 始终（内联 SVG 图标 partial，源在 `assets/icons/*.svg`） |
+
+正文宽表格由 `ui.html` 包装为局部横向滚动区域，仅溢出时提供键盘焦点和滑动提示。代码块、宽表格及块级公式限制横向 overscroll，避免手势越过内容边界。全局链接 hover 保持字重稳定；减少动态效果在 `global.css` 中统一降级。
 
 ### 图标系统
 
@@ -130,7 +132,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
   1. 给构建期 `[data-copy-block]` 按钮绑定复制（取同 wrapper 的 `code` 文本）。
   2. 折叠交互：toggle `is-folded`；**高度校验**——实际渲染高度 ≤ `--code-fold-max`（CSS 变量，variables.css，默认 360px）时移除折叠（构建期按行数预判，运行时按真实高度校正），展开动画用 `--code-height`。
   3. 缩进式代码块（裸 `<pre>`，`render-codeblock` 不接管）运行时包装 `.plain-code-wrapper` + 浮动复制按钮。
-  4. 复制由 `copy-button.html` 的 `bindCopyButton()` 实现（`navigator.clipboard` → `execCommand` 降级）。
+  4. 复制由 `copy-button.html` 的 `bindCopyButton()` 实现（`navigator.clipboard` → `execCommand` 降级）；复制结果在按钮附近显示短提示，并通过 `role="status"` 播报。长代码收起前将代码块入口恢复到当前视口，宽窄两种滚动容器均处理。
 
 ### 图片增强
 
@@ -145,8 +147,8 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 `toc.html` + `toc-script.html` 实现自适应目录：
 
 - **宽屏（≥84em）**：侧边栏固定在页面右侧 `left: calc(50% + 432px)`，始终可见。
-- **窄屏**：浮动按钮 `#tocFloatBtn` + 全屏遮罩 `#tocBackdrop`，点击展开滑出面板。Esc 关闭、Tab 焦点锁定、点击外部关闭。
-- **Scroll-spy**：解析 TOC 链接对应的 heading，计算当前视口内可见的 heading，高亮对应链接并移动 `.toc-indicator` 指示条位置。滚动自动跟随（`scrollBy`，平滑由 CSS `scroll-behavior: smooth` 驱动，reduced-motion 禁用）。
+- **窄屏**：浮动按钮 `#tocFloatBtn` + 全屏遮罩 `#tocBackdrop`，点击展开滑出面板；打开时移入焦点、以 `inert` 隔离背景并锁定滚动，提供面板关闭按钮、Esc 关闭、Tab 焦点锁定，关闭后恢复背景与焦点。
+- **Scroll-spy**：解析 TOC 链接对应的 heading，计算当前视口内可见的 heading，以柔和主题色高亮对应链接并移动 `.toc-indicator` 指示条位置；hover 仅过渡文字颜色，不使用背景块或下划线。主动跳转后短暂标记目标标题。滚动自动跟随（`scrollBy`，平滑由 CSS `scroll-behavior: smooth` 驱动，reduced-motion 禁用）。
 - **边缘模糊**：TOC 滚动区复用 `edge-blur.html` 并绑定 `toggleScrollFade`。
 
 ### 脚注系统
@@ -165,7 +167,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 
 ### Gallery 内容类型
 
-`gallery/single.html` 渲染 `Params.gallery`（`{url, name}` 对象数组），使用 `image-tag.html` 渲染每张图片，两列网格布局。与 `single.html` 共享 markdown-actions、edit-page、图片加载、代码工具栏 partial。
+`gallery/single.html` 渲染 `Params.gallery`（`{url, name}` 对象数组），使用 `image-tag.html` 渲染每张图片，宽屏两列、手机单列网格布局。与 `single.html` 共享 markdown-actions、edit-page、图片加载、代码工具栏 partial。
 
 ### Notes 内容类型
 

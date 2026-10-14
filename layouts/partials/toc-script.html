@@ -8,6 +8,9 @@
   var tocNav = sidebar && sidebar.querySelector('.toc-nav')
   var appScroll = document.getElementById('appScroll')
   var wide = window.matchMedia('(min-width: 84em)')
+  var background = document.querySelector('.app-content')
+  var previousInert = false
+  var scrollPositions = null
   if (!sidebar || !tocNav || !appScroll) return
 
   var links = Array.prototype.slice.call(tocNav.querySelectorAll('a[href^="#"]'))
@@ -24,9 +27,16 @@
   }
 
   function openToc() {
-    if (wide.matches) return
+    if (wide.matches || sidebar.classList.contains('toc-open')) return
+    scrollPositions = { page: window.scrollY, app: appScroll.scrollTop }
+    previousInert = background.inert
+    background.inert = true
+    document.documentElement.classList.add('toc-open')
     sidebar.classList.add('toc-open')
     sidebar.setAttribute('aria-hidden', 'false')
+    sidebar.setAttribute('role', 'dialog')
+    sidebar.setAttribute('aria-modal', 'true')
+    sidebar.inert = false
     setNavTabbable(true)
     floatBtn.dataset.state = 'open'
     floatBtn.setAttribute('aria-expanded', 'true')
@@ -35,12 +45,26 @@
     backdrop.classList.add('toc-open')
     if (window.updateActionTooltip) window.updateActionTooltip(floatBtn)
     updateTocEdges()
+    sidebar.focus({ preventScroll: true })
+  }
+
+  function unlockBackground() {
+    document.documentElement.classList.remove('toc-open')
+    if (!scrollPositions) return
+    background.inert = previousInert
+    window.scrollTo({ top: scrollPositions.page, behavior: 'instant' })
+    appScroll.scrollTo({ top: scrollPositions.app, behavior: 'instant' })
+    scrollPositions = null
   }
 
   function closeToc(returnFocus) {
     if (wide.matches) return
     sidebar.classList.remove('toc-open')
+    unlockBackground()
     sidebar.setAttribute('aria-hidden', 'true')
+    sidebar.inert = true
+    sidebar.removeAttribute('role')
+    sidebar.removeAttribute('aria-modal')
     setNavTabbable(false)
     floatBtn.dataset.state = ''
     floatBtn.setAttribute('aria-expanded', 'false')
@@ -55,12 +79,11 @@
     if (sidebar.classList.contains('toc-open')) {
       closeToc(false)
     } else {
-      var keyboard = floatBtn.matches(':focus-visible')
       openToc()
-      if (keyboard && links.length) links[0].focus()
     }
   })
   backdrop.addEventListener('click', function () { closeToc(true) })
+  sidebar.querySelector('.toc-close').addEventListener('click', function () { closeToc(true) })
   document.addEventListener('keydown', function (event) {
     if (!sidebar.classList.contains('toc-open')) return
     if (event.key === 'Escape') {
@@ -70,10 +93,17 @@
     }
     if (event.key !== 'Tab') return
     var items = focusable()
-    if (!items.length) return
+    if (!items.length) {
+      event.preventDefault()
+      sidebar.focus({ preventScroll: true })
+      return
+    }
     var first = items[0]
     var last = items[items.length - 1]
-    if (event.shiftKey && document.activeElement === first) {
+    if (document.activeElement === sidebar || !sidebar.contains(document.activeElement)) {
+      event.preventDefault()
+      ;(event.shiftKey ? last : first).focus()
+    } else if (event.shiftKey && document.activeElement === first) {
       event.preventDefault()
       last.focus()
     } else if (!event.shiftKey && document.activeElement === last) {
@@ -85,14 +115,23 @@
   function syncMode() {
     if (wide.matches) {
       sidebar.classList.remove('toc-open')
+      unlockBackground()
+      sidebar.inert = false
+      sidebar.removeAttribute('role')
+      sidebar.removeAttribute('aria-modal')
       sidebar.setAttribute('aria-hidden', 'false')
       backdrop.classList.remove('toc-open')
       floatBtn.setAttribute('aria-expanded', 'false')
+      floatBtn.dataset.state = ''
+      floatBtn.setAttribute('aria-label', '打开目录')
+      floatBtn.setAttribute('data-tooltip', '打开目录')
       floatBtn.removeAttribute('aria-disabled')
       setNavTabbable(true)
     } else {
       var open = sidebar.classList.contains('toc-open')
+      if (!open && sidebar.contains(document.activeElement)) floatBtn.focus({ preventScroll: true })
       sidebar.setAttribute('aria-hidden', open ? 'false' : 'true')
+      sidebar.inert = !open
       setNavTabbable(open)
     }
     updateTocEdges()
@@ -122,6 +161,18 @@
   })
 
   var indicator = document.getElementById('tocIndicator')
+  var highlightedHeading = null
+  var highlightTimer = 0
+  function highlightHeading(target) {
+    clearTimeout(highlightTimer)
+    if (highlightedHeading) highlightedHeading.classList.remove('toc-target')
+    highlightedHeading = target
+    target.classList.add('toc-target')
+    highlightTimer = setTimeout(function () {
+      target.classList.remove('toc-target')
+      highlightedHeading = null
+    }, 1800)
+  }
   function updateActive() {
     if (!entries.length) return
     var isBody = wide.matches
@@ -173,6 +224,7 @@
     var target = document.getElementById(decodeHash(link.getAttribute('href').slice(1)))
     if (!target) return
     event.preventDefault()
+    if (!wide.matches) closeToc(true)
     requestAnimationFrame(function () {
       if (wide.matches) {
         var targetTop = target.getBoundingClientRect().top + window.scrollY - 64
@@ -182,9 +234,9 @@
         var top = target.getBoundingClientRect().top - scrollRect.top + appScroll.scrollTop - 64
         appScroll.scrollTo({ top: Math.max(0, top) })
       }
+      highlightHeading(target)
     })
     if (history && history.pushState) history.pushState(null, '', link.getAttribute('href'))
-    if (!wide.matches) closeToc(true)
   })
 
   function updateTocEdges() {
