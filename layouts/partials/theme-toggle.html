@@ -11,7 +11,6 @@
   var html = document.documentElement
   var menu = null
   var menuTrigger = null
-  var menuKind = null
 
   function currentValue(kind) {
     if (kind === "theme") return html.getAttribute("data-theme-mode") || "system"
@@ -26,7 +25,9 @@
   }
 
   function updateLabels() {
-    updateLabel(themeBtn, "选择明暗模式，当前：" + themeNames[currentValue("theme")])
+    var mode = currentValue("theme")
+    var nextMode = themeModes[(themeModes.indexOf(mode) + 1) % themeModes.length]
+    updateLabel(themeBtn, "当前：" + themeNames[mode] + "；点击切换为" + themeNames[nextMode])
     updateLabel(paletteBtn, "选择配色，当前：" + paletteState.names[currentValue("palette")])
   }
 
@@ -78,7 +79,6 @@
     var trigger = menuTrigger
     menu = null
     menuTrigger = null
-    menuKind = null
     node.classList.add("is-closing")
     node.classList.remove("is-open")
     node.removeAttribute("id")
@@ -102,35 +102,31 @@
     node.addEventListener("transitionend", onTransitionEnd)
   }
 
-  function openMenu(kind, trigger) {
+  function openMenu() {
+    var trigger = paletteBtn
     if (menuTrigger === trigger) {
       closeMenu(true)
       return
     }
     closeMenu(false)
     var node = document.createElement("div")
-    node.id = kind + "-menu"
-    node.className = "appearance-menu " + kind + "-menu"
+    node.id = "palette-menu"
+    node.className = "appearance-menu palette-menu"
     node.setAttribute("role", "menu")
-    node.setAttribute("aria-label", kind === "theme" ? "明暗模式" : "配色方案")
-    var values = kind === "theme" ? themeModes : paletteState.available
-    var names = kind === "theme" ? themeNames : paletteState.names
-    values.forEach(function (value) {
+    node.setAttribute("aria-label", "配色方案")
+    paletteState.available.forEach(function (value) {
       var option = document.createElement("button")
       option.type = "button"
-      option.className = "appearance-option " + kind + "-option"
+      option.className = "appearance-option palette-option"
       option.setAttribute("role", "menuitemradio")
-      option.setAttribute("aria-label", names[value])
+      option.setAttribute("aria-label", paletteState.names[value])
       option.setAttribute("data-appearance-value", value)
-      option.setAttribute("aria-checked", value === currentValue(kind) ? "true" : "false")
-      if (kind === "palette") {
-        option.setAttribute("title", names[value])
-      } else option.textContent = names[value]
+      option.setAttribute("aria-checked", value === currentValue("palette") ? "true" : "false")
+      option.setAttribute("title", paletteState.names[value])
       node.appendChild(option)
     })
     menu = node
     menuTrigger = trigger
-    menuKind = kind
     document.body.appendChild(node)
     positionMenu()
     trigger.setAttribute("aria-expanded", "true")
@@ -152,12 +148,16 @@
     var trigger = event.target.closest("#theme-toggle, #palette-toggle")
     if (trigger) {
       event.preventDefault()
-      openMenu(trigger === themeBtn ? "theme" : "palette", trigger)
+      if (trigger === themeBtn) {
+        closeMenu(false)
+        var index = themeModes.indexOf(currentValue("theme"))
+        setValue("theme", themeModes[(index + 1) % themeModes.length])
+      } else openMenu()
       return
     }
     var option = event.target.closest("[data-appearance-value]")
     if (menu && option && menu.contains(option)) {
-      setValue(menuKind, option.getAttribute("data-appearance-value"))
+      setValue("palette", option.getAttribute("data-appearance-value"))
       closeMenu(true)
       return
     }
@@ -165,9 +165,9 @@
   })
 
   document.addEventListener("keydown", function (event) {
-    if ((event.target === themeBtn || event.target === paletteBtn) && event.key === "ArrowDown") {
+    if (event.target === paletteBtn && event.key === "ArrowDown") {
       event.preventDefault()
-      openMenu(event.target === themeBtn ? "theme" : "palette", event.target)
+      openMenu()
       return
     }
     if (!menu || !menu.contains(event.target)) return
