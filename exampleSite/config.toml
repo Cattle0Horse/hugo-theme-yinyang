@@ -82,6 +82,8 @@ allowUserChoice = true
 enabled = true
 lazy = true
 loading = true
+border = true
+galleryBorder = false
 
 [params.postContent]
 enabled = true

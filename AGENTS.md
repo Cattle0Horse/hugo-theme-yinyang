@@ -148,11 +148,12 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 
 ### 图片增强
 
-`image-tag.html` 统一处理三种场景：
+`image-tag.html` 统一处理四种场景：
 
 1. **页面资源解析**：尝试以 `Resources.GetMatch` 解析图片尺寸（跳过 SVG）。
 2. **懒加载**：`image.lazy` 启用时添加原生 `loading="lazy"`。
 3. **骨架屏与失败重试**：`image.loading` 启用时（且 `image.enabled`、非首页、非 SVG），包装 `.loading-image-frame`（构建期预置 `is-loading` 初始态），内嵌 shimmer 骨架和失败占位。加载失败后点击重试（URL 追加 `?retry=` 参数破缓存）。`image-loading.html` 运行时仅处理浏览器缓存图（`img.complete` 检查）与 load/error/retry 事件。
+4. **柔和内描边**：`image.border` 为正文图片添加 `.image-bordered`，Gallery 使用独立的 `image.galleryBorder`，均默认关闭且跳过 SVG。通过负偏移 `outline` 在图片内部绘制 1.5px 半透明边线，颜色由亮暗主题变量控制，不增加布局尺寸或 DOM，且不依赖加载增强。
 
 ### TOC 系统
 
@@ -207,7 +208,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 - `extraCSSFiles` — 额外 CSS 路径数组，以 `<link>` 加载
 - `colorScheme` — 站点配置（映射），配色方案：`default`（默认 `indigo`）、`available`（允许 `indigo` / `violet` / `graphite`）、`allowUserChoice`（多于一套有效配色时显示选择器）
 - `staticPrefix` — CDN 前缀，同时生成 `dns-prefetch`
-- `image` — 站点配置（映射），图片增强：`enabled`（布尔值，总闸）、`lazy`（布尔值，为 `<img>` 添加 `loading="lazy"`）、`loading`（布尔值，启用骨架屏 + 加载失败重试，首页不生效）
+- `image` — 站点配置（映射），图片增强：`enabled`（布尔值，总闸）、`lazy`（布尔值，为 `<img>` 添加 `loading="lazy"`）、`loading`（布尔值，启用骨架屏 + 加载失败重试，首页不生效）、`border` / `galleryBorder`（布尔值，分别启用正文 / Gallery 图片的柔和内描边，默认关闭，跳过 SVG）
 - `actions` — 站点配置（映射），文章操作区总开关与子功能：`enabled`（布尔值，总闸，`false` 或未配时编辑/复制按钮全部不渲染）、`copyMarkdown`（布尔值，启用"复制 Markdown"按钮）、嵌套 `editPage`（`enabled` 布尔值 + `repo` GitHub 仓库 URL + `branch` 分支名默认 `main` + `text` 纠错链接文字）。编辑按钮需 `actions.enabled` + `editPage.enabled` + `editPage.repo` 同时满足
 - `tableOfContents` — 布尔值，启用 TOC 侧边栏
 - `codeMaxLines` — 代码块折叠阈值，默认 15

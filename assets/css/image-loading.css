@@ -2,6 +2,11 @@
    Image Loading (shimmer skeleton)
    ======================================================================== */
 
+.image-bordered {
+  outline: 1.5px solid var(--color-image-border);
+  outline-offset: -1.5px;
+}
+
 @keyframes img-shimmer {
   from { transform: translateX(-170%); }
   to { transform: translateX(270%); }

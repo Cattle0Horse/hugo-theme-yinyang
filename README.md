@@ -319,7 +319,11 @@ codeMaxLines = 15
 enabled = true
 lazy = true
 loading = true
+border = true
+galleryBorder = false
 ```
+
+`border` 为正文图片启用柔和的 1.5px 内描边，Gallery 图片由 `galleryBorder` 独立控制；两项默认关闭，不处理 SVG。描边随明暗主题变化，不占布局尺寸，也不影响点击；关闭 `loading` 后仍可使用。
 
 `loading` 启用时，骨架屏图片使用 `decoding="async"` 异步解码：图片字节到位即触发 `load`，解码移出主线程、不再阻塞页面交互；上屏前经 `img.decode()` 协调，保证像素可绘制后立刻淡入（200ms opacity + scale 合成器动画），骨架屏不占用多余等待时间。
 
@@ -460,6 +464,8 @@ allowUserChoice = true
 enabled = true
 lazy = true
 loading = true
+border = true
+galleryBorder = false
 
 # ---------- 作者 ----------
 [params.author]

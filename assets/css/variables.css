@@ -20,6 +20,7 @@
   --color-border: #e4e4e7;
   --color-border-light: #f0f0f2;
   --color-border-medium: #d9dbe0;
+  --color-image-border: rgba(0, 0, 0, 0.2);
   --color-scrollbar: rgba(128, 128, 128, 0.28);
   --color-scrollbar-hover: rgba(128, 128, 128, 0.46);
   --color-code-bg: #fafafa;
@@ -90,6 +91,7 @@
   --color-border: #3e444e;
   --color-border-light: #30353d;
   --color-border-medium: #525a66;
+  --color-image-border: rgba(255, 255, 255, 0.26);
   --color-code-bg: #22252a;
   --color-table-bg: #22252a;
   --color-table-code-bg: #2c3036;

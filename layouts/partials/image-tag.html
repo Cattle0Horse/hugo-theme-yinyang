@@ -22,6 +22,13 @@
 {{- end -}}
 
 {{- $enhanced := and $imgCfg.enabled $imgCfg.loading (not $page.IsHome) (not $isSvg) -}}
+{{- $border := $imgCfg.border -}}
+{{- if eq $page.Type "gallery" -}}
+  {{- $border = $imgCfg.galleryBorder -}}
+{{- end -}}
+{{- $classes := slice -}}
+{{- if $enhanced -}}{{- $classes = $classes | append "loading-img" -}}{{- end -}}
+{{- if and $imgCfg.enabled $border (not $isSvg) -}}{{- $classes = $classes | append "image-bordered" -}}{{- end -}}
 {{- $sizeKnown := and $width $height -}}
 {{- if $enhanced }}
 <span class="loading-image-frame is-loading{{ if not $sizeKnown }} size-unknown{{ end }}"{{ with $width }} style="--image-width: {{ . }}px;{{ with $height }} --image-ratio: {{ $width }} / {{ . }};{{ end }}"{{ end }}>
@@ -32,7 +39,8 @@
      {{- with $width }} width="{{ . }}"{{ end -}}
      {{- with $height }} height="{{ . }}"{{ end -}}
      {{- if and $imgCfg.enabled $imgCfg.lazy }} loading="lazy"{{ end -}}
-     {{- if $enhanced }} class="loading-img" decoding="async" data-original-src="{{ $resolvedSrc }}"{{ end }}>
+     {{- with $classes }} class="{{ delimit . " " }}"{{ end -}}
+     {{- if $enhanced }} decoding="async" data-original-src="{{ $resolvedSrc }}"{{ end }}>
 {{- if $enhanced }}
   <span class="loading-failed loading-retry" role="button" tabindex="0" aria-label="点击重试" data-tooltip="点击重试" hidden>
     <span class="loading-failed-icon action-icon" aria-hidden="true">{{ partial "icon.html" (dict "name" "image") }}</span>
