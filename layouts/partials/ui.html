@@ -1,6 +1,6 @@
 <div class="ui-tooltip" id="uiTooltip" role="tooltip" aria-hidden="true"></div>
-<script>
-;(function () {
+<script data-page-runtime>
+;(function (runtime) {
   var tables = []
   document.querySelectorAll('.markdown-body table').forEach(function (table) {
     if (table.closest('.highlight, .table-scroll')) return
@@ -31,8 +31,8 @@
     })
   }
   updateTables()
-  window.addEventListener('resize', updateTables)
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(updateTables)
+  runtime.listen(window, 'resize', updateTables)
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(runtime.guard(updateTables))
 
   function toggleScrollFade(scroll, topEdge, bottomEdge, topThreshold, bottomThreshold) {
     if (!scroll) return
@@ -51,7 +51,7 @@
     if (bottomEdge) bottomEdge.classList.toggle('is-visible', fadeBottom)
   }
 
-  window.toggleScrollFade = toggleScrollFade
+  runtime.expose('toggleScrollFade', toggleScrollFade)
 
   var scroll = document.getElementById('appScroll')
   var topBlur = scroll ? scroll.querySelector('.edge-blur-top') : null
@@ -59,7 +59,7 @@
   var wideMq = window.matchMedia('(min-width: 84em)')
 
   function isWide() { return wideMq.matches }
-  window.isWide = isWide
+  runtime.expose('isWide', isWide)
 
   if (scroll) {
     var edgeFrame = 0
@@ -98,8 +98,8 @@
     }
 
     function updateEdges() {
-      cancelAnimationFrame(edgeFrame)
-      edgeFrame = requestAnimationFrame(function () {
+      runtime.cancelAnimationFrame(edgeFrame)
+      edgeFrame = runtime.requestAnimationFrame(function () {
         rememberPosition()
         scroll._bodyScroll = isWide()
         toggleScrollFade(scroll, topBlur, bottomBlur, 20, 20)
@@ -121,8 +121,8 @@
     var mouseFrame = 0
 
     function requestHideScrollbar(el) {
-      clearTimeout(scrollTimer)
-      scrollTimer = setTimeout(function () {
+      runtime.clearTimeout(scrollTimer)
+      scrollTimer = runtime.setTimeout(function () {
         if (!nearScrollbar) el.classList.remove('show-scrollbar')
       }, SCROLLBAR_VISIBLE_MS)
     }
@@ -131,35 +131,35 @@
       requestHideScrollbar(activeScrollEl)
     }
 
-    scroll.addEventListener('scroll', showScrollbarTemporary, { passive: true })
-    window.addEventListener('scroll', showScrollbarTemporary, { passive: true })
+    runtime.listen(scroll, 'scroll', showScrollbarTemporary, { passive: true })
+    runtime.listen(window, 'scroll', showScrollbarTemporary, { passive: true })
 
-    document.addEventListener('mousemove', function (e) {
-      cancelAnimationFrame(mouseFrame)
-      mouseFrame = requestAnimationFrame(function () {
+    runtime.listen(document, 'mousemove', function (e) {
+      runtime.cancelAnimationFrame(mouseFrame)
+      mouseFrame = runtime.requestAnimationFrame(function () {
         if (!cachedRect) cachedRect = activeScrollEl.getBoundingClientRect()
         var wasNear = nearScrollbar
         nearScrollbar = e.clientX > cachedRect.right - 24
         if (nearScrollbar) {
           activeScrollEl.classList.add('show-scrollbar')
-          clearTimeout(scrollTimer)
+          runtime.clearTimeout(scrollTimer)
         } else if (wasNear) {
           requestHideScrollbar(activeScrollEl)
         }
       })
     }, { passive: true })
 
-    window.addEventListener('resize', function () { cachedRect = null })
-    wideMq.addEventListener('change', function () { cachedRect = null })
+    runtime.listen(window, 'resize', function () { cachedRect = null })
+    runtime.listen(wideMq, 'change', function () { cachedRect = null })
 
-    scroll.addEventListener('scroll', updateEdges, { passive: true })
-    window.addEventListener('scroll', updateEdges, { passive: true })
-    window.addEventListener('resize', updateEdges)
-    wideMq.addEventListener('change', restoreReadingPosition)
+    runtime.listen(scroll, 'scroll', updateEdges, { passive: true })
+    runtime.listen(window, 'scroll', updateEdges, { passive: true })
+    runtime.listen(window, 'resize', updateEdges)
+    runtime.listen(wideMq, 'change', restoreReadingPosition)
     rememberPosition()
     updateEdges()
     if (location.hash) {
-      requestAnimationFrame(function () {
+      runtime.requestAnimationFrame(function () {
         var hash = location.hash.slice(1)
         try { hash = decodeURIComponent(hash) } catch (error) {}
         var target = document.getElementById(hash)
@@ -195,9 +195,9 @@
   }
 
   function show(target, delayed) {
-    clearTimeout(timer)
+    runtime.clearTimeout(timer)
     if (target.hasAttribute('data-copy-feedback')) return
-    timer = setTimeout(function () {
+    timer = runtime.setTimeout(function () {
       active = target
       tooltip.textContent = target.getAttribute('data-tooltip') || target.getAttribute('aria-label')
       tooltip.setAttribute('aria-hidden', 'false')
@@ -207,41 +207,41 @@
   }
 
   function hide(target) {
-    clearTimeout(timer)
+    runtime.clearTimeout(timer)
     if (target && active && target !== active) return
     active = null
     tooltip.classList.remove('is-visible')
     tooltip.setAttribute('aria-hidden', 'true')
   }
 
-  window.updateActionTooltip = function (target) {
+  runtime.expose('updateActionTooltip', function (target) {
     if (active !== target) return
     tooltip.textContent = target.getAttribute('data-tooltip') || target.getAttribute('aria-label')
     positionTooltip(target)
-  }
+  })
 
-  window.hideActionTooltip = function (target) {
+  runtime.expose('hideActionTooltip', function (target) {
     hide(target)
-  }
+  })
 
   if (window.matchMedia('(hover: hover)').matches) {
-    document.addEventListener('mouseover', function (event) {
+    runtime.listen(document, 'mouseover', function (event) {
       var target = event.target.closest('[data-tooltip]')
       if (target && !target.contains(event.relatedTarget)) show(target, true)
     })
-    document.addEventListener('mouseout', function (event) {
+    runtime.listen(document, 'mouseout', function (event) {
       var target = event.target.closest('[data-tooltip]')
       if (target && !target.contains(event.relatedTarget)) hide(target)
     })
   }
-  document.addEventListener('focusin', function (event) {
+  runtime.listen(document, 'focusin', function (event) {
     var target = event.target.closest('[data-tooltip]')
     if (target && target.matches(':focus-visible')) show(target, false)
   })
-  document.addEventListener('focusout', function (event) {
+  runtime.listen(document, 'focusout', function (event) {
     var target = event.target.closest('[data-tooltip]')
     if (target) hide(target)
   })
-  window.addEventListener('resize', function () { if (active) positionTooltip(active) })
-})()
+  runtime.listen(window, 'resize', function () { if (active) positionTooltip(active) })
+})(window.yinyangRuntime.page)
 </script>

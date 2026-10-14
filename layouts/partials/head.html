@@ -1,4 +1,7 @@
 <head>
+  {{- with resources.Get "js/page-runtime.js" | minify -}}
+  <script>{{ .Content | safeJS }}</script>
+  {{- end -}}
   {{- $paletteState := partial "palette-state.html" . -}}
   <script>
     ;(function () {

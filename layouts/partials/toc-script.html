@@ -1,5 +1,5 @@
-<script>
-(function () {
+<script data-page-runtime>
+(function (runtime) {
   'use strict'
   var sidebar = document.getElementById('tocSidebar')
   var floatBtn = document.getElementById('tocFloatBtn')
@@ -55,6 +55,8 @@
     backgroundState = null
   }
 
+  runtime.addCleanup(unlockBackground)
+
   function closeToc(returnFocus) {
     if (wide.matches) return
     sidebar.classList.remove('toc-open')
@@ -73,16 +75,16 @@
     if (returnFocus !== false) floatBtn.focus()
   }
 
-  floatBtn.addEventListener('click', function () {
+  runtime.listen(floatBtn, 'click', function () {
     if (sidebar.classList.contains('toc-open')) {
       closeToc(false)
     } else {
       openToc()
     }
   })
-  backdrop.addEventListener('click', function () { closeToc(true) })
-  sidebar.querySelector('.toc-close').addEventListener('click', function () { closeToc(true) })
-  document.addEventListener('keydown', function (event) {
+  runtime.listen(backdrop, 'click', function () { closeToc(true) })
+  runtime.listen(sidebar.querySelector('.toc-close'), 'click', function () { closeToc(true) })
+  runtime.listen(document, 'keydown', function (event) {
     if (!sidebar.classList.contains('toc-open')) return
     if (event.key === 'Escape') {
       event.preventDefault()
@@ -134,8 +136,7 @@
     }
     updateTocEdges()
   }
-  if (wide.addEventListener) wide.addEventListener('change', syncMode)
-  else wide.addListener(syncMode)
+  runtime.listen(wide, 'change', syncMode)
   syncMode()
 
   function decodeHash(hash) {
@@ -161,11 +162,11 @@
   var highlightedHeading = null
   var highlightTimer = 0
   function highlightHeading(target) {
-    clearTimeout(highlightTimer)
+    runtime.clearTimeout(highlightTimer)
     if (highlightedHeading) highlightedHeading.classList.remove('toc-target')
     highlightedHeading = target
     target.classList.add('toc-target')
-    highlightTimer = setTimeout(function () {
+    highlightTimer = runtime.setTimeout(function () {
       target.classList.remove('toc-target')
       highlightedHeading = null
     }, 1800)
@@ -215,14 +216,14 @@
     }
   }
 
-  tocNav.addEventListener('click', function (event) {
+  runtime.listen(tocNav, 'click', function (event) {
     var link = event.target.closest('a[href^="#"]')
     if (!link) return
     var target = document.getElementById(decodeHash(link.getAttribute('href').slice(1)))
     if (!target) return
     event.preventDefault()
     if (!wide.matches) closeToc(true)
-    requestAnimationFrame(function () {
+    runtime.requestAnimationFrame(function () {
       if (wide.matches) {
         var targetTop = target.getBoundingClientRect().top + window.scrollY - 64
         window.scrollTo({ top: Math.max(0, targetTop) })
@@ -256,17 +257,17 @@
 
   var activeFrame = 0
   function onScroll() {
-    cancelAnimationFrame(activeFrame)
-    activeFrame = requestAnimationFrame(updateActive)
+    runtime.cancelAnimationFrame(activeFrame)
+    activeFrame = runtime.requestAnimationFrame(updateActive)
   }
-  appScroll.addEventListener('scroll', onScroll, { passive: true })
-  window.addEventListener('scroll', onScroll, { passive: true })
-  tocScroll.addEventListener('scroll', updateTocEdges, { passive: true })
-  window.addEventListener('resize', function () {
+  runtime.listen(appScroll, 'scroll', onScroll, { passive: true })
+  runtime.listen(window, 'scroll', onScroll, { passive: true })
+  runtime.listen(tocScroll, 'scroll', updateTocEdges, { passive: true })
+  runtime.listen(window, 'resize', function () {
     updateActive()
     updateTocEdges()
   })
   updateActive()
   updateTocEdges()
-})()
+})(window.yinyangRuntime.page)
 </script>

@@ -23,19 +23,19 @@
 {{ if $s.hasMarkdown }}
 {{ printf "<script id=\"raw-markdown-content\" type=\"application/json\">%s</script>" (.RawContent | jsonify) | safeHTML }}
 {{ end }}
-<script>
-(function () {
+<script data-page-runtime>
+(function (runtime) {
   function bindOpen(btnId, urlId) {
     var btn = document.getElementById(btnId)
     var url = document.getElementById(urlId)
     if (!btn || !url) return
     var locked = false
-    btn.addEventListener('click', function () {
+    runtime.listen(btn, 'click', function () {
       if (locked) return
       locked = true
       btn.setAttribute('aria-disabled', 'true')
       window.open(url.textContent, '_blank', 'noopener')
-      setTimeout(function () {
+      runtime.setTimeout(function () {
         locked = false
         btn.removeAttribute('aria-disabled')
       }, 500)
@@ -49,6 +49,6 @@
   if (!raw || !copyBtn) return
   var text = JSON.parse(raw.textContent)
   if (window.bindCopyButton) window.bindCopyButton(copyBtn, text, { defaultLabel: '复制 Markdown' })
-})()
+})(window.yinyangRuntime.page)
 </script>
 {{ end }}

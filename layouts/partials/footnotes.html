@@ -1,6 +1,6 @@
 {{ if not .IsHome -}}
-<script>
-;(function () {
+<script data-page-runtime>
+;(function (runtime) {
 	var FN_RE = /^#fn(?:(ref)(\d*))?:([\d]+)(?:-(\d+))?$/
 	var SENT_PUNCT = /[。；：？！….;:!?]/
 	// 成对分隔符：开括号 → 期待的闭括号
@@ -179,8 +179,8 @@
 		function done() {
 			if (lastHighlighted === el) clearHighlight()
 		}
-		el.addEventListener("animationend", done)
-		setTimeout(done, 5000)
+		runtime.listen(el, "animationend", done)
+		runtime.setTimeout(done, 5000)
 	}
 
 	function highlight(hash, noScroll) {
@@ -207,14 +207,14 @@
 		}
 
 		if (!noScroll) {
-			requestAnimationFrame(function () {
+			runtime.requestAnimationFrame(function () {
 				scrollToTarget(target)
 			})
 		}
 		return true
 	}
 	setupTooltips()
-	document.addEventListener("click", function (e) {
+	runtime.listen(document, "click", function (e) {
 		var link = e.target.closest("a")
 		if (!link) return
 		if (e.ctrlKey || e.metaKey || e.shiftKey) return
@@ -225,7 +225,7 @@
 			history.pushState(null, "", href)
 		}
 	})
-	window.addEventListener("hashchange", function () {
+	runtime.listen(window, "hashchange", function () {
 		highlight(location.hash)
 	})
 	if (location.hash) {
@@ -233,11 +233,11 @@
 		// web 字体未就绪时 getClientRects 测得的是占位字体行框，位置会偏。
 		// 字体就绪后重测校正（不重新滚动）。
 		if (document.fonts && document.fonts.ready) {
-			document.fonts.ready.then(function () {
+      document.fonts.ready.then(runtime.guard(function () {
 				if (location.hash) highlight(location.hash, true)
-			})
+      }))
 		}
 	}
-})()
+})(window.yinyangRuntime.page)
 </script>
 {{ end }}

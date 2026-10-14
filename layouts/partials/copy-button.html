@@ -1,6 +1,6 @@
-<script>
-;(function () {
-  window.bindCopyButton = function (button, text, options) {
+<script data-page-runtime>
+;(function (runtime) {
+  runtime.expose('bindCopyButton', function (button, text, options) {
     if (!button) return
     options = options || {}
     var defaultLabel = options.defaultLabel || button.getAttribute('aria-label') || ''
@@ -11,8 +11,8 @@
       if (feedback) feedback.remove()
       feedback = null
       button.removeAttribute('data-copy-feedback')
-      document.removeEventListener('scroll', removeFeedback, true)
-      window.removeEventListener('resize', removeFeedback)
+      runtime.unlisten(document, 'scroll', removeFeedback, true)
+      runtime.unlisten(window, 'resize', removeFeedback)
     }
 
     function showFeedback(label) {
@@ -26,7 +26,7 @@
       feedback = node
       button.setAttribute('data-copy-feedback', 'true')
       if (window.hideActionTooltip) window.hideActionTooltip(button)
-      requestAnimationFrame(function () {
+      runtime.requestAnimationFrame(function () {
         if (feedback !== node) return
         node.textContent = label
         var rect = button.getBoundingClientRect()
@@ -36,8 +36,8 @@
         if (top < 8) top = rect.bottom + 8
         node.style.top = Math.min(top, window.innerHeight - bounds.height - 8) + 'px'
       })
-      document.addEventListener('scroll', removeFeedback, true)
-      window.addEventListener('resize', removeFeedback)
+      runtime.listen(document, 'scroll', removeFeedback, true)
+      runtime.listen(window, 'resize', removeFeedback)
     }
 
     function fallbackCopy(value) {
@@ -63,8 +63,8 @@
       button.setAttribute('data-tooltip', label)
       if (window.updateActionTooltip) window.updateActionTooltip(button)
       showFeedback(label)
-      clearTimeout(resetTimer)
-      resetTimer = setTimeout(function () {
+      runtime.clearTimeout(resetTimer)
+      resetTimer = runtime.setTimeout(function () {
         removeFeedback()
         button.dataset.state = ''
         button.setAttribute('aria-label', defaultLabel)
@@ -73,12 +73,12 @@
       }, options.resetDelay || (success ? 2000 : 4000))
     }
 
-    button.addEventListener('click', function () {
+    runtime.listen(button, 'click', function () {
       if (button.disabled) return
       button.disabled = true
       if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
-          navigator.clipboard.writeText(text).then(function () { setState(true) }).catch(function () { setState(fallbackCopy(text)) })
+          navigator.clipboard.writeText(text).then(runtime.guard(function () { setState(true) })).catch(runtime.guard(function () { setState(fallbackCopy(text)) }))
         } catch (error) {
           setState(fallbackCopy(text))
         }
@@ -86,6 +86,6 @@
         setState(fallbackCopy(text))
       }
     })
-  }
-})()
+  })
+})(window.yinyangRuntime.page)
 </script>

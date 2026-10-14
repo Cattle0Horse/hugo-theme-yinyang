@@ -1,5 +1,5 @@
-<script>
-;(function () {
+<script data-page-runtime>
+;(function (runtime) {
   // 围栏代码块的工具栏/折叠结构已由构建期 render-codeblock.html 输出。
   // 这里只做运行时部分：
   //   1) 给构建期 [data-copy-block] 按钮绑定复制
@@ -70,7 +70,7 @@
         expandBar.setAttribute('data-tooltip', folded ? '展开全部代码' : '收起代码')
         if (expandText) expandText.textContent = folded ? '展开全部 (' + lineCount + ' 行)' : '收起'
       }
-      expandBar.addEventListener('click', function () {
+      runtime.listen(expandBar, 'click', function () {
         if (!body.classList.contains('is-folded')) {
           var appScroll = document.getElementById('appScroll')
           var wide = window.isWide ? window.isWide() : window.matchMedia('(min-width: 84em)').matches
@@ -93,14 +93,14 @@
 
     function scheduleHeightUpdate() {
       if (heightUpdateFrame) return
-      heightUpdateFrame = requestAnimationFrame(function () {
+      heightUpdateFrame = runtime.requestAnimationFrame(function () {
         heightUpdateFrame = 0
         for (var i = 0; i < foldInstances.length; i++) updateExpandedHeight(foldInstances[i])
       })
     }
 
-    window.addEventListener('resize', scheduleHeightUpdate)
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleHeightUpdate)
+    runtime.listen(window, 'resize', scheduleHeightUpdate)
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(runtime.guard(scheduleHeightUpdate))
   }
 
   // 3) 缩进代码块（裸 pre，非 .highlight）：构建期无法介入，运行时包装浮动复制按钮
@@ -127,5 +127,5 @@
     var el = blocks[j]
     if (!el.classList.contains('highlight')) enhancePlainPre(el)
   }
-})()
+})(window.yinyangRuntime.page)
 </script>

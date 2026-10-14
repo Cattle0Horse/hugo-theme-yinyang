@@ -1,5 +1,5 @@
-<script>
-;(function () {
+<script data-page-runtime>
+;(function (runtime) {
   var themeBtn = document.getElementById("theme-toggle")
   if (!themeBtn) return
   var paletteBtn = document.getElementById("palette-toggle")
@@ -11,6 +11,12 @@
   var menu = null
   var themeTransition = null
   var themeAnimation = null
+
+  runtime.addCleanup(function () {
+    if (themeAnimation) themeAnimation.cancel()
+    if (themeTransition) themeTransition.skipTransition()
+    html.classList.remove('theme-changing', 'theme-revealing')
+  })
 
   function currentValue(kind) {
     if (kind === "theme") return html.getAttribute("data-theme-mode") || "system"
@@ -42,7 +48,7 @@
       html.classList.add("theme-changing")
       html.offsetWidth
       callback()
-      requestAnimationFrame(function () { html.classList.remove("theme-changing") })
+      runtime.requestAnimationFrame(function () { html.classList.remove("theme-changing") })
     }
     if (!event || !document.startViewTransition) {
       updateAppearance()
@@ -53,9 +59,9 @@
     var y = event.detail ? event.clientY : bounds.top + bounds.height / 2
     var radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
     html.classList.add("theme-revealing")
-    var transition = document.startViewTransition(updateAppearance)
+    var transition = document.startViewTransition(runtime.guard(updateAppearance))
     themeTransition = transition
-    transition.ready.then(function () {
+    transition.ready.then(runtime.guard(function () {
       if (themeTransition !== transition) return
       themeAnimation = html.animate({
         clipPath: ["circle(0px at " + x + "px " + y + "px)", "circle(" + radius + "px at " + x + "px " + y + "px)"]
@@ -65,7 +71,7 @@
         fill: "both",
         pseudoElement: "::view-transition-new(root)"
       })
-    }).catch(function () { transition.skipTransition() })
+    })).catch(function () { transition.skipTransition() })
     function finishTransition() {
       if (themeTransition !== transition) return
       themeTransition = null
@@ -73,7 +79,7 @@
       themeAnimation = null
       html.classList.remove("theme-revealing")
     }
-    transition.finished.then(finishTransition, finishTransition)
+    transition.finished.then(runtime.guard(finishTransition), runtime.guard(finishTransition))
   }
 
   function applyTheme() {
@@ -124,16 +130,16 @@
     node.inert = true
     paletteBtn.setAttribute("aria-expanded", "false")
     if (returnFocus) paletteBtn.focus()
-    var timer = setTimeout(finishClose, 220)
+    var timer = runtime.setTimeout(finishClose, 220)
     function finishClose() {
-      clearTimeout(timer)
-      node.removeEventListener("transitionend", onTransitionEnd)
+      runtime.clearTimeout(timer)
+      runtime.unlisten(node, "transitionend", onTransitionEnd)
       node.remove()
     }
     function onTransitionEnd(event) {
       if (event.target === node && event.propertyName === "opacity") finishClose()
     }
-    node.addEventListener("transitionend", onTransitionEnd)
+    runtime.listen(node, "transitionend", onTransitionEnd)
   }
 
   function openMenu() {
@@ -162,7 +168,7 @@
     positionMenu()
     paletteBtn.setAttribute("aria-expanded", "true")
     if (window.hideActionTooltip) window.hideActionTooltip(paletteBtn)
-    requestAnimationFrame(function () {
+    runtime.requestAnimationFrame(function () {
       if (menu !== node) return
       node.classList.add("is-open")
       node.querySelector('[aria-checked="true"]').focus()
@@ -171,11 +177,11 @@
 
   applyTheme()
   updateLabels()
-  browserTheme.addEventListener("change", function () {
+  runtime.listen(browserTheme, "change", function () {
     if (currentValue("theme") === "system") applyAppearanceChange(applyTheme)
   })
 
-  document.addEventListener("click", function (event) {
+  runtime.listen(document, "click", function (event) {
     var trigger = event.target.closest("#theme-toggle, #palette-toggle")
     if (trigger) {
       event.preventDefault()
@@ -194,7 +200,7 @@
     if (menu && !menu.contains(event.target)) closeMenu(false)
   })
 
-  document.addEventListener("keydown", function (event) {
+  runtime.listen(document, "keydown", function (event) {
     if (event.target === paletteBtn && event.key === "ArrowDown") {
       event.preventDefault()
       openMenu()
@@ -223,10 +229,10 @@
     }
   })
 
-  window.addEventListener("resize", function () { if (menu) positionMenu() })
-  document.addEventListener("focusin", function (event) {
+  runtime.listen(window, "resize", function () { if (menu) positionMenu() })
+  runtime.listen(document, "focusin", function (event) {
     if (menu && event.target !== paletteBtn && !menu.contains(event.target)) closeMenu(false)
   })
-  document.addEventListener("scroll", function () { if (menu) closeMenu(false) }, true)
-})()
+  runtime.listen(document, "scroll", function () { if (menu) closeMenu(false) }, true)
+})(window.yinyangRuntime.page)
 </script>

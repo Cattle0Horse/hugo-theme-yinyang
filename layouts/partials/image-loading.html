@@ -1,6 +1,6 @@
 {{ if and .Site.Params.image.enabled .Site.Params.image.loading (not .IsHome) }}
-<script>
-;(function () {
+<script data-page-runtime>
+;(function (runtime) {
   function frameFor(img) { return img.closest('.loading-image-frame') }
 
   function setFrameState(frame, state) {
@@ -29,8 +29,8 @@
     // load 事件（decoding="async"）在字节到位即触发，不一定已解码。
     // 用 img.decode() 保证可绘制后再上屏，避免骨架消失 → 空白 → 闪现。
     if (img.decode) {
-      img.decode().then(function () { finishLoad(img, frame) })
-              .catch(function () { finishLoad(img, frame) })
+      img.decode().then(runtime.guard(function () { finishLoad(img, frame) }))
+              .catch(runtime.guard(function () { finishLoad(img, frame) }))
     } else {
       finishLoad(img, frame)
     }
@@ -68,18 +68,18 @@
     img.src = base + separator + 'retry=' + String(Date.now()) + hash
   }
 
-  document.addEventListener('load', function (event) {
+  runtime.listen(document, 'load', function (event) {
     if (event.target.matches && event.target.matches('img.loading-img')) onLoad(event.target)
   }, true)
-  document.addEventListener('error', function (event) {
+  runtime.listen(document, 'error', function (event) {
     if (event.target.matches && event.target.matches('img.loading-img')) onError(event.target)
   }, true)
-  document.addEventListener('click', function (event) {
+  runtime.listen(document, 'click', function (event) {
     var frame = event.target.closest('.loading-image-frame')
     if (!frame || !frame.classList.contains('is-failed')) return
     retryFrame(frame)
   })
-  document.addEventListener('keydown', function (event) {
+  runtime.listen(document, 'keydown', function (event) {
     if (event.key !== 'Enter' && event.key !== ' ') return
     var frame = event.target.closest('.loading-image-frame')
     if (!frame || !frame.classList.contains('is-failed')) return
@@ -94,6 +94,6 @@
     if (img.naturalWidth > 0) onLoad(img)
     else onError(img)
   })
-})()
+})(window.yinyangRuntime.page)
 </script>
 {{ end }}

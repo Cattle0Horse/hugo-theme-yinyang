@@ -1,5 +1,5 @@
-<script>
-;(function () {
+<script data-page-runtime>
+;(function (runtime) {
   var nav = document.getElementById('headerNav')
   if (!nav) return
   var row = nav.closest('.header-items')
@@ -40,16 +40,16 @@
     node.inert = true
     updateLabel(false)
     if (returnFocus) button.focus({ preventScroll: true })
-    var timer = setTimeout(finishClose, 220)
+    var timer = runtime.setTimeout(finishClose, 220)
     function finishClose() {
-      clearTimeout(timer)
-      node.removeEventListener('transitionend', onTransitionEnd)
+      runtime.clearTimeout(timer)
+      runtime.unlisten(node, 'transitionend', onTransitionEnd)
       node.remove()
     }
     function onTransitionEnd(event) {
       if (event.target === node && event.propertyName === 'opacity') finishClose()
     }
-    node.addEventListener('transitionend', onTransitionEnd)
+    runtime.listen(node, 'transitionend', onTransitionEnd)
   }
 
   function openMenu(last) {
@@ -73,7 +73,7 @@
       if (window.hideActionTooltip) window.hideActionTooltip(button)
     }
     var current = menu
-    requestAnimationFrame(function () {
+    runtime.requestAnimationFrame(function () {
       if (menu !== current) return
       current.classList.add('is-open')
       var items = current.querySelectorAll('a')
@@ -103,10 +103,10 @@
   }
 
   function scheduleLayout() {
-    if (!layoutFrame) layoutFrame = requestAnimationFrame(updateLayout)
+    if (!layoutFrame) layoutFrame = runtime.requestAnimationFrame(updateLayout)
   }
 
-  document.addEventListener('click', function (event) {
+  runtime.listen(document, 'click', function (event) {
     if (event.target.closest('#headerNavToggle')) {
       if (menu) closeMenu(true)
       else openMenu(false)
@@ -116,7 +116,7 @@
     if (!menu.contains(event.target) || event.target.closest('a')) closeMenu(false)
   })
 
-  document.addEventListener('keydown', function (event) {
+  runtime.listen(document, 'keydown', function (event) {
     if (event.target === button && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
       event.preventDefault()
       openMenu(event.key === 'ArrowUp')
@@ -150,26 +150,28 @@
     }
   })
 
-  document.addEventListener('focusin', function (event) {
+  runtime.listen(document, 'focusin', function (event) {
     if (menu && event.target !== button && !menu.contains(event.target)) closeMenu(false)
   })
-  document.addEventListener('scroll', function (event) {
+  runtime.listen(document, 'scroll', function (event) {
     if (menu && !menu.contains(event.target)) closeMenu(false)
   }, true)
-  window.addEventListener('resize', scheduleLayout)
+  runtime.listen(window, 'resize', scheduleLayout)
   if (window.ResizeObserver) {
     var observedWidth = -1
-    new ResizeObserver(function (entries) {
+    var observer = new ResizeObserver(runtime.guard(function (entries) {
       var width = entries[0].contentRect.width
       if (width === observedWidth) return
       observedWidth = width
       scheduleLayout()
-    }).observe(row)
+    }))
+    observer.observe(row)
+    runtime.addCleanup(function () { observer.disconnect() })
   }
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(scheduleLayout)
-    document.fonts.addEventListener('loadingdone', scheduleLayout)
+    document.fonts.ready.then(runtime.guard(scheduleLayout))
+    runtime.listen(document.fonts, 'loadingdone', scheduleLayout)
   }
   updateLayout()
-})()
+})(window.yinyangRuntime.page)
 </script>
