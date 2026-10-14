@@ -9,8 +9,7 @@
   var appScroll = document.getElementById('appScroll')
   var wide = window.matchMedia('(min-width: 84em)')
   var background = document.querySelector('.app-content')
-  var previousInert = false
-  var scrollPositions = null
+  var backgroundState = null
   if (!sidebar || !tocNav || !appScroll) return
 
   var links = Array.prototype.slice.call(tocNav.querySelectorAll('a[href^="#"]'))
@@ -28,8 +27,7 @@
 
   function openToc() {
     if (wide.matches || sidebar.classList.contains('toc-open')) return
-    scrollPositions = { page: window.scrollY, app: appScroll.scrollTop }
-    previousInert = background.inert
+    backgroundState = { page: window.scrollY, app: appScroll.scrollTop, inert: background.inert }
     background.inert = true
     document.documentElement.classList.add('toc-open')
     sidebar.classList.add('toc-open')
@@ -50,11 +48,11 @@
 
   function unlockBackground() {
     document.documentElement.classList.remove('toc-open')
-    if (!scrollPositions) return
-    background.inert = previousInert
-    window.scrollTo({ top: scrollPositions.page, behavior: 'instant' })
-    appScroll.scrollTo({ top: scrollPositions.app, behavior: 'instant' })
-    scrollPositions = null
+    if (!backgroundState) return
+    background.inert = backgroundState.inert
+    window.scrollTo({ top: backgroundState.page, behavior: 'instant' })
+    appScroll.scrollTo({ top: backgroundState.app, behavior: 'instant' })
+    backgroundState = null
   }
 
   function closeToc(returnFocus) {
@@ -153,8 +151,7 @@
     var id = decodeHash(link.getAttribute('href').slice(1))
     var heading = document.getElementById(id)
     if (!heading) return
-    var level = parseInt(heading.tagName.slice(1), 10)
-    entries.push({ link: link, heading: heading, level: level, end: null })
+    entries.push({ link: link, heading: heading, end: null })
   })
   entries.forEach(function (entry, index) {
     entry.end = entries[index + 1] ? entries[index + 1].heading : null

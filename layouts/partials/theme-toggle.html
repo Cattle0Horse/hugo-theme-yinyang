@@ -10,7 +10,6 @@
   var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
   var html = document.documentElement
   var menu = null
-  var menuTrigger = null
 
   function currentValue(kind) {
     if (kind === "theme") return html.getAttribute("data-theme-mode") || "system"
@@ -24,9 +23,13 @@
     if (window.updateActionTooltip) window.updateActionTooltip(button)
   }
 
+  function nextThemeMode(mode) {
+    return themeModes[(themeModes.indexOf(mode) + 1) % themeModes.length]
+  }
+
   function updateLabels() {
     var mode = currentValue("theme")
-    var nextMode = themeModes[(themeModes.indexOf(mode) + 1) % themeModes.length]
+    var nextMode = nextThemeMode(mode)
     updateLabel(themeBtn, "当前：" + themeNames[mode] + "；点击切换为" + themeNames[nextMode])
     updateLabel(paletteBtn, "选择配色，当前：" + paletteState.names[currentValue("palette")])
   }
@@ -64,7 +67,7 @@
 
   function positionMenu() {
     if (!menu) return
-    var anchor = menuTrigger.getBoundingClientRect()
+    var anchor = paletteBtn.getBoundingClientRect()
     var bounds = menu.getBoundingClientRect()
     var left = Math.max(8, Math.min(anchor.left, window.innerWidth - bounds.width - 8))
     var top = anchor.bottom + 8
@@ -76,16 +79,14 @@
   function closeMenu(returnFocus) {
     if (!menu) return
     var node = menu
-    var trigger = menuTrigger
     menu = null
-    menuTrigger = null
     node.classList.add("is-closing")
     node.classList.remove("is-open")
     node.removeAttribute("id")
     node.setAttribute("aria-hidden", "true")
     node.inert = true
-    trigger.setAttribute("aria-expanded", "false")
-    if (returnFocus) trigger.focus()
+    paletteBtn.setAttribute("aria-expanded", "false")
+    if (returnFocus) paletteBtn.focus()
     if (reducedMotion.matches) {
       node.remove()
       return
@@ -103,12 +104,10 @@
   }
 
   function openMenu() {
-    var trigger = paletteBtn
-    if (menuTrigger === trigger) {
+    if (menu) {
       closeMenu(true)
       return
     }
-    closeMenu(false)
     var node = document.createElement("div")
     node.id = "palette-menu"
     node.className = "appearance-menu palette-menu"
@@ -126,11 +125,10 @@
       node.appendChild(option)
     })
     menu = node
-    menuTrigger = trigger
     document.body.appendChild(node)
     positionMenu()
-    trigger.setAttribute("aria-expanded", "true")
-    if (window.hideActionTooltip) window.hideActionTooltip(trigger)
+    paletteBtn.setAttribute("aria-expanded", "true")
+    if (window.hideActionTooltip) window.hideActionTooltip(paletteBtn)
     requestAnimationFrame(function () {
       if (menu !== node) return
       node.classList.add("is-open")
@@ -150,8 +148,7 @@
       event.preventDefault()
       if (trigger === themeBtn) {
         closeMenu(false)
-        var index = themeModes.indexOf(currentValue("theme"))
-        setValue("theme", themeModes[(index + 1) % themeModes.length])
+        setValue("theme", nextThemeMode(currentValue("theme")))
       } else openMenu()
       return
     }
@@ -186,7 +183,7 @@
     } else if (event.key === "Tab") {
       event.preventDefault()
       var controls = Array.prototype.slice.call(document.querySelectorAll(".header-items a, .header-items button"))
-      var target = controls[controls.indexOf(menuTrigger) + (event.shiftKey ? -1 : 1)]
+      var target = controls[controls.indexOf(paletteBtn) + (event.shiftKey ? -1 : 1)]
       closeMenu(false)
       if (target) target.focus()
     }
