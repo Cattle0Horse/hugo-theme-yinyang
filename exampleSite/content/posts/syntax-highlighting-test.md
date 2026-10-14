@@ -2,7 +2,6 @@
 title: "语法高亮测试"
 date: 2024-01-15
 tags: ["test", "development"]
-categories: ["tech"]
 ---
 
 ## Markdown

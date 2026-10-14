@@ -2,7 +2,6 @@
 title: "Markdown 表格示例"
 date: 2026-08-07
 tags: ["test", "markdown"]
-categories: ["tech"]
 draft: false
 ---
 

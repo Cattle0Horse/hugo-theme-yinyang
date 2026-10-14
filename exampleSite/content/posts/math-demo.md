@@ -2,7 +2,6 @@
 title: "数学公式示例"
 date: 2026-08-07
 tags: ["test", "math", "katex"]
-categories: ["tech"]
 draft: false
 ---
 

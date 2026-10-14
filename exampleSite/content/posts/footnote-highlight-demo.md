@@ -1,7 +1,6 @@
 ---
 title: 脚注返回高亮测试
 date: 2026-08-07
-categories: ['测试']
 draft: false
 ---
 

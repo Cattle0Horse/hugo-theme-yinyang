@@ -13,7 +13,6 @@ note_tags = "/notes/tags/"
 note_tags = "/notes/tags/:slug/"
 
 [taxonomies]
-category = "categories"
 tag = "tags"
 note_tag = "note_tags"
 

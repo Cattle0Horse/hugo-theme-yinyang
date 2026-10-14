@@ -9,9 +9,6 @@ tags = [
     "development",
 ]
 date = "2014-04-02"
-categories = [
-    "Develop",
-]
 menu = "main"
 +++
 

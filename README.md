@@ -71,11 +71,10 @@ mainSections = ["posts"]
 
 ### Notes 标签
 
-Notes 使用独立的 `note_tags` taxonomy，不会进入 Blog 的 `tags`。站点必须保留 Hugo 默认 taxonomy，并同时注册 `note_tags`：
+Notes 使用独立的 `note_tags` taxonomy，不会进入 Blog 的 `tags`。站点需要显式注册 `tags` 和 `note_tags`：
 
 ```toml
 [taxonomies]
-category = "categories"
 tag = "tags"
 note_tag = "note_tags"
 
@@ -107,7 +106,7 @@ allowUserChoice = true
 
 ### RSS
 
-主题将 Blog 和 Notes 分成两个 feed：Blog 使用 `/index.xml`，且只包含 `mainSections` 中的内容；Notes 使用 `/notes/index.xml`。tags 和 categories 的总览页及条目页均不生成 RSS。
+主题将 Blog 和 Notes 分成两个 feed：Blog 使用 `/index.xml`，且只包含 `mainSections` 中的内容；Notes 使用 `/notes/index.xml`。`tags` 和 `note_tags` 的总览页及条目页均不生成 RSS。
 
 Hugo 的 `outputs` 决定文件是否真正生成。以下配置同时开启 Blog RSS 和 Notes RSS：
 
@@ -192,7 +191,6 @@ draft: true
 # summary: ""
 # description: ""
 # tags: []
-# categories: []
 # ai: none # none | assisted | generated
 # toc: true # false disables the table of contents
 # album: [] # Open Graph image URLs
@@ -406,7 +404,6 @@ note_tags = "/notes/tags/:slug/"
 
 # ---------- Taxonomy ----------
 [taxonomies]
-category = "categories"
 tag = "tags"
 note_tag = "note_tags"
 

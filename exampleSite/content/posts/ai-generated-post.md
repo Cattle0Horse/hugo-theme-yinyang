@@ -2,7 +2,6 @@
 title: "AI 生成示例"
 date: 2026-08-07
 tags: ["test", "ai"]
-categories: ["tech"]
 ai: generated
 ---
 

@@ -27,10 +27,6 @@
                           {{ .Date.Format "2006.01.02" }}
                         </time>
                         {{ end }}
-                        {{- range .Params.categories -}}
-                        <span class="post-meta-sep">·</span>
-                        <a class="post-meta-category" href="/categories/{{ lower . | urlize }}/">{{ . }}</a>
-                        {{- end -}}
                         {{ partial "busuanzi-page.html" . }}
                       {{ if .Site.Params.busuanzi.enabled }}</span>{{ end }}
                       {{ partial "markdown-actions.html" . }}
