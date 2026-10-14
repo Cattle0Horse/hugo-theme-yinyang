@@ -1,5 +1,3 @@
-# CLAUDE.md
-
 ## 项目概述
 
 YinYang 是一个极简 Hugo 博客主题，fork 自 `joway/hugo-theme-yinyang`。功能包括：暗色/亮色主题切换、构建期 KaTeX 服务端渲染的数学公式、图片懒加载与骨架屏、代码块工具栏（语言标签/复制/折叠）、TOC 目录滚动监听、脚注高亮跳转、SEO JSON-LD、Gallery 内容类型、Notes 短记录时间线、CJK 排版优化。
