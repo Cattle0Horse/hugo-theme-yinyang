@@ -13,6 +13,7 @@
   --color-text: #18181b;
   --color-heading: var(--color-text);
   --color-link: var(--color-accent);
+  --color-link-underline: color-mix(in srgb, var(--color-text) 35%, transparent);
   --color-text-secondary: #52525b;
   --color-text-muted: #686e79;
   --color-text-blockquote: var(--color-text-secondary);
@@ -83,6 +84,7 @@
   color-scheme: dark;
   --color-bg: #1b1d21;
   --color-text: #d9dce2;
+  --color-link-underline: color-mix(in srgb, var(--color-text) 35%, transparent);
   --color-text-secondary: #b3b9c4;
   --color-text-muted: #949da9;
   --color-border: #3e444e;

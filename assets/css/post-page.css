@@ -58,6 +58,13 @@
   margin-bottom: 50px;
 }
 
+.post-content a {
+  color: inherit;
+  text-decoration-color: var(--color-link-underline);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
 .post-content p {
   hyphens: auto;
   line-height: 1.8;
