@@ -2,6 +2,12 @@
    Action Buttons & Tooltip
    ======================================================================== */
 
+.action-button,
+.palette-option {
+  --action-scale-duration: 220ms;
+  scale: 1;
+}
+
 .action-button {
   position: relative;
   display: inline-flex;
@@ -13,15 +19,15 @@
   min-height: var(--action-button-size);
   font-family: inherit;
   cursor: pointer;
-  transform: scale(1);
-  transition-property: transform, color, background-color, border-color, opacity;
-  transition-duration: 160ms, 300ms, 300ms, 300ms, 150ms;
-  transition-timing-function: ease;
+  transition-property: scale, color, background-color, border-color, opacity;
+  transition-duration: var(--action-scale-duration), 300ms, 300ms, 300ms, 150ms;
+  transition-timing-function: cubic-bezier(.2, .8, .2, 1), ease, ease, ease, ease;
 }
 
-.action-button:active {
-  transform: scale(.94);
-  transition-duration: 100ms, 300ms, 300ms, 300ms, 150ms;
+.action-button:active,
+.palette-option:active {
+  --action-scale-duration: 60ms;
+  scale: .82;
 }
 .action-button:disabled,
 .action-button[aria-disabled="true"] { cursor: default; }

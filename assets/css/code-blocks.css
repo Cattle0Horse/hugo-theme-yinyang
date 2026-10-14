@@ -183,7 +183,7 @@
     opacity: 0;
     pointer-events: none;
     transform: translateY(-2px);
-    transition: opacity 160ms ease, transform 160ms ease, color 150ms ease, background-color 150ms ease;
+    transition: opacity 160ms ease, transform 160ms ease, scale var(--action-scale-duration) cubic-bezier(.2, .8, .2, 1), color 150ms ease, background-color 150ms ease;
   }
 
   .code-block-wrapper.no-toolbar:hover > .floating-code-copy,
