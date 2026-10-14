@@ -66,8 +66,13 @@ html.toc-open #appScroll { overflow: hidden !important; }
 html.toc-open .toc-float-btn { visibility: hidden; }
 
 .toc-target {
-  background: var(--color-accent-soft);
   border-radius: 4px;
+  animation: toc-target-fade 2100ms linear forwards;
+}
+
+@keyframes toc-target-fade {
+  0%, 76% { background-color: var(--color-accent-soft); animation-timing-function: ease-out; }
+  100% { background-color: transparent; }
 }
 
 /* float button */

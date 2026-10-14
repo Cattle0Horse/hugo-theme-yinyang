@@ -159,16 +159,21 @@
   var indicator = document.getElementById('tocIndicator')
   var highlightedHeading = null
   var highlightTimer = 0
-  function highlightHeading(target) {
+  function clearHeadingHighlight() {
     runtime.clearTimeout(highlightTimer)
     if (highlightedHeading) highlightedHeading.classList.remove('toc-target')
-    highlightedHeading = target
-    target.classList.add('toc-target')
-    highlightTimer = runtime.setTimeout(function () {
-      target.classList.remove('toc-target')
-      highlightedHeading = null
-    }, 1800)
+    highlightedHeading = null
   }
+  function highlightHeading(target) {
+    clearHeadingHighlight()
+    highlightedHeading = target
+    target.offsetWidth
+    target.classList.add('toc-target')
+    highlightTimer = runtime.setTimeout(clearHeadingHighlight, 2400)
+  }
+  runtime.listen(document, 'animationend', function (event) {
+    if (event.target === highlightedHeading && event.animationName === 'toc-target-fade') clearHeadingHighlight()
+  })
   function updateActive() {
     if (!entries.length) return
     var isBody = wide.matches

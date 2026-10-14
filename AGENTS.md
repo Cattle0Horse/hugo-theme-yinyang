@@ -166,7 +166,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 
 - **宽屏（≥84em）**：侧边栏固定在页面右侧 `left: calc(50% + 432px)`，始终可见。
 - **窄屏**：浮动按钮 `#tocFloatBtn` + 全屏遮罩 `#tocBackdrop`，点击展开滑出面板；打开时移入焦点、以 `inert` 隔离背景并锁定滚动，提供面板关闭按钮、Esc 关闭、Tab 焦点锁定，关闭后恢复背景与焦点。
-- **Scroll-spy**：解析 TOC 链接对应的 heading，计算当前视口内可见的 heading，以柔和主题色高亮对应链接并移动 `.toc-indicator` 指示条位置；hover 仅过渡文字颜色，不使用背景块或下划线。主动跳转后短暂标记目标标题。滚动自动跟随（`scrollBy`，平滑由 CSS `scroll-behavior: smooth` 驱动）。
+- **Scroll-spy**：解析 TOC 链接对应的 heading，计算当前视口内可见的 heading，以柔和主题色高亮对应链接并移动 `.toc-indicator` 指示条位置；hover 仅过渡文字颜色，不使用背景块或下划线。主动跳转后目标标题高亮保持约 1600ms，再用 500ms 平滑淡出，动画结束清理 class，重复点击重新播放，计时器兜底。滚动自动跟随（`scrollBy`，平滑由 CSS `scroll-behavior: smooth` 驱动）。
 
 ### 脚注系统
 
