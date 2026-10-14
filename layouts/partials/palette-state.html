@@ -1,6 +1,7 @@
-{{- $supported := slice "yinyang" "solarized" -}}
-{{- $available := slice "yinyang" -}}
-{{- $default := "yinyang" -}}
+{{- $supported := slice "indigo" "violet" "graphite" -}}
+{{- $names := dict "indigo" "靛蓝" "violet" "紫罗兰" "graphite" "石墨" -}}
+{{- $available := slice "indigo" -}}
+{{- $default := "indigo" -}}
 {{- $allowUserChoice := false -}}
 
 {{- with .Site.Params.colorScheme -}}
@@ -14,6 +15,7 @@
     {{- end -}}
     {{- if gt (len $configured) 0 -}}
       {{- $available = $configured -}}
+      {{- $default = index $available 0 -}}
     {{- end -}}
   {{- end -}}
 
@@ -29,6 +31,7 @@
 
 {{- return (dict
   "available" $available
+  "names" $names
   "default" $default
   "allowUserChoice" $allowUserChoice
 ) -}}

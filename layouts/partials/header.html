@@ -8,13 +8,13 @@
   <div class="header-subtitle">{{ .Site.Params.Description }}</div>
   <div class="header-items">
     <div class="header-item appearance-controls">
-      <button class="theme-toggle action-button" id="theme-toggle" type="button" aria-label="切换至深色模式" data-tooltip="切换至深色模式">
+      <button class="theme-toggle action-button" id="theme-toggle" type="button" aria-label="选择明暗模式" aria-haspopup="menu" aria-expanded="false" data-tooltip="选择明暗模式">
         <span class="action-icon theme-toggle-dark" aria-hidden="true">{{ partial "icon.html" (dict "name" "moon") }}</span>
         <span class="action-icon theme-toggle-light" aria-hidden="true">{{ partial "icon.html" (dict "name" "sun") }}</span>
+        <span class="action-icon theme-toggle-system" aria-hidden="true">{{ partial "icon.html" (dict "name" "monitor") }}</span>
       </button>
       {{- if $paletteState.allowUserChoice }}
       <button class="palette-toggle action-button" id="palette-toggle" type="button" aria-label="选择配色" aria-haspopup="menu" aria-expanded="false" data-tooltip="选择配色">
-        <span class="action-icon" aria-hidden="true">{{ partial "icon.html" (dict "name" "palette") }}</span>
       </button>
       {{- end }}
     </div>

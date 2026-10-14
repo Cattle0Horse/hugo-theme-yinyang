@@ -75,8 +75,8 @@ codeMaxLines = 15
 enabled = true
 
 [params.colorScheme]
-default = "yinyang"
-available = ["yinyang", "solarized"]
+default = "indigo"
+available = ["indigo", "violet", "graphite"]
 allowUserChoice = true
 
 [params.image]

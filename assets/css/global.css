@@ -3,7 +3,6 @@
    ======================================================================== */
 
 html {
-  background-color: #f8f9fa;
   background-color: var(--color-bg);
 }
 
@@ -72,6 +71,16 @@ a:hover {
   color: var(--color-link);
   text-decoration: underline;
   text-decoration-color: var(--color-link);
+}
+
+.markdown-body a:hover {
+  color: var(--color-accent-hover);
+  text-decoration-color: var(--color-accent-hover);
+}
+
+:where(a, button):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
 }
 
 .markdown-body hr {

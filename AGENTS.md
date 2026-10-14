@@ -59,12 +59,12 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 
 ### 主题与配色系统
 
-外观分为两个独立维度：`data-theme` 控制 `light` / `dark`，`data-palette` 控制 `yinyang` / `solarized`：
+外观分为两个独立维度：`data-theme` 控制 `light` / `dark`，`data-palette` 控制 `indigo` / `violet` / `graphite`：
 
 - `palette-state.html` 过滤站点配置，只允许主题内置配色，并计算默认值及是否显示选择器。
-- `head.html` 顶部内联脚本在 HTML 解析前同步执行：明暗模式读取 `localStorage.theme` 或 `prefers-color-scheme`，配色读取 `localStorage.palette` 或站点默认值，设置两个 data 属性以避免 FOUC。
-- `variables.css` 定义 YinYang / Solarized 各自的亮暗 CSS 变量；`syntax.css` 只消费 `--syntax-*` 变量，不硬编码主题颜色。
-- `theme-toggle.html` 同时管理明暗切换和按需创建销毁的配色菜单；两种切换都短暂添加 `theme-changing` class 禁用 CSS transition。
+- `head.html` 顶部内联脚本在 HTML 解析前同步执行：明暗偏好读取 `localStorage.theme`（`light` / `dark`，缺省为跟随浏览器），通过 `prefers-color-scheme` 解析实际明暗模式并设置 `data-theme-mode`，配色读取 `localStorage.palette` 或站点默认值，设置外观 data 属性以避免 FOUC。
+- `variables.css` 定义共用的亮暗中性色与靛蓝 / 紫罗兰 / 石墨强调色变量；`syntax.css` 只消费 `--syntax-*` 变量，不硬编码主题颜色。
+- `theme-toggle.html` 同时管理明暗切换和按需创建销毁的圆形色点调色盘与明暗菜单（亮色 / 暗色 / 跟随浏览器）；跟随浏览器时监听 `prefers-color-scheme` 变化，两种切换都短暂添加 `theme-changing` class 禁用 CSS transition。
 - 明暗按钮与配色按钮嵌入在 `header.html` 的 `.appearance-controls` 中；未启用用户选择时不渲染配色按钮。
 
 ### 跨功能通用约定
@@ -154,7 +154,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 `footnotes.html` 拦截所有 `#fn:*` / `#fnref:*` 链接点击：
 
 - **tooltip**：自动为脚注链接添加 `data-tooltip`（"查看脚注 N" / "返回引用处"）。
-- **滚动与高亮**：点击后居中目标并触发黄色脉冲动画（`footnote-highlight` / `ref-highlight` CSS class）。
+- **滚动与高亮**：点击后居中目标并触发当前配色的脉冲动画（`footnote-highlight` / `ref-highlight` CSS class）。
 - **双模式滚动**：宽屏使用 `scrollIntoView`，窄屏手动计算 `app-scroll` 内的滚动偏移。
 
 ### 数学公式
@@ -191,7 +191,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 - `extraBody` — 注入 `</body>` 前的原始 HTML
 - `postContent` — 站点配置（映射），文章首尾注入：`enabled`（布尔值，总闸）、`header` / `footer`（文章正文前后的注入 HTML，`safeHTML`）
 - `extraCSSFiles` — 额外 CSS 路径数组，以 `<link>` 加载
-- `colorScheme` — 站点配置（映射），配色方案：`default`（默认 `yinyang`）、`available`（允许 `yinyang` / `solarized`）、`allowUserChoice`（多于一套有效配色时显示选择器）
+- `colorScheme` — 站点配置（映射），配色方案：`default`（默认 `indigo`）、`available`（允许 `indigo` / `violet` / `graphite`）、`allowUserChoice`（多于一套有效配色时显示选择器）
 - `staticPrefix` — CDN 前缀，同时生成 `dns-prefetch`
 - `image` — 站点配置（映射），图片增强：`enabled`（布尔值，总闸）、`lazy`（布尔值，为 `<img>` 添加 `loading="lazy"`）、`loading`（布尔值，启用骨架屏 + 加载失败重试，首页不生效）
 - `actions` — 站点配置（映射），文章操作区总开关与子功能：`enabled`（布尔值，总闸，`false` 或未配时编辑/复制按钮全部不渲染）、`copyMarkdown`（布尔值，启用"复制 Markdown"按钮）、嵌套 `editPage`（`enabled` 布尔值 + `repo` GitHub 仓库 URL + `branch` 分支名默认 `main` + `text` 纠错链接文字）。编辑按钮需 `actions.enabled` + `editPage.enabled` + `editPage.repo` 同时满足

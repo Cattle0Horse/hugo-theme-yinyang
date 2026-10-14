@@ -10,10 +10,12 @@
         t = localStorage.getItem("theme")
         p = localStorage.getItem("palette")
       } catch (error) {}
-      if (t !== "light" && t !== "dark") t = null
-      if (!t) t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+      if (t !== "light" && t !== "dark") t = "system"
       if (!p || palettes.indexOf(p) === -1) p = defaultPalette
-      document.documentElement.setAttribute("data-theme", t)
+      document.documentElement.setAttribute("data-theme-mode", t)
+      var theme = t
+      if (t === "system") theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+      document.documentElement.setAttribute("data-theme", theme)
       document.documentElement.setAttribute("data-palette", p)
     })();
   </script>

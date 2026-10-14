@@ -14,7 +14,7 @@
 
 | 功能 | 说明 |
 |---|---|
-| 🌓 外观切换 | YinYang / Solarized 配色与亮色 / 暗色独立选择，跟随系统偏好，无闪屏（FOUC） |
+| 🌓 外观切换 | 靛蓝 / 紫罗兰 / 石墨 配色与亮色 / 暗色独立选择，跟随系统偏好，无闪屏（FOUC） |
 | 📐 数学公式 | 构建期服务端渲染 KaTeX，页面加载零 JS、零跳变 |
 | 💻 代码块工具栏 | 语言标签、一键复制、超长代码自动折叠 |
 | 🖼 图片增强 | 原生懒加载、异步解码、骨架屏占位、加载失败重试 |
@@ -90,20 +90,20 @@ Blog 标签继续使用 `tags`，链接到 `/tags/<tag>/`；Note 标签写在 `n
 
 ### 配色与明暗模式
 
-主题内置 `yinyang` 和 `solarized` 两套配色，每套均支持亮色与暗色。明暗模式跟随系统偏好，访客手动选择后，配色与明暗状态会分别保存在浏览器中。
+主题内置靛蓝（`indigo`）、紫罗兰（`violet`）和石墨（`graphite`）三套配色，共用中性背景，每套均支持亮色与暗色。页头的色点按钮展开圆形色点调色盘，外圈标记当前配色。明暗按钮提供「亮色」「暗色」「跟随浏览器」三个选项，默认跟随浏览器并实时响应其偏好变化。手动选择会保存在浏览器中，重新选择「跟随浏览器」会清除手动明暗偏好。
 
 ```toml
 [params.colorScheme]
-default = "yinyang"
-available = ["yinyang", "solarized"]
+default = "indigo"
+available = ["indigo", "violet", "graphite"]
 allowUserChoice = true
 ```
 
-- `default`：首次访问时使用的配色，必须同时出现在 `available` 中。
-- `available`：站点允许的配色；目前支持 `yinyang`、`solarized`，无效值会被忽略。
-- `allowUserChoice`：至少有两套可用配色时，在页头显示配色选择按钮。
+- `default`：首次访问时使用的配色；未配置或不在 `available` 中时，使用第一套有效配色。
+- `available`：站点允许的配色；目前支持 `indigo`、`violet`、`graphite`，无效值会被忽略。
+- `allowUserChoice`：至少有两套可用配色时，在页头显示调色盘按钮。
 
-不配置 `[params.colorScheme]` 时保持原有行为：使用 YinYang 配色且不显示配色选择按钮。明暗切换按钮始终保留。
+不配置 `[params.colorScheme]` 时使用靛蓝配色且不显示调色盘。明暗选择按钮始终保留。旧配色配置或浏览器保存的旧配色值会回退到有效默认配色。
 
 ### RSS
 
@@ -443,8 +443,8 @@ mainSections = ["posts"]
 staticPrefix = "https://cdn.jsdelivr.net/gh/cattle0horse/blog"
 
 [params.colorScheme]
-default = "yinyang"
-available = ["yinyang", "solarized"]
+default = "indigo"
+available = ["indigo", "violet", "graphite"]
 allowUserChoice = true
 
 [params.image]
