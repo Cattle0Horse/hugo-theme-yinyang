@@ -5,8 +5,43 @@
     options = options || {}
     var defaultLabel = options.defaultLabel || button.getAttribute('aria-label') || ''
     var resetTimer = 0
+    var feedback = null
+
+    function removeFeedback() {
+      if (feedback) feedback.remove()
+      feedback = null
+      button.removeAttribute('data-copy-feedback')
+      document.removeEventListener('scroll', removeFeedback, true)
+      window.removeEventListener('resize', removeFeedback)
+    }
+
+    function showFeedback(label) {
+      removeFeedback()
+      var node = document.createElement('span')
+      node.className = 'copy-feedback'
+      node.setAttribute('role', 'status')
+      node.setAttribute('aria-live', 'polite')
+      node.setAttribute('aria-atomic', 'true')
+      document.body.appendChild(node)
+      feedback = node
+      button.setAttribute('data-copy-feedback', 'true')
+      if (window.hideActionTooltip) window.hideActionTooltip(button)
+      requestAnimationFrame(function () {
+        if (feedback !== node) return
+        node.textContent = label
+        var rect = button.getBoundingClientRect()
+        var bounds = node.getBoundingClientRect()
+        node.style.left = Math.max(8, Math.min(rect.left + (rect.width - bounds.width) / 2, window.innerWidth - bounds.width - 8)) + 'px'
+        var top = rect.top - bounds.height - 8
+        if (top < 8) top = rect.bottom + 8
+        node.style.top = Math.min(top, window.innerHeight - bounds.height - 8) + 'px'
+      })
+      document.addEventListener('scroll', removeFeedback, true)
+      window.addEventListener('resize', removeFeedback)
+    }
 
     function fallbackCopy(value) {
+      var focus = document.activeElement
       var ta = document.createElement('textarea')
       ta.value = value
       ta.style.position = 'fixed'
@@ -16,23 +51,26 @@
       var ok = false
       try { ok = document.execCommand('copy') } catch (error) {}
       document.body.removeChild(ta)
+      if (focus && focus.focus) focus.focus({ preventScroll: true })
       return ok
     }
 
     function setState(success) {
       button.disabled = false
-      var label = success ? (options.successLabel || '已复制') : (options.errorLabel || '复制失败')
+      var label = success ? (options.successLabel || '已复制') : (options.errorLabel || '复制失败，请手动选择')
       button.dataset.state = success ? 'success' : 'error'
       button.setAttribute('aria-label', label)
       button.setAttribute('data-tooltip', label)
       if (window.updateActionTooltip) window.updateActionTooltip(button)
+      showFeedback(label)
       clearTimeout(resetTimer)
       resetTimer = setTimeout(function () {
+        removeFeedback()
         button.dataset.state = ''
         button.setAttribute('aria-label', defaultLabel)
         button.setAttribute('data-tooltip', defaultLabel)
         if (window.updateActionTooltip) window.updateActionTooltip(button)
-      }, options.resetDelay || 2000)
+      }, options.resetDelay || (success ? 2000 : 4000))
     }
 
     button.addEventListener('click', function () {

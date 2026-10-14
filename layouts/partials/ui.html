@@ -130,6 +130,7 @@
 
   function show(target, delayed) {
     clearTimeout(timer)
+    if (target.hasAttribute('data-copy-feedback')) return
     timer = setTimeout(function () {
       active = target
       tooltip.textContent = target.getAttribute('data-tooltip') || target.getAttribute('aria-label')

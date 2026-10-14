@@ -131,6 +131,8 @@
 
 .post-desc-inner {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   justify-content: space-between;
   align-items: center;
 }
@@ -192,15 +194,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   line-height: 1;
-}
-
-.markdown-action-btn::after {
-  content: "";
-  position: absolute;
-  inset: -9px;
 }
 
 .markdown-action-btn:hover {
