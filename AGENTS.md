@@ -66,6 +66,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 - `variables.css` 定义共用的亮暗中性色与靛蓝 / 紫罗兰 / 石墨强调色变量；`syntax.css` 只消费 `--syntax-*` 变量，不硬编码主题颜色。
 - `theme-toggle.html` 同时管理明暗切换和按需创建销毁的色点调色盘；明暗按钮点击轮换亮色 / 暗色 / 跟随浏览器，跟随浏览器时监听 `prefers-color-scheme` 变化，两种切换都短暂添加 `theme-changing` class 禁用 CSS transition。
 - 明暗按钮与配色按钮嵌入在 `header.html` 的 `.appearance-controls` 中；未启用用户选择时不渲染配色按钮。
+- `header-nav.html` 在 Header 解析后测量整排导航所需的真实宽度；空间不足时将全部 `socials` 链接折叠进图标菜单，空间恢复后展开。监听容器尺寸与字体加载，保持导航行不换行；菜单保留链接顺序和打开方式，支持方向键、Home/End、Esc 与 Tab 退出，展开/折叠时恢复对应焦点。
 
 ### 跨功能通用约定
 
@@ -87,6 +88,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 |---|---|---|
 | `head.html` | 所有独立模板 + baseof | 始终 |
 | `header.html` | 所有独立模板 + baseof | 始终 |
+| `header-nav.html` | `header.html` 末尾 | 配置了 `socials`（按实际可用宽度折叠/展开导航，运行时创建菜单） |
 | `seo.html` | `head.html` 内 | 始终 |
 | `math.html` | `head.html` 内 | `partialCached`，仅在内容含 `$$`/`$...$` 时内联 KaTeX CSS |
 | `theme-toggle.html` | 所有独立模板 + baseof（`</body>` 前） | 始终 |

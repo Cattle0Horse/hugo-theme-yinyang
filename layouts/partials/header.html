@@ -18,11 +18,21 @@
       </button>
       {{- end }}
     </div>
-    {{ range .Site.Params.socials }}
-    <div class="header-item">
-      <a href="{{ .link }}"{{ if hasPrefix .link "http" }} target="_blank" rel="noopener"{{ end }}>{{ .name }}</a>
-    </div>
+    {{ with .Site.Params.socials }}
+    <nav class="header-nav" id="headerNav" aria-label="站点导航">
+      <div class="header-links">
+        {{ range . }}
+        <div class="header-item">
+          <a href="{{ .link }}"{{ if hasPrefix .link "http" }} target="_blank" rel="noopener"{{ end }}>{{ .name }}</a>
+        </div>
+        {{ end }}
+      </div>
+      <button class="header-nav-toggle action-button" id="headerNavToggle" type="button" aria-label="打开导航菜单" aria-haspopup="menu" aria-expanded="false" data-tooltip="打开导航菜单" hidden>
+        {{ partial "icon.html" (dict "name" "list" "wrap" "action-icon") }}
+      </button>
+    </nav>
     {{ end }}
   </div>
   <div class="header-line"></div>
 </header>
+{{ with .Site.Params.socials }}{{ partial "header-nav.html" $ }}{{ end }}

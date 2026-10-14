@@ -230,7 +230,9 @@ extraHead = '''
 extraCSSFiles = ["css/fonts.css"]
 ```
 
-### 页脚链接
+### 页头导航链接
+
+导航通过 `params.socials` 配置，按配置顺序展示。整排链接放不下时，全部收进导航菜单；空间恢复后自动展开。明暗与配色按钮始终直接展示。
 
 ```toml
 [[params.socials]]

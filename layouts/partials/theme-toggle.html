@@ -183,6 +183,7 @@
     } else if (event.key === "Tab") {
       event.preventDefault()
       var controls = Array.prototype.slice.call(document.querySelectorAll(".header-items a, .header-items button"))
+        .filter(function (control) { return control.getClientRects().length > 0 })
       var target = controls[controls.indexOf(paletteBtn) + (event.shiftKey ? -1 : 1)]
       closeMenu(false)
       if (target) target.focus()
@@ -190,6 +191,9 @@
   })
 
   window.addEventListener("resize", function () { if (menu) positionMenu() })
+  document.addEventListener("focusin", function (event) {
+    if (menu && event.target !== paletteBtn && !menu.contains(event.target)) closeMenu(false)
+  })
   document.addEventListener("scroll", function () { if (menu) closeMenu(false) }, true)
 })()
 </script>

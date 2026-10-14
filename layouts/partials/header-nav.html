@@ -1,0 +1,173 @@
+<script>
+;(function () {
+  var nav = document.getElementById('headerNav')
+  if (!nav) return
+  var row = nav.closest('.header-items')
+  var links = nav.querySelector('.header-links')
+  var originalLinks = Array.prototype.slice.call(links.querySelectorAll('a'))
+  var button = document.getElementById('headerNavToggle')
+  var appearance = row.querySelector('.appearance-controls')
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+  var menu = null
+  var layoutFrame = 0
+
+  function updateLabel(open) {
+    var label = open ? '关闭导航菜单' : '打开导航菜单'
+    button.setAttribute('aria-expanded', String(open))
+    button.setAttribute('aria-label', label)
+    button.setAttribute('data-tooltip', label)
+    if (window.updateActionTooltip) window.updateActionTooltip(button)
+  }
+
+  function positionMenu() {
+    if (!menu) return
+    var anchor = button.getBoundingClientRect()
+    var bounds = menu.getBoundingClientRect()
+    var left = Math.max(8, Math.min(anchor.right - bounds.width, window.innerWidth - bounds.width - 8))
+    var top = anchor.bottom + 8
+    if (top + bounds.height > window.innerHeight - 8) top = Math.max(8, anchor.top - bounds.height - 8)
+    menu.style.left = left + 'px'
+    menu.style.top = top + 'px'
+  }
+
+  function closeMenu(returnFocus) {
+    if (!menu) return
+    var node = menu
+    menu = null
+    node.classList.remove('is-open')
+    node.classList.add('is-closing')
+    node.removeAttribute('id')
+    node.setAttribute('aria-hidden', 'true')
+    node.inert = true
+    updateLabel(false)
+    if (returnFocus) button.focus({ preventScroll: true })
+    if (reducedMotion.matches) {
+      node.remove()
+      return
+    }
+    var timer = setTimeout(finishClose, 220)
+    function finishClose() {
+      clearTimeout(timer)
+      node.removeEventListener('transitionend', onTransitionEnd)
+      node.remove()
+    }
+    function onTransitionEnd(event) {
+      if (event.target === node && event.propertyName === 'opacity') finishClose()
+    }
+    node.addEventListener('transitionend', onTransitionEnd)
+  }
+
+  function openMenu(last) {
+    if (button.hidden) return
+    if (!menu) {
+      var node = document.createElement('div')
+      node.id = 'headerNavMenu'
+      node.className = 'appearance-menu header-nav-menu'
+      node.setAttribute('role', 'menu')
+      node.setAttribute('aria-label', '站点导航')
+      originalLinks.forEach(function (link) {
+        var item = link.cloneNode(true)
+        item.setAttribute('role', 'menuitem')
+        item.setAttribute('tabindex', '-1')
+        node.appendChild(item)
+      })
+      menu = node
+      document.body.appendChild(node)
+      positionMenu()
+      updateLabel(true)
+      if (window.hideActionTooltip) window.hideActionTooltip(button)
+    }
+    var current = menu
+    requestAnimationFrame(function () {
+      if (menu !== current) return
+      current.classList.add('is-open')
+      var items = current.querySelectorAll('a')
+      items[last ? items.length - 1 : 0].focus()
+    })
+  }
+
+  function updateLayout() {
+    layoutFrame = 0
+    var active = document.activeElement
+    var focusedIndex = menu ? Array.prototype.indexOf.call(menu.querySelectorAll('a'), active) : -1
+    // 临时恢复整排链接以测量真实宽度；同一帧内完成折叠，避免菜单尺寸影响判断。
+    links.hidden = false
+    var style = getComputedStyle(row)
+    var available = row.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+      - appearance.getBoundingClientRect().width - (parseFloat(style.columnGap) || 0)
+    var collapsed = links.getBoundingClientRect().width > available + 0.5
+    links.hidden = collapsed
+    button.hidden = !collapsed
+    if (collapsed) {
+      if (links.contains(active)) button.focus({ preventScroll: true })
+      positionMenu()
+    } else {
+      closeMenu(false)
+      if (focusedIndex >= 0) originalLinks[focusedIndex].focus({ preventScroll: true })
+      else if (active === button) originalLinks[0].focus({ preventScroll: true })
+    }
+  }
+
+  function scheduleLayout() {
+    if (!layoutFrame) layoutFrame = requestAnimationFrame(updateLayout)
+  }
+
+  document.addEventListener('click', function (event) {
+    if (event.target.closest('#headerNavToggle')) {
+      if (menu) closeMenu(true)
+      else openMenu(false)
+      return
+    }
+    if (!menu) return
+    if (!menu.contains(event.target) || event.target.closest('a')) closeMenu(false)
+  })
+
+  document.addEventListener('keydown', function (event) {
+    if (event.target === button && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+      event.preventDefault()
+      openMenu(event.key === 'ArrowUp')
+      return
+    }
+    if (!menu || !menu.contains(event.target)) return
+    var items = Array.prototype.slice.call(menu.querySelectorAll('a'))
+    var index = items.indexOf(document.activeElement)
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      closeMenu(true)
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      var offset = event.key === 'ArrowDown' ? 1 : -1
+      items[(index + offset + items.length) % items.length].focus()
+    } else if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault()
+      items[event.key === 'Home' ? 0 : items.length - 1].focus()
+    } else if (event.key === ' ') {
+      event.preventDefault()
+      document.activeElement.click()
+    } else if (event.key === 'Tab') {
+      var controls = Array.prototype.slice.call(document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
+        .filter(function (control) { return control.tabIndex >= 0 && !control.disabled && control.getClientRects().length && !control.closest('[inert]') })
+      var target = controls[controls.indexOf(button) + (event.shiftKey ? -1 : 1)]
+      closeMenu(!target)
+      if (target) {
+        event.preventDefault()
+        target.focus()
+      }
+    }
+  })
+
+  document.addEventListener('focusin', function (event) {
+    if (menu && event.target !== button && !menu.contains(event.target)) closeMenu(false)
+  })
+  document.addEventListener('scroll', function (event) {
+    if (menu && !menu.contains(event.target)) closeMenu(false)
+  }, true)
+  window.addEventListener('resize', scheduleLayout)
+  if (window.ResizeObserver) new ResizeObserver(scheduleLayout).observe(row)
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(scheduleLayout)
+    document.fonts.addEventListener('loadingdone', scheduleLayout)
+  }
+  updateLayout()
+})()
+</script>
