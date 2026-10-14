@@ -66,7 +66,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 - `variables.css` 定义共用的亮暗中性色与靛蓝 / 紫罗兰 / 石墨强调色变量；`syntax.css` 只消费 `--syntax-*` 变量，不硬编码主题颜色。
 - `theme-toggle.html` 同时管理明暗切换和按需创建销毁的色点调色盘；明暗按钮点击轮换亮色 / 暗色 / 跟随浏览器，跟随浏览器时监听 `prefers-color-scheme` 变化，两种切换都短暂添加 `theme-changing` class 禁用 CSS transition。
 - 明暗按钮与配色按钮嵌入在 `header.html` 的 `.appearance-controls` 中；未启用用户选择时不渲染配色按钮。
-- `header-nav.html` 在 Header 解析后测量整排导航所需的真实宽度；空间不足时将全部 `socials` 链接折叠进图标菜单，空间恢复后展开。监听容器尺寸与字体加载，保持导航行不换行；菜单保留链接顺序和打开方式，支持方向键、Home/End、Esc 与 Tab 退出，展开/折叠时恢复对应焦点。
+- `header-nav.html` 在 Header 解析后测量整排导航所需的真实宽度；空间不足时将全部 `socials` 链接折叠进图标菜单，空间恢复后展开。隐藏链接通过零尺寸不可见容器保留 `scrollWidth` 测量，避免临时显隐改变监听目标；`ResizeObserver` 只响应宽度变化，折叠状态仅在变化时写入。监听字体加载，保持导航行不换行；菜单保留链接顺序和打开方式，支持方向键、Home/End、Esc 与 Tab 退出，展开/折叠时恢复对应焦点。
 
 ### 跨功能通用约定
 

@@ -90,14 +90,13 @@
     layoutFrame = 0
     var active = document.activeElement
     var focusedIndex = menu ? Array.prototype.indexOf.call(menu.querySelectorAll('a'), active) : -1
-    // 临时恢复整排链接以测量真实宽度；同一帧内完成折叠，避免菜单尺寸影响判断。
-    links.hidden = false
+    // 隐藏链接保留可测量的 scrollWidth，避免测量本身改变被监听的导航行。
     var style = getComputedStyle(row)
     var available = row.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
       - appearance.getBoundingClientRect().width - (parseFloat(style.columnGap) || 0)
-    var collapsed = links.getBoundingClientRect().width > available + 0.5
-    links.hidden = collapsed
-    button.hidden = !collapsed
+    var collapsed = links.scrollWidth > available + 0.5
+    if (links.hidden !== collapsed) links.hidden = collapsed
+    if (button.hidden !== !collapsed) button.hidden = !collapsed
     if (collapsed) {
       if (links.contains(active)) button.focus({ preventScroll: true })
       positionMenu()
@@ -146,7 +145,7 @@
       document.activeElement.click()
     } else if (event.key === 'Tab') {
       var controls = Array.prototype.slice.call(document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
-        .filter(function (control) { return control.tabIndex >= 0 && !control.disabled && control.getClientRects().length && !control.closest('[inert]') })
+        .filter(function (control) { return control.tabIndex >= 0 && !control.disabled && control.getClientRects().length && !control.closest('[hidden], [inert]') })
       var target = controls[controls.indexOf(button) + (event.shiftKey ? -1 : 1)]
       closeMenu(!target)
       if (target) {
@@ -163,7 +162,15 @@
     if (menu && !menu.contains(event.target)) closeMenu(false)
   }, true)
   window.addEventListener('resize', scheduleLayout)
-  if (window.ResizeObserver) new ResizeObserver(scheduleLayout).observe(row)
+  if (window.ResizeObserver) {
+    var observedWidth = -1
+    new ResizeObserver(function (entries) {
+      var width = entries[0].contentRect.width
+      if (width === observedWidth) return
+      observedWidth = width
+      scheduleLayout()
+    }).observe(row)
+  }
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(scheduleLayout)
     document.fonts.addEventListener('loadingdone', scheduleLayout)

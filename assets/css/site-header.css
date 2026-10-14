@@ -51,8 +51,15 @@
   width: max-content;
   white-space: nowrap;
 }
-.header-links[hidden],
 .header-nav-toggle[hidden] { display: none; }
+.header-links[hidden] {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
 .header-nav-toggle {
   width: var(--action-button-size);
   height: var(--action-button-size);

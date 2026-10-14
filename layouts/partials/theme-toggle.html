@@ -183,7 +183,7 @@
     } else if (event.key === "Tab") {
       event.preventDefault()
       var controls = Array.prototype.slice.call(document.querySelectorAll(".header-items a, .header-items button"))
-        .filter(function (control) { return control.getClientRects().length > 0 })
+        .filter(function (control) { return control.getClientRects().length > 0 && !control.closest('[hidden]') })
       var target = controls[controls.indexOf(paletteBtn) + (event.shiftKey ? -1 : 1)]
       closeMenu(false)
       if (target) target.focus()
