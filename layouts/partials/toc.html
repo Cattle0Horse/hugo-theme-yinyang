@@ -5,12 +5,10 @@
     <button class="toc-close action-button" type="button" aria-label="关闭目录">{{ partial "icon.html" (dict "name" "close" "wrap" "action-icon") }}</button>
   </div>
   <div class="toc-scroll" id="tocScroll">
-    {{ partial "edge-blur.html" "top" }}
     <nav class="toc-nav">
       <span class="toc-track" aria-hidden="true"><span class="toc-indicator" id="tocIndicator"></span></span>
       {{ .TableOfContents }}
     </nav>
-    {{ partial "edge-blur.html" "bottom" }}
   </div>
 </aside>
 

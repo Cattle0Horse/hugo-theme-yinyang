@@ -34,35 +34,14 @@
   runtime.listen(window, 'resize', updateTables)
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(runtime.guard(updateTables))
 
-  function toggleScrollFade(scroll, topEdge, bottomEdge, topThreshold, bottomThreshold) {
-    if (!scroll) return
-    topThreshold = topThreshold == null ? 0 : topThreshold
-    bottomThreshold = bottomThreshold == null ? 0 : bottomThreshold
-    var useBody = !!scroll._bodyScroll
-    var max = useBody ? document.documentElement.scrollHeight - window.innerHeight : scroll.scrollHeight - scroll.clientHeight
-    var top = useBody ? window.scrollY : scroll.scrollTop
-    var fadeTop = max > 1 && top > topThreshold
-    var fadeBottom = max > 1 && top < max - bottomThreshold
-    if (!useBody) {
-      scroll.classList.toggle('has-fade-top', fadeTop)
-      scroll.classList.toggle('has-fade-bottom', fadeBottom)
-    }
-    if (topEdge) topEdge.classList.toggle('is-visible', fadeTop)
-    if (bottomEdge) bottomEdge.classList.toggle('is-visible', fadeBottom)
-  }
-
-  runtime.expose('toggleScrollFade', toggleScrollFade)
-
   var scroll = document.getElementById('appScroll')
-  var topBlur = scroll ? scroll.querySelector('.edge-blur-top') : null
-  var bottomBlur = scroll ? scroll.querySelector('.edge-blur-bottom') : null
   var wideMq = window.matchMedia('(min-width: 84em)')
 
   function isWide() { return wideMq.matches }
   runtime.expose('isWide', isWide)
 
   if (scroll) {
-    var edgeFrame = 0
+    var scrollFrame = 0
     var activeScrollEl = isWide() ? document.documentElement : scroll
     var previousMode = isWide()
     var readingPosition = null
@@ -94,16 +73,12 @@
         }
         ;(isWide() ? window : scroll).scrollTo({ top: Math.max(0, target), behavior: 'instant' })
       }
-      updateEdges()
+      updateScrollState()
     }
 
-    function updateEdges() {
-      runtime.cancelAnimationFrame(edgeFrame)
-      edgeFrame = runtime.requestAnimationFrame(function () {
-        rememberPosition()
-        scroll._bodyScroll = isWide()
-        toggleScrollFade(scroll, topBlur, bottomBlur, 20, 20)
-      })
+    function updateScrollState() {
+      runtime.cancelAnimationFrame(scrollFrame)
+      scrollFrame = runtime.requestAnimationFrame(rememberPosition)
       // swap active scroll target on breakpoint change
       var next = isWide() ? document.documentElement : scroll
       if (next !== activeScrollEl) {
@@ -152,12 +127,12 @@
     runtime.listen(window, 'resize', function () { cachedRect = null })
     runtime.listen(wideMq, 'change', function () { cachedRect = null })
 
-    runtime.listen(scroll, 'scroll', updateEdges, { passive: true })
-    runtime.listen(window, 'scroll', updateEdges, { passive: true })
-    runtime.listen(window, 'resize', updateEdges)
+    runtime.listen(scroll, 'scroll', updateScrollState, { passive: true })
+    runtime.listen(window, 'scroll', updateScrollState, { passive: true })
+    runtime.listen(window, 'resize', updateScrollState)
     runtime.listen(wideMq, 'change', restoreReadingPosition)
     rememberPosition()
-    updateEdges()
+    updateScrollState()
     if (location.hash) {
       runtime.requestAnimationFrame(function () {
         var hash = location.hash.slice(1)

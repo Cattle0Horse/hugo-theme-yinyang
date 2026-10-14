@@ -5,7 +5,6 @@
 :root {
   color-scheme: light;
 
-  --scroll-fade-size: 48px;
   --code-fold-max: 360px;
   --action-button-size: 32px;
   --action-icon-size: 16px;

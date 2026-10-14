@@ -48,9 +48,9 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 页面在窄屏（< 84em）和宽屏（≥ 84em）下使用不同的滚动容器：
 
 - **窄屏**：`body` 满屏固定（`overflow: hidden`），滚动发生在 `#appScroll` 元素内部。TOC 作为浮层滑出。
-- **宽屏**：`body` 自身可滚动，`app-scroll` 退化为普通流（`overflow: visible`）。TOC 固定在内容区右侧（`left: calc(50% + 432px)`）。Edge blur 从 CSS mask 切换为 `position: fixed` 渐变叠加。
+- **宽屏**：`body` 自身可滚动，`app-scroll` 退化为普通流（`overflow: visible`）。TOC 固定在内容区右侧（`left: calc(50% + 432px)`）。
 
-`ui.html` 中的 `toggleScrollFade()` 和 `isWide()` 分别管理边缘模糊检测和宽屏判断，供所有脚本共享。跨越 84em 断点时记录正文锚点及其视口偏移，并转移到新的滚动容器，保持阅读位置。
+`ui.html` 中的 `isWide()` 管理宽屏判断，供所有脚本共享。跨越 84em 断点时记录正文锚点及其视口偏移，并转移到新的滚动容器，保持阅读位置。
 
 ### CSS 处理流程
 
@@ -110,8 +110,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 | `theme-toggle.html` | 所有独立模板 + baseof（`</body>` 前） | 始终 |
 | `palette-state.html` | `head.html`、`header.html`、`theme-toggle.html` | 始终（过滤内置配色、计算默认值和选择器 gate） |
 | `footnotes.html` | 所有独立模板 + baseof（`</body>` 前） | 首页跳过 |
-| `ui.html` | 所有独立模板 + baseof（`</body>` 末尾） | 始终（tooltip DOM + 滚动/边缘模糊/tooltip 脚本） |
-| `edge-blur.html` | 所有模板，在 header 后和内容末尾各一次 | 始终 |
+| `ui.html` | 所有独立模板 + baseof（`</body>` 末尾） | 始终（tooltip DOM + 滚动位置/tooltip 脚本） |
 | `toc.html` | `single.html`、baseof（`"toc"` block） | `tableOfContents` 启用且文章 `toc` 不为 `false` |
 | `toc-script.html` | `toc.html` 内 | 同上 |
 | `markdown-actions.html` | `single.html`、`gallery/single.html`、`notes/single.html`（标题元信息区） | `$s.hasAny`（由 `actions-state.html` 计算） |
@@ -168,7 +167,6 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 - **宽屏（≥84em）**：侧边栏固定在页面右侧 `left: calc(50% + 432px)`，始终可见。
 - **窄屏**：浮动按钮 `#tocFloatBtn` + 全屏遮罩 `#tocBackdrop`，点击展开滑出面板；打开时移入焦点、以 `inert` 隔离背景并锁定滚动，提供面板关闭按钮、Esc 关闭、Tab 焦点锁定，关闭后恢复背景与焦点。
 - **Scroll-spy**：解析 TOC 链接对应的 heading，计算当前视口内可见的 heading，以柔和主题色高亮对应链接并移动 `.toc-indicator` 指示条位置；hover 仅过渡文字颜色，不使用背景块或下划线。主动跳转后短暂标记目标标题。滚动自动跟随（`scrollBy`，平滑由 CSS `scroll-behavior: smooth` 驱动）。
-- **边缘模糊**：TOC 滚动区复用 `edge-blur.html` 并绑定 `toggleScrollFade`。
 
 ### 脚注系统
 

@@ -42,7 +42,6 @@
     floatBtn.setAttribute('data-tooltip', '关闭目录')
     backdrop.classList.add('toc-open')
     if (window.updateActionTooltip) window.updateActionTooltip(floatBtn)
-    updateTocEdges()
     sidebar.focus({ preventScroll: true })
   }
 
@@ -134,7 +133,6 @@
       sidebar.inert = !open
       setNavTabbable(open)
     }
-    updateTocEdges()
   }
   runtime.listen(wide, 'change', syncMode)
   syncMode()
@@ -237,24 +235,6 @@
     runtime.pushHash(link.getAttribute('href'))
   })
 
-  function updateTocEdges() {
-    if (!tocScroll) return
-    var topEdge = tocScroll.querySelector('.edge-blur-top')
-    var bottomEdge = tocScroll.querySelector('.edge-blur-bottom')
-    if (window.toggleScrollFade) {
-      window.toggleScrollFade(tocScroll, topEdge, bottomEdge, 1, 1)
-      return
-    }
-    var max = tocScroll.scrollHeight - tocScroll.clientHeight
-    var top = tocScroll.scrollTop
-    var fadeTop = max > 1 && top > 1
-    var fadeBottom = max > 1 && top < max - 1
-    tocScroll.classList.toggle('has-fade-top', fadeTop)
-    tocScroll.classList.toggle('has-fade-bottom', fadeBottom)
-    if (topEdge) topEdge.classList.toggle('is-visible', fadeTop)
-    if (bottomEdge) bottomEdge.classList.toggle('is-visible', fadeBottom)
-  }
-
   var activeFrame = 0
   function onScroll() {
     runtime.cancelAnimationFrame(activeFrame)
@@ -262,12 +242,7 @@
   }
   runtime.listen(appScroll, 'scroll', onScroll, { passive: true })
   runtime.listen(window, 'scroll', onScroll, { passive: true })
-  runtime.listen(tocScroll, 'scroll', updateTocEdges, { passive: true })
-  runtime.listen(window, 'resize', function () {
-    updateActive()
-    updateTocEdges()
-  })
+  runtime.listen(window, 'resize', updateActive)
   updateActive()
-  updateTocEdges()
 })(window.yinyangRuntime.page)
 </script>

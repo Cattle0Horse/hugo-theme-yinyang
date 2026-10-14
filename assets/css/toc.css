@@ -135,21 +135,6 @@ html.toc-open .toc-float-btn { visibility: hidden; }
   scrollbar-color: var(--color-scrollbar) transparent;
 }
 
-.toc-scroll.has-fade-top.has-fade-bottom {
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .45) 0, #000 48px, #000 calc(100% - 48px), rgba(0, 0, 0, .45) 100%);
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .45) 0, #000 48px, #000 calc(100% - 48px), rgba(0, 0, 0, .45) 100%);
-}
-
-.toc-scroll.has-fade-top:not(.has-fade-bottom) {
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .45) 0, #000 48px);
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .45) 0, #000 48px);
-}
-
-.toc-scroll.has-fade-bottom:not(.has-fade-top) {
-  mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), rgba(0, 0, 0, .45) 100%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), rgba(0, 0, 0, .45) 100%);
-}
-
 /* nav + indicator */
 
 .toc-nav {

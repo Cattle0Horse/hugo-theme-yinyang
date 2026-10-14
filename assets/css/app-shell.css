@@ -156,25 +156,6 @@ body {
   padding-bottom: 24px;
 }
 
-/* ---- edge blur (narrow: mask-image) ---- */
-
-.edge-blur { display: none; }
-
-.app-scroll.has-fade-top.has-fade-bottom {
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .2) 0, #000 var(--scroll-fade-size), #000 calc(100% - var(--scroll-fade-size)), rgba(0, 0, 0, .2) 100%);
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .2) 0, #000 var(--scroll-fade-size), #000 calc(100% - var(--scroll-fade-size)), rgba(0, 0, 0, .2) 100%);
-}
-
-.app-scroll.has-fade-top:not(.has-fade-bottom) {
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .2) 0, #000 var(--scroll-fade-size));
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .2) 0, #000 var(--scroll-fade-size));
-}
-
-.app-scroll.has-fade-bottom:not(.has-fade-top) {
-  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--scroll-fade-size)), rgba(0, 0, 0, .2) 100%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--scroll-fade-size)), rgba(0, 0, 0, .2) 100%);
-}
-
 /* ---- wide-screen (≥ 84em): body scroll ---- */
 
 @media (min-width: 84em) {
@@ -257,35 +238,10 @@ body {
     padding: 0;
   }
 
-  .app-main:has(.post-toc-sidebar) .toc-scroll > .edge-blur {
-    margin-right: 0;
-    margin-left: 0;
-  }
-
   .app-main:has(.post-toc-sidebar) .toc-float-btn,
   .app-main:has(.post-toc-sidebar) .toc-backdrop,
   .app-main:has(.post-toc-sidebar) .toc-close {
     display: none;
   }
 
-  /* edge blur: fixed overlay instead of mask-image */
-  .edge-blur.is-visible {
-    display: block;
-    position: fixed;
-    left: 0;
-    right: 0;
-    z-index: 20;
-    pointer-events: none;
-    height: var(--scroll-fade-size);
-  }
-
-  .edge-blur-top.is-visible {
-    top: 0;
-    background: linear-gradient(to bottom, var(--color-bg), transparent);
-  }
-
-  .edge-blur-bottom.is-visible {
-    bottom: 0;
-    background: linear-gradient(to top, var(--color-bg), transparent);
-  }
 }
