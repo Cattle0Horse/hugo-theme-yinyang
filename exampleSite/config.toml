@@ -117,10 +117,6 @@ name = "Notes"
 link = "/notes/"
 
 [[params.socials]]
-name = "Categories"
-link = "/categories/"
-
-[[params.socials]]
 name = "RSS"
 link = "/index.xml"
 
