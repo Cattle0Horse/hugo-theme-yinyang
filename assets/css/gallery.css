@@ -15,4 +15,8 @@
   font-weight: 800;
 }
 
+@media screen and (max-width: 600px) {
+  .gallery-img { flex-basis: 100%; max-width: 100%; margin-bottom: 16px; }
+}
+
 

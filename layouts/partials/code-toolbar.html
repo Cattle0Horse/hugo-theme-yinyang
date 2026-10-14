@@ -71,6 +71,16 @@
         if (expandText) expandText.textContent = folded ? '展开全部 (' + lineCount + ' 行)' : '收起'
       }
       expandBar.addEventListener('click', function () {
+        if (!body.classList.contains('is-folded')) {
+          var appScroll = document.getElementById('appScroll')
+          var wide = window.isWide ? window.isWide() : window.matchMedia('(min-width: 84em)').matches
+          var viewportTop = wide ? 0 : appScroll.getBoundingClientRect().top
+          var wrapperTop = body.closest('.code-block-wrapper').getBoundingClientRect().top
+          if (wrapperTop < viewportTop) {
+            var offset = wide ? window.scrollY : appScroll.scrollTop
+            ;(wide ? window : appScroll).scrollTo({ top: Math.max(0, offset + wrapperTop - viewportTop - 24), behavior: 'instant' })
+          }
+        }
         body.classList.toggle('is-folded')
         updateExpand()
       })

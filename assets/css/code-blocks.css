@@ -85,6 +85,7 @@
 .code-scroll-viewport {
   max-height: var(--code-height, none);
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   overflow-y: hidden;
   scrollbar-width: thin;
   scrollbar-color: var(--color-scrollbar) transparent;

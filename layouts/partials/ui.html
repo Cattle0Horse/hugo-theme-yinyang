@@ -1,6 +1,39 @@
 <div class="ui-tooltip" id="uiTooltip" role="tooltip" aria-hidden="true"></div>
 <script>
 ;(function () {
+  var tables = []
+  document.querySelectorAll('.markdown-body table').forEach(function (table) {
+    if (table.closest('.highlight, .table-scroll')) return
+    var region = document.createElement('div')
+    var hint = document.createElement('p')
+    region.className = 'table-scroll'
+    hint.className = 'table-scroll-hint'
+    hint.textContent = '左右滑动查看完整表格'
+    table.parentNode.insertBefore(region, table)
+    region.appendChild(table)
+    region.after(hint)
+    tables.push({ region: region, hint: hint })
+  })
+
+  function updateTables() {
+    tables.forEach(function (item) {
+      var overflow = item.region.scrollWidth > item.region.clientWidth + 1
+      item.hint.hidden = !overflow
+      if (overflow) {
+        item.region.setAttribute('tabindex', '0')
+        item.region.setAttribute('role', 'region')
+        item.region.setAttribute('aria-label', '表格，可横向滚动查看完整内容')
+      } else {
+        item.region.removeAttribute('tabindex')
+        item.region.removeAttribute('role')
+        item.region.removeAttribute('aria-label')
+      }
+    })
+  }
+  updateTables()
+  window.addEventListener('resize', updateTables)
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(updateTables)
+
   function toggleScrollFade(scroll, topEdge, bottomEdge, topThreshold, bottomThreshold) {
     if (!scroll) return
     topThreshold = topThreshold == null ? 0 : topThreshold
@@ -32,10 +65,43 @@
   if (scroll) {
     var edgeFrame = 0
     var activeScrollEl = isWide() ? document.documentElement : scroll
+    var previousMode = isWide()
+    var readingPosition = null
+
+    function rememberPosition() {
+      if (previousMode !== isWide() || document.documentElement.classList.contains('toc-open')) return
+      var rect = scroll.getBoundingClientRect()
+      var top = isWide() ? 0 : rect.top
+      var contentRect = document.querySelector('.app-content').getBoundingClientRect()
+      var hit = document.elementFromPoint(contentRect.left + contentRect.width / 2, top + 64)
+      var anchor = hit && hit.closest('p, pre, table, h1, h2, h3, h4, .note-entry, .posts-line, .code-block-wrapper')
+      if (anchor && !scroll.contains(anchor)) anchor = null
+      readingPosition = {
+        anchor: anchor,
+        top: anchor ? anchor.getBoundingClientRect().top - top : 0,
+        offset: isWide() ? window.scrollY : scroll.scrollTop
+      }
+    }
+
+    function restoreReadingPosition() {
+      var saved = readingPosition
+      previousMode = isWide()
+      if (saved) {
+        var target = saved.offset
+        if (saved.anchor && saved.anchor.isConnected) {
+          var viewportTop = isWide() ? 0 : scroll.getBoundingClientRect().top
+          var offset = isWide() ? window.scrollY : scroll.scrollTop
+          target = offset + saved.anchor.getBoundingClientRect().top - viewportTop - saved.top
+        }
+        ;(isWide() ? window : scroll).scrollTo({ top: Math.max(0, target), behavior: 'instant' })
+      }
+      updateEdges()
+    }
 
     function updateEdges() {
       cancelAnimationFrame(edgeFrame)
       edgeFrame = requestAnimationFrame(function () {
+        rememberPosition()
         scroll._bodyScroll = isWide()
         toggleScrollFade(scroll, topBlur, bottomBlur, 20, 20)
       })
@@ -90,7 +156,8 @@
     scroll.addEventListener('scroll', updateEdges, { passive: true })
     window.addEventListener('scroll', updateEdges, { passive: true })
     window.addEventListener('resize', updateEdges)
-    wideMq.addEventListener('change', updateEdges)
+    wideMq.addEventListener('change', restoreReadingPosition)
+    rememberPosition()
     updateEdges()
     if (location.hash) {
       requestAnimationFrame(function () {

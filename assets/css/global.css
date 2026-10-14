@@ -57,8 +57,15 @@ a {
 }
 
 a:hover {
-  font-weight: 600;
   text-decoration: underline;
+}
+
+.post-title,
+.note-single-title,
+.note-entry-title,
+.header-title {
+  text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .markdown-body {
@@ -98,6 +105,7 @@ a:hover {
 .markdown-body pre {
   padding: 16px;
   overflow: auto;
+  overscroll-behavior-x: contain;
   border-radius: 10px;
   font-size: 14px;
   font-family: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", Menlo, Monaco, "Liberation Mono", "Courier New", monospace;
@@ -157,6 +165,25 @@ a:hover {
   border-top: 1px solid var(--color-border);
 }
 
+.table-scroll {
+  max-width: 100%;
+  margin: 1em 0 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+.table-scroll table { margin: 0 auto; max-width: none; }
+.table-scroll:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.table-scroll-hint { margin: 4px 0 1em; font-size: 12px; color: var(--color-text-muted); text-align: center; }
+
+.markdown-body .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+
 .markdown-body thead,
 .markdown-body tbody {
   border-bottom: 1px solid var(--color-border);
@@ -211,6 +238,16 @@ a:hover {
 .col-xs-1  { flex-basis: 8.333%; max-width: 8.333%; }
 
 .middle-xs { align-items: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 @media only screen and (min-width: 48em) {
   .col-sm-10,
