@@ -2,6 +2,24 @@
    Appearance Controls
    ======================================================================== */
 
+:root.theme-revealing::view-transition-group(root) {
+  animation: none;
+}
+
+:root.theme-revealing::view-transition-image-pair(root) {
+  isolation: auto;
+}
+
+:root.theme-revealing::view-transition-old(root),
+:root.theme-revealing::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+:root.theme-revealing::view-transition-old(root) { z-index: 1; }
+:root.theme-revealing::view-transition-new(root) { z-index: 2; }
+:root.theme-revealing::view-transition { pointer-events: none; }
+
 .appearance-controls {
   display: flex;
   align-items: center;

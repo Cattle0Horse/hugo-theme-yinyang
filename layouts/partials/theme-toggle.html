@@ -10,6 +10,8 @@
   var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
   var html = document.documentElement
   var menu = null
+  var themeTransition = null
+  var themeAnimation = null
 
   function currentValue(kind) {
     if (kind === "theme") return html.getAttribute("data-theme-mode") || "system"
@@ -34,11 +36,45 @@
     updateLabel(paletteBtn, "选择配色，当前：" + paletteState.names[currentValue("palette")])
   }
 
-  function applyAppearanceChange(callback) {
-    html.classList.add("theme-changing")
-    html.offsetWidth
-    callback()
-    requestAnimationFrame(function () { html.classList.remove("theme-changing") })
+  function applyAppearanceChange(callback, event) {
+    if (themeAnimation) themeAnimation.cancel()
+    if (themeTransition) themeTransition.skipTransition()
+    function updateAppearance() {
+      html.classList.add("theme-changing")
+      html.offsetWidth
+      callback()
+      requestAnimationFrame(function () { html.classList.remove("theme-changing") })
+    }
+    if (!event || reducedMotion.matches || !document.startViewTransition) {
+      updateAppearance()
+      return
+    }
+    var bounds = themeBtn.getBoundingClientRect()
+    var x = event.detail ? event.clientX : bounds.left + bounds.width / 2
+    var y = event.detail ? event.clientY : bounds.top + bounds.height / 2
+    var radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
+    html.classList.add("theme-revealing")
+    var transition = document.startViewTransition(updateAppearance)
+    themeTransition = transition
+    transition.ready.then(function () {
+      if (themeTransition !== transition) return
+      themeAnimation = html.animate({
+        clipPath: ["circle(0px at " + x + "px " + y + "px)", "circle(" + radius + "px at " + x + "px " + y + "px)"]
+      }, {
+        duration: 450,
+        easing: "ease-in-out",
+        fill: "both",
+        pseudoElement: "::view-transition-new(root)"
+      })
+    }).catch(function () { transition.skipTransition() })
+    function finishTransition() {
+      if (themeTransition !== transition) return
+      themeTransition = null
+      if (themeAnimation) themeAnimation.cancel()
+      themeAnimation = null
+      html.classList.remove("theme-revealing")
+    }
+    transition.finished.then(finishTransition, finishTransition)
   }
 
   function applyTheme() {
@@ -47,9 +83,11 @@
     html.setAttribute("data-theme", theme)
   }
 
-  function setValue(kind, value) {
+  function setValue(kind, value, event) {
     var available = kind === "theme" ? themeModes : paletteState.available
     if (available.indexOf(value) === -1) return
+    var resolvedTheme = value === "system" ? (browserTheme.matches ? "dark" : "light") : value
+    if (kind !== "theme" || resolvedTheme === html.getAttribute("data-theme")) event = null
     applyAppearanceChange(function () {
       if (kind === "theme") {
         html.setAttribute("data-theme-mode", value)
@@ -57,12 +95,12 @@
       } else {
         html.setAttribute("data-palette", value)
       }
-    })
-    try {
-      if (kind === "theme" && value === "system") localStorage.removeItem("theme")
-      else localStorage.setItem(kind, value)
-    } catch (error) {}
-    updateLabels()
+      try {
+        if (kind === "theme" && value === "system") localStorage.removeItem("theme")
+        else localStorage.setItem(kind, value)
+      } catch (error) {}
+      updateLabels()
+    }, event)
   }
 
   function positionMenu() {
@@ -148,7 +186,7 @@
       event.preventDefault()
       if (trigger === themeBtn) {
         closeMenu(false)
-        setValue("theme", nextThemeMode(currentValue("theme")))
+        setValue("theme", nextThemeMode(currentValue("theme")), event)
       } else openMenu()
       return
     }

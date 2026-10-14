@@ -64,7 +64,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 - `palette-state.html` 过滤站点配置，只允许主题内置配色，并计算默认值及是否显示选择器。
 - `head.html` 顶部内联脚本在 HTML 解析前同步执行：明暗偏好读取 `localStorage.theme`（`light` / `dark`，缺省为跟随浏览器），通过 `prefers-color-scheme` 解析实际明暗模式并设置 `data-theme-mode`，配色读取 `localStorage.palette` 或站点默认值，设置外观 data 属性以避免 FOUC。
 - `variables.css` 定义共用的亮暗中性色与靛蓝 / 紫罗兰 / 石墨强调色变量；`syntax.css` 只消费 `--syntax-*` 变量，不硬编码主题颜色。
-- `theme-toggle.html` 同时管理明暗切换和按需创建销毁的色点调色盘；明暗按钮点击轮换亮色 / 暗色 / 跟随浏览器，跟随浏览器时监听 `prefers-color-scheme` 变化，两种切换都短暂添加 `theme-changing` class 禁用 CSS transition。
+- `theme-toggle.html` 同时管理明暗切换和按需创建销毁的色点调色盘；明暗按钮点击轮换亮色 / 暗色 / 跟随浏览器，跟随浏览器时监听 `prefers-color-scheme` 变化。主动切换实际明暗时，通过 View Transitions API 从点击或触摸坐标圆形扩散到最远视口角落；键盘触发回退按钮中心。不支持该 API、减少动态效果、实际明暗未变化或浏览器自动变更时直接切换。两种外观切换都短暂添加 `theme-changing` class 禁用 CSS transition。
 - 明暗按钮与配色按钮嵌入在 `header.html` 的 `.appearance-controls` 中；未启用用户选择时不渲染配色按钮。
 - `header-nav.html` 在 Header 解析后测量整排导航所需的真实宽度；空间不足时将全部 `socials` 链接折叠进图标菜单，空间恢复后展开。隐藏链接通过零尺寸不可见容器保留 `scrollWidth` 测量，避免临时显隐改变监听目标；`ResizeObserver` 只响应宽度变化，折叠状态仅在变化时写入。监听字体加载，保持导航行不换行；菜单保留链接顺序和打开方式，支持方向键、Home/End、Esc 与 Tab 退出，展开/折叠时恢复对应焦点。
 
