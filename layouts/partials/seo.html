@@ -1,4 +1,4 @@
-<script type="application/ld+json">
+<script data-page-head type="application/ld+json">
   {{- $pageTitle := cond .IsHome .Site.Title (partial "page-title.html" .) -}}
   {{- $keywords := default (slice) .Params.tags -}}
   {{- with .Params.note_tags }}{{ $keywords = . }}{{ end -}}

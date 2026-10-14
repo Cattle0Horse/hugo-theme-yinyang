@@ -1,5 +1,5 @@
 {{ if findRE "\\$[^$]*\\$" .RawContent }}
 {{- $css := resources.Get "css/katex.min.css" -}}
 {{- $fontBase := relURL "/fonts/katex/" -}}
-<style>{{ replace $css.Content "url(fonts/" (printf "url(%s" $fontBase) | safeCSS }}</style>
+<style data-page-head>{{ replace $css.Content "url(fonts/" (printf "url(%s" $fontBase) | safeCSS }}</style>
 {{ end }}

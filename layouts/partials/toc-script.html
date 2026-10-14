@@ -234,7 +234,7 @@
       }
       highlightHeading(target)
     })
-    if (history && history.pushState) history.pushState(null, '', link.getAttribute('href'))
+    runtime.pushHash(link.getAttribute('href'))
   })
 
   function updateTocEdges() {

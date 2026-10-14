@@ -50,6 +50,10 @@
       },
       cancelAnimationFrame: function (id) { cancelAnimationFrame(id); frames.delete(id) },
       addCleanup: function (callback) { cleanups.push(callback) },
+      pushHash: function (hash) {
+        if (window.yinyangNavigation) window.yinyangNavigation.pushHash(hash)
+        else history.pushState(null, '', hash)
+      },
       expose: function (name, value) {
         window[name] = value
         cleanups.push(function () { if (window[name] === value) delete window[name] })

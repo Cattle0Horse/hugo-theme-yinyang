@@ -1,6 +1,9 @@
 <head>
   {{- with resources.Get "js/page-runtime.js" | minify -}}
-  <script>{{ .Content | safeJS }}</script>
+  <script data-yinyang-runtime>{{ .Content | safeJS }}</script>
+  {{- end -}}
+  {{- with resources.Get "js/navigation.js" | minify | fingerprint -}}
+  <script defer src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" data-yinyang-navigation></script>
   {{- end -}}
   {{- $paletteState := partial "palette-state.html" . -}}
   <script>
@@ -22,22 +25,22 @@
       document.documentElement.setAttribute("data-palette", p)
     })();
   </script>
-  <meta charset="utf-8" />
+  <meta data-page-head charset="utf-8" />
   {{ hugo.Generator }}
 
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="author" content="{{ .Site.Params.author.name }}" />
-  <meta property="og:url" content="{{ .Permalink }}" />
-  <link rel="canonical" href="{{ .Permalink }}" />
+  <meta data-page-head http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta data-page-head name="viewport" content="width=device-width, initial-scale=1" />
+  <meta data-page-head name="author" content="{{ .Site.Params.author.name }}" />
+  <meta data-page-head property="og:url" content="{{ .Permalink }}" />
+  <link data-page-head rel="canonical" href="{{ .Permalink }}" />
 
   {{- if .Site.Params.staticPrefix -}}
-  <link rel="dns-prefetch" href="{{ .Site.Params.staticPrefix }}" />
+  <link data-page-head rel="dns-prefetch" href="{{ .Site.Params.staticPrefix }}" />
   {{- end -}}
   {{- if .Site.Params.favicon -}}
-  <link rel="apple-touch-icon" href="{{ .Site.Params.favicon }}" />
-  <link rel="icon" href="{{ .Site.Params.favicon }}" />
-  <link rel="shortcut" href="{{ .Site.Params.favicon }}" />
+  <link data-page-head rel="apple-touch-icon" href="{{ .Site.Params.favicon }}" />
+  <link data-page-head rel="icon" href="{{ .Site.Params.favicon }}" />
+  <link data-page-head rel="shortcut" href="{{ .Site.Params.favicon }}" />
   {{- end -}}
   {{- $feedPage := site.Home -}}
   {{- if or (eq .Section "notes") (eq .Data.Plural "note_tags") -}}
@@ -46,36 +49,36 @@
     {{- end -}}
   {{- end -}}
   {{- with $feedPage.OutputFormats.Get "RSS" }}
-  {{ printf `<link rel=%q type=%q href=%q title=%q>` .Rel .MediaType.Type .Permalink $feedPage.Title | safeHTML }}
+  {{ printf `<link data-page-head rel=%q type=%q href=%q title=%q>` .Rel .MediaType.Type .Permalink $feedPage.Title | safeHTML }}
   {{- end }}
 
   {{ partial "seo" . }}
 
   {{- if .IsHome -}}
-  <title>{{ .Site.Title }}</title>
-  <meta property="og:title" content="{{ .Site.Title }}" />
-  <meta property="og:type" content="website" />
-  <meta property="og:description" content="{{ .Site.Params.description }}" />
-  <meta name="description" content="{{ .Site.Params.description }}" />
+  <title data-page-head>{{ .Site.Title }}</title>
+  <meta data-page-head property="og:title" content="{{ .Site.Title }}" />
+  <meta data-page-head property="og:type" content="website" />
+  <meta data-page-head property="og:description" content="{{ .Site.Params.description }}" />
+  <meta data-page-head name="description" content="{{ .Site.Params.description }}" />
   {{- else -}}
   {{- $pageTitle := partial "page-title.html" . -}}
-  <title>{{ $pageTitle }}</title>
-  <meta property="og:title" content="{{ $pageTitle }}" />
-  <meta property="og:type" content="article" />
-  <meta
+  <title data-page-head>{{ $pageTitle }}</title>
+  <meta data-page-head property="og:title" content="{{ $pageTitle }}" />
+  <meta data-page-head property="og:type" content="article" />
+  <meta data-page-head
     property="og:description"
     content="{{ default .Summary .Description | plainify }}"
   />
-  <meta
+  <meta data-page-head
     name="description"
     content="{{ default .Summary .Description | plainify }}"
   />
   {{- end }}
-  <meta property="og:locale" content="{{ .Site.Language.Locale }}" />
+  <meta data-page-head property="og:locale" content="{{ .Site.Language.Locale }}" />
   {{- if .Params.album -}}
-  <meta property="og:image" content="{{ .Params.album }}" />
+  <meta data-page-head property="og:image" content="{{ .Params.album }}" />
   {{- else -}}
-  <meta property="og:image" content="{{ .Site.Params.favicon }}" />
+  <meta data-page-head property="og:image" content="{{ .Site.Params.favicon }}" />
   {{ end }}
   {{ $files := slice }}
   {{ range $path := slice
@@ -101,13 +104,13 @@
     {{ end }}
   {{ end }}
   {{ with $files | resources.Concat "bundle.css" | minify }}
-  <style>{{ .Content|safeCSS }}</style>
+  <style data-page-head>{{ .Content|safeCSS }}</style>
   {{ end }}
   {{ with resources.Get "css/syntax.css" | minify }}
-  <style>{{ .Content|safeCSS }}</style>
+  <style data-page-head>{{ .Content|safeCSS }}</style>
   {{ end }}
   {{ range .Site.Params.extraCSSFiles -}}
-  <link
+  <link data-page-head
     rel="stylesheet"
     href="{{ $.Site.Params.staticPrefix }}{{ . | relURL }}"
   />
@@ -118,6 +121,6 @@
 
   {{ partialCached "math.html" . .RelPermalink }}
   {{ if .Site.Params.busuanzi.enabled }}
-  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <script async data-page-analytics src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
   {{ end }}
 </head>

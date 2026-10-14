@@ -40,8 +40,8 @@
     instance.viewport.style.setProperty('--code-height', expandedHeight + 'px')
   }
 
-  var foldedBodies = document.querySelectorAll('.code-block-body.is-folded')
-  for (var f = 0; f < foldedBodies.length; f++) {
+  var codeBodies = document.querySelectorAll('.code-block-body')
+  for (var f = 0; f < codeBodies.length; f++) {
     ;(function (body) {
       var viewport = body.querySelector('.code-scroll-viewport')
       var expandBar = body.querySelector('.code-expand-bar')
@@ -85,7 +85,7 @@
         updateExpand()
       })
       updateExpand()
-    })(foldedBodies[f])
+    })(codeBodies[f])
   }
 
   if (foldInstances.length) {

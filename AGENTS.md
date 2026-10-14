@@ -57,6 +57,16 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 
 `extraCSSFiles` 参数可通过 `<link>` 加载额外 CSS（用于自定义字体、背景等，不受 Hugo minify 处理）。
 
+### 站内导航与页面生命周期
+
+- `head.html` 内联 `assets/js/page-runtime.js`，并通过 Hugo 资源管线加载 `navigation.js`。普通同源 HTML 链接使用 Fetch + History API 无刷新跳转；新标签页、修饰键点击、下载、非 HTML 资源和 `data-no-pjax` 保留原生行为。
+- 主题交互脚本标记 `data-page-runtime`，接收 `window.yinyangRuntime.page`。通过 `listen` / `unlisten`、定时器、动画帧、`guard`、`expose` 和 `addCleanup` 管理资源；离开页面时清理旧监听器、观察器、动画及异步回调，再按新页面脚本顺序初始化。
+- `data-page-head` 标记需更新的标题、元信息、feed、JSON-LD 与样式；相同节点复用，KaTeX 样式按目标页面加载或移除。外观偏好保持在 documentElement 上。
+- 前进后退恢复宽窄滚动容器、代码展开状态与内容横向滚动位置。脚注和 TOC 用 `runtime.pushHash` 记录锚点历史。含未托管正文脚本、运行时版本不一致或请求失败时回退正常导航。
+- 页面切换仅对正文 article 使用 `page-preparing` / `page-entering`，完成滚动恢复后以 200ms opacity + 6px translateY 淡入，Header 不参与动画。原页面在请求完成前保持可见。
+- 导航请求超过 120ms 后按需创建 `.navigation-loading`（主题色不定进度条 + `role="status"`），成功、取消及失败时统一清理。`yinyang:page-ready` 在新页面初始化、焦点和滚动恢复完成后触发。
+- 自定义集成可监听 `yinyang:before-navigate` / `yinyang:page-ready`。代码块初始化处理所有含展开按钮的 body，以便恢复历史展开状态。
+
 ### 主题与配色系统
 
 外观分为两个独立维度：`data-theme` 控制 `light` / `dark`，`data-palette` 控制 `indigo` / `violet` / `graphite`：

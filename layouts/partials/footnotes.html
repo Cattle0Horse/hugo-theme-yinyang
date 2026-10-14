@@ -222,7 +222,7 @@
 		if (!href || !href.startsWith("#fn") || !FN_RE.test(href)) return
 		if (highlight(href)) {
 			e.preventDefault()
-			history.pushState(null, "", href)
+			runtime.pushHash(href)
 		}
 	})
 	runtime.listen(window, "hashchange", function () {

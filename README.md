@@ -104,6 +104,16 @@ allowUserChoice = true
 
 不配置 `[params.colorScheme]` 时使用靛蓝配色且不显示调色盘。明暗选择按钮始终保留。旧配色配置或浏览器保存的旧配色值会回退到有效默认配色。
 
+### 站内无刷新导航
+
+普通站内页面链接使用无刷新导航，切换页面时同步标题、SEO 信息和按需样式，并重新初始化目录、复制按钮、代码块和图片交互。目标加载完成后，正文以 200ms 淡入并轻微上移，Header 保持稳定。前进、后退使用相同动画，并恢复阅读位置、代码展开状态及内容横向滚动位置。
+
+请求超过 120ms 时显示主题色进度条和“正在加载…”状态，期间保留原内容；完成、取消或失败后清理提示。
+
+外链、新标签页、Ctrl / Command 点击、下载和 RSS 继续由浏览器处理。请求失败、目标不是主题页面、运行时代码版本变化或目标正文含未托管的自定义脚本时，自动使用正常页面跳转。
+
+给链接或其父元素添加 `data-no-pjax` 可强制正常跳转。自定义全局脚本可以监听 `yinyang:before-navigate` 和 `yinyang:page-ready`；需要随页面重新执行的正文脚本应标记 `data-page-runtime`，并通过 `window.yinyangRuntime.page` 管理事件和清理工作。
+
 ### RSS
 
 主题将 Blog 和 Notes 分成两个 feed：Blog 使用 `/index.xml`，且只包含 `mainSections` 中的内容；Notes 使用 `/notes/index.xml`。`tags` 和 `note_tags` 的总览页及条目页均不生成 RSS。
