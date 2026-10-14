@@ -49,6 +49,10 @@
   transition: opacity 180ms ease, filter 180ms ease, transform 180ms ease;
 }
 
+:root.theme-changing .theme-toggle .action-icon {
+  transition: opacity 180ms ease, filter 180ms ease, transform 180ms ease !important;
+}
+
 :root[data-theme-mode="light"] .theme-toggle-light,
 :root[data-theme-mode="dark"] .theme-toggle-dark,
 :root[data-theme-mode="system"] .theme-toggle-system {

@@ -90,6 +90,7 @@
   line-height: 1.5;
   overflow-wrap: anywhere;
   text-decoration: none;
+  transition: color 160ms ease, background-color 160ms ease;
 }
 .header-nav-menu a:hover,
 .header-nav-menu a:focus-visible { color: var(--color-accent); background: var(--color-surface-hover); }

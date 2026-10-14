@@ -114,6 +114,11 @@
   font-size: 12px;
   line-height: 1.5;
   pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 160ms ease, transform 160ms ease;
 }
+
+.copy-feedback.is-visible { opacity: 1; transform: translateY(0); }
 
 

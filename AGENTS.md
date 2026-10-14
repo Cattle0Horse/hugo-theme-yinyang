@@ -89,7 +89,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 以下约定由 TOC / 脚注 / 图片加载 / 代码块等功能的实现中提炼，**新增任何浮层、模态或动态 UI 时应遵循**：
 
 - **颜色必须走 CSS 变量**：任何可见颜色不得硬编码，先在 `variables.css` 的亮/暗两套 `:root` 中定义变量（如 `--color-xxx`），再在样式中引用。这样主题切换时颜色自动跟随（`data-theme` 属性驱动）。
-- **主题切换表现**：切换瞬间 `theme-changing` class 会以 `transition: none !important` 禁用全局过渡，属预期机制——避免颜色渐变闪烁。新增 UI 无需为此特判，但应确保其颜色由 CSS 变量驱动而非硬编码。
+- **主题切换表现**：切换瞬间 `theme-changing` class 会以 `transition: none !important` 禁用全局过渡，属预期机制——避免颜色渐变闪烁。明暗按钮图标保留 opacity / filter / transform 过渡以平滑切换状态；新增 UI 的颜色应由 CSS 变量驱动。
 - **动画生命周期**：所有动画使用统一流程。打开/关闭类动画，销毁 DOM 前须等动画结束（`transitionend` + `setTimeout` 兜底）。
 - **模态键盘可达性**：`role="dialog"` + `aria-modal="true"` 的模态须支持：打开时焦点移入容器（`tabindex="-1"`）、Esc 关闭、关闭时焦点归还触发元素（参考 TOC 浮层）。模态内有可聚焦控件时用 Tab 焦点陷阱循环；无控件时拦截 Tab、焦点保持在其容器。
 - **双模式滚动锁定**：任何需要锁背景滚动的模态，必须同时处理宽屏 `html/body` 与窄屏 `#appScroll` 两个滚动容器；用 `html.xxx-open` class + CSS 规则实现（非内联样式），并记录/还原各自滚动位置。
@@ -149,7 +149,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
   1. 给构建期 `[data-copy-block]` 按钮绑定复制（取同 wrapper 的 `code` 文本）。
   2. 折叠交互：toggle `is-folded`；**高度校验**——实际渲染高度 ≤ `--code-fold-max`（CSS 变量，variables.css，默认 360px）时移除折叠（构建期按行数预判，运行时按真实高度校正），展开动画用 `--code-height`。
   3. 缩进式代码块（裸 `<pre>`，`render-codeblock` 不接管）运行时包装 `.plain-code-wrapper` + 浮动复制按钮。
-  4. 复制由 `copy-button.html` 的 `bindCopyButton()` 实现（`navigator.clipboard` → `execCommand` 降级）；复制结果在按钮附近显示短提示，并通过 `role="status"` 播报。长代码收起前将代码块入口恢复到当前视口，宽窄两种滚动容器均处理。
+  4. 复制由 `copy-button.html` 的 `bindCopyButton()` 实现（`navigator.clipboard` → `execCommand` 降级）；复制结果在按钮附近以 160ms 淡入并轻微上移，关闭时淡出后销毁（transitionend + 计时器兜底），并通过 `role="status"` 播报。长代码收起前将代码块入口恢复到当前视口，宽窄两种滚动容器均处理。
 
 ### 图片增强
 

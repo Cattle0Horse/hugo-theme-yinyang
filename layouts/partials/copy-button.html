@@ -8,11 +8,24 @@
     var feedback = null
 
     function removeFeedback() {
-      if (feedback) feedback.remove()
+      var node = feedback
       feedback = null
       button.removeAttribute('data-copy-feedback')
       runtime.unlisten(document, 'scroll', removeFeedback, true)
       runtime.unlisten(window, 'resize', removeFeedback)
+      if (!node) return
+      node.setAttribute('aria-hidden', 'true')
+      node.classList.remove('is-visible')
+      var timer = runtime.setTimeout(finishClose, 220)
+      function finishClose() {
+        runtime.clearTimeout(timer)
+        runtime.unlisten(node, 'transitionend', onTransitionEnd)
+        node.remove()
+      }
+      function onTransitionEnd(event) {
+        if (event.target === node && event.propertyName === 'opacity') finishClose()
+      }
+      runtime.listen(node, 'transitionend', onTransitionEnd)
     }
 
     function showFeedback(label) {
@@ -35,6 +48,7 @@
         var top = rect.top - bounds.height - 8
         if (top < 8) top = rect.bottom + 8
         node.style.top = Math.min(top, window.innerHeight - bounds.height - 8) + 'px'
+        node.classList.add('is-visible')
       })
       runtime.listen(document, 'scroll', removeFeedback, true)
       runtime.listen(window, 'resize', removeFeedback)
