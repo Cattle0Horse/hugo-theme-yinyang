@@ -9,8 +9,8 @@
   -webkit-appearance: none;
   align-items: center;
   justify-content: center;
-  min-width: 32px;
-  min-height: 32px;
+  min-width: var(--action-button-size);
+  min-height: var(--action-button-size);
   font-family: inherit;
   cursor: pointer;
   transform: scale(1);
@@ -25,7 +25,7 @@
 }
 .action-button:disabled,
 .action-button[aria-disabled="true"] { cursor: default; }
-.action-icon { display: inline-flex; width: 16px; height: 16px; }
+.action-icon { display: inline-flex; width: var(--action-icon-size); height: var(--action-icon-size); }
 
 .header-item a,
 .posts-title a,

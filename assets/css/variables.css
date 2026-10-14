@@ -7,6 +7,8 @@
 
   --scroll-fade-size: 48px;
   --code-fold-max: 360px;
+  --action-button-size: 32px;
+  --action-icon-size: 16px;
   --color-bg: #fff;
   --color-text: #18181b;
   --color-heading: var(--color-text);

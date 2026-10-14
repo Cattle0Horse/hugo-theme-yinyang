@@ -11,8 +11,8 @@
 .theme-toggle,
 .palette-toggle {
   position: relative;
-  width: 32px;
-  height: 32px;
+  width: var(--action-button-size);
+  height: var(--action-button-size);
   padding: 0;
   border: 0;
   background: none;
@@ -23,8 +23,8 @@
 
 .theme-toggle .action-icon {
   position: absolute;
-  width: 16px;
-  height: 16px;
+  width: var(--action-icon-size);
+  height: var(--action-icon-size);
   opacity: 0;
   filter: blur(4px);
   transform: scale(.8);

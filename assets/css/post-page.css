@@ -194,8 +194,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: var(--action-button-size);
+  height: var(--action-button-size);
   line-height: 1;
 }
 
