@@ -64,7 +64,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 - `palette-state.html` 过滤站点配置，只允许主题内置配色，并计算默认值及是否显示选择器。
 - `head.html` 顶部内联脚本在 HTML 解析前同步执行：明暗偏好读取 `localStorage.theme`（`light` / `dark`，缺省为跟随浏览器），通过 `prefers-color-scheme` 解析实际明暗模式并设置 `data-theme-mode`，配色读取 `localStorage.palette` 或站点默认值，设置外观 data 属性以避免 FOUC。
 - `variables.css` 定义共用的亮暗中性色与靛蓝 / 紫罗兰 / 石墨强调色变量；`syntax.css` 只消费 `--syntax-*` 变量，不硬编码主题颜色。
-- `theme-toggle.html` 同时管理明暗切换和按需创建销毁的色点调色盘；明暗按钮点击轮换亮色 / 暗色 / 跟随浏览器，跟随浏览器时监听 `prefers-color-scheme` 变化。主动切换实际明暗时，通过 View Transitions API 从点击或触摸坐标圆形扩散到最远视口角落；键盘触发回退按钮中心。不支持该 API、减少动态效果、实际明暗未变化或浏览器自动变更时直接切换。两种外观切换都短暂添加 `theme-changing` class 禁用 CSS transition。
+- `theme-toggle.html` 同时管理明暗切换和按需创建销毁的色点调色盘；明暗按钮点击轮换亮色 / 暗色 / 跟随浏览器，跟随浏览器时监听 `prefers-color-scheme` 变化。主动切换实际明暗时，通过 View Transitions API 从点击或触摸坐标圆形扩散到最远视口角落；键盘触发回退按钮中心。不支持该 API、实际明暗未变化或浏览器自动变更时直接切换。两种外观切换都短暂添加 `theme-changing` class 禁用 CSS transition。
 - 明暗按钮与配色按钮嵌入在 `header.html` 的 `.appearance-controls` 中；未启用用户选择时不渲染配色按钮。
 - `header-nav.html` 在 Header 解析后测量整排导航所需的真实宽度；空间不足时将全部 `socials` 链接折叠进图标菜单，空间恢复后展开。隐藏链接通过零尺寸不可见容器保留 `scrollWidth` 测量，避免临时显隐改变监听目标；`ResizeObserver` 只响应宽度变化，折叠状态仅在变化时写入。监听字体加载，保持导航行不换行；菜单保留链接顺序和打开方式，支持方向键、Home/End、Esc 与 Tab 退出，展开/折叠时恢复对应焦点。
 
@@ -74,7 +74,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 
 - **颜色必须走 CSS 变量**：任何可见颜色不得硬编码，先在 `variables.css` 的亮/暗两套 `:root` 中定义变量（如 `--color-xxx`），再在样式中引用。这样主题切换时颜色自动跟随（`data-theme` 属性驱动）。
 - **主题切换表现**：切换瞬间 `theme-changing` class 会以 `transition: none !important` 禁用全局过渡，属预期机制——避免颜色渐变闪烁。新增 UI 无需为此特判，但应确保其颜色由 CSS 变量驱动而非硬编码。
-- **动画与 reduced-motion**：所有动画必须尊重 `prefers-reduced-motion: reduce`（无动画降级，参考 `image-loading.css`）。打开/关闭类动画，销毁 DOM 前须等动画结束（`transitionend` + `setTimeout` 兜底，reduced-motion 下直接销毁）。
+- **动画生命周期**：所有动画使用统一流程。打开/关闭类动画，销毁 DOM 前须等动画结束（`transitionend` + `setTimeout` 兜底）。
 - **模态键盘可达性**：`role="dialog"` + `aria-modal="true"` 的模态须支持：打开时焦点移入容器（`tabindex="-1"`）、Esc 关闭、关闭时焦点归还触发元素（参考 TOC 浮层）。模态内有可聚焦控件时用 Tab 焦点陷阱循环；无控件时拦截 Tab、焦点保持在其容器。
 - **双模式滚动锁定**：任何需要锁背景滚动的模态，必须同时处理宽屏 `html/body` 与窄屏 `#appScroll` 两个滚动容器；用 `html.xxx-open` class + CSS 规则实现（非内联样式），并记录/还原各自滚动位置。
 - **事件委托**：交互统一用 `document` 级委托 + 打开态 guard（如 `document.querySelector('.xxx')` 已存在则 return），避免重复触发；多个监听器对同一事件按注册顺序执行，先注册先处理。
@@ -115,7 +115,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 | `edit-urls.html` | `edit-page.html`、`markdown-actions.html` | `actions.editPage` 配置且 `.File` 存在 |
 | `icon.html` | 各模板（图标处） | 始终（内联 SVG 图标 partial，源在 `assets/icons/*.svg`） |
 
-正文宽表格由 `ui.html` 包装为局部横向滚动区域，仅溢出时提供键盘焦点和滑动提示。代码块、宽表格及块级公式限制横向 overscroll，避免手势越过内容边界。全局链接 hover 保持字重稳定；减少动态效果在 `global.css` 中统一降级。
+正文宽表格由 `ui.html` 包装为局部横向滚动区域，仅溢出时提供键盘焦点和滑动提示。代码块、宽表格及块级公式限制横向 overscroll，避免手势越过内容边界。全局链接 hover 保持字重稳定。
 
 ### 图标系统
 
@@ -150,7 +150,7 @@ baseof 定义的 block 包括：`"main"`、`"toc"`、`"runtime"`。Notes 列表�
 
 - **宽屏（≥84em）**：侧边栏固定在页面右侧 `left: calc(50% + 432px)`，始终可见。
 - **窄屏**：浮动按钮 `#tocFloatBtn` + 全屏遮罩 `#tocBackdrop`，点击展开滑出面板；打开时移入焦点、以 `inert` 隔离背景并锁定滚动，提供面板关闭按钮、Esc 关闭、Tab 焦点锁定，关闭后恢复背景与焦点。
-- **Scroll-spy**：解析 TOC 链接对应的 heading，计算当前视口内可见的 heading，以柔和主题色高亮对应链接并移动 `.toc-indicator` 指示条位置；hover 仅过渡文字颜色，不使用背景块或下划线。主动跳转后短暂标记目标标题。滚动自动跟随（`scrollBy`，平滑由 CSS `scroll-behavior: smooth` 驱动，reduced-motion 禁用）。
+- **Scroll-spy**：解析 TOC 链接对应的 heading，计算当前视口内可见的 heading，以柔和主题色高亮对应链接并移动 `.toc-indicator` 指示条位置；hover 仅过渡文字颜色，不使用背景块或下划线。主动跳转后短暂标记目标标题。滚动自动跟随（`scrollBy`，平滑由 CSS `scroll-behavior: smooth` 驱动）。
 - **边缘模糊**：TOC 滚动区复用 `edge-blur.html` 并绑定 `toggleScrollFade`。
 
 ### 脚注系统

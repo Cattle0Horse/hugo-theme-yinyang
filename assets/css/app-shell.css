@@ -246,12 +246,3 @@ body {
     background: linear-gradient(to top, var(--color-bg), transparent);
   }
 }
-
-/* reduced motion: disable smooth scrolling */
-@media (prefers-reduced-motion: reduce) {
-  html,
-  .app-scroll,
-  .toc-scroll {
-    scroll-behavior: auto;
-  }
-}

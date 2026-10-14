@@ -239,16 +239,6 @@ a:hover {
 
 .middle-xs { align-items: center; }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
-  }
-}
-
 @media only screen and (min-width: 48em) {
   .col-sm-10,
   .col-sm-2 { box-sizing: border-box; flex: 0 0 auto; padding-left: 0.5rem; padding-right: 0.5rem; }

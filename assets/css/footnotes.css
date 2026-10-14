@@ -60,13 +60,4 @@
   animation: highlight-fade 3.5s ease-out forwards;
 }
 
-/* reduced-motion：禁用所有高亮动画（动画禁用时 animationend 不触发，
-   JS 侧用短 timeout 直接销毁覆盖层） */
-@media (prefers-reduced-motion: reduce) {
-  .footnotes li.footnote-highlight::before,
-  .ref-highlight-bar {
-    animation: none;
-  }
-}
-
 

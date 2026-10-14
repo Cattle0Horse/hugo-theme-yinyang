@@ -136,12 +136,4 @@
 .palette-option[data-appearance-value="violet"] { --swatch-color: var(--palette-violet-light); }
 .palette-option[data-appearance-value="graphite"] { --swatch-color: var(--palette-graphite-light); }
 
-@media (prefers-reduced-motion: reduce) {
-  .theme-toggle .action-icon,
-  .appearance-menu,
-  .palette-option {
-    transition: none;
-  }
-}
-
 

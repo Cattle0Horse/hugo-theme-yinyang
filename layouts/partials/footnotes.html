@@ -7,8 +7,6 @@
 	var OPEN_CHARS = { "(": ")", "[": "]", "【": "】", "（": "）", "「": "」", "『": "』" }
 	var CLOSE_CHARS = { ")": 1, "]": 1, "】": 1, "）": 1, "」": 1, "』": 1 }
 	var BLOCK_RE = /^(P|LI|DIV|H[1-6]|BLOCKQUOTE|PRE|TABLE|TD|TH|SECTION|ARTICLE|UL|OL)$/
-	// reduced-motion 下 CSS 禁用动画（animationend 不触发），JS 用短 timeout 直接销毁
-	var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches
 	var lastHighlighted = null
 
 	function addTooltip(link, text) {
@@ -176,14 +174,13 @@
 		return overlay
 	}
 
-	// 动画结束即清理；动画被禁用（reduced-motion）或 animationend 丢失时，
-	// 由宽松的兜底 timeout 清理。done 里 guard 防止旧的延时回调清掉新的高亮。
+	// 动画结束即清理，animationend 丢失时由 timeout 兜底；guard 避免清掉新的高亮。
 	function scheduleClear(el) {
 		function done() {
 			if (lastHighlighted === el) clearHighlight()
 		}
 		el.addEventListener("animationend", done)
-		setTimeout(done, reduceMotion ? 400 : 5000)
+		setTimeout(done, 5000)
 	}
 
 	function highlight(hash, noScroll) {

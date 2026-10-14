@@ -142,12 +142,4 @@
   transform: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .loading-image-frame.is-loading::before,
-  .loading-image-frame.is-loading::after {
-    animation: none;
-  }
-  .loading-image-frame img.loading-img { transition: none; }
-}
-
 

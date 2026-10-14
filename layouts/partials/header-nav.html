@@ -7,7 +7,6 @@
   var originalLinks = Array.prototype.slice.call(links.querySelectorAll('a'))
   var button = document.getElementById('headerNavToggle')
   var appearance = row.querySelector('.appearance-controls')
-  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
   var menu = null
   var layoutFrame = 0
 
@@ -41,10 +40,6 @@
     node.inert = true
     updateLabel(false)
     if (returnFocus) button.focus({ preventScroll: true })
-    if (reducedMotion.matches) {
-      node.remove()
-      return
-    }
     var timer = setTimeout(finishClose, 220)
     function finishClose() {
       clearTimeout(timer)
