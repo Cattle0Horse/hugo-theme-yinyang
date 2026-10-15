@@ -1,0 +1,42 @@
+.not-found {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(20px, 5vh, 64px) 0 48px;
+  text-align: center;
+  --nf-soft: var(--color-accent-soft);
+}
+.not-found [hidden] { display: none !important; }
+.nf-scene { margin: 12px auto 0; }
+.nf-art { position: relative; display: block; width: 100%; max-width: 640px; margin: auto; }
+.nf-play { border: 0; background: transparent; padding: 0; color: var(--color-text); cursor: default; -webkit-tap-highlight-color: transparent; }
+.nf-art svg { display: block; width: 100%; height: auto; fill: var(--color-text); overflow: visible; }
+.nf-art text { text-anchor: middle; }
+.nf-digits { font: 600 168px 'Segoe UI', 'Microsoft YaHei', sans-serif; letter-spacing: 6px; }
+.nf-small { font: 12px/1.5 monospace; letter-spacing: 1px; }
+.nf-accent { color: var(--color-accent); }
+.nf-muted { color: var(--color-text-muted); fill: var(--color-text-muted); }
+.nf-line { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.nf-fill-accent { fill: var(--color-accent); }
+.nf-fill { fill: var(--color-text); }
+.nf-soft { fill: var(--nf-soft); }
+.nf-paper { fill: var(--color-bg); }
+.nf-white { fill: var(--color-surface); }
+.nf-ghost { fill: var(--color-border-light); }
+.nf-fallback h1 { font: 120px Georgia, serif; margin: 20px 0; }
+.nf-fallback p { color: var(--color-text-muted); }
+.not-found :where(a, button, input, [tabindex]):focus-visible { outline: 2px solid var(--color-accent); outline-offset: 5px; border-radius: 8px; }
+.nf-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.nf-reference-play { max-width: 520px; margin: 28px auto 24px; isolation: isolate; touch-action: none; user-select: none; }
+.nf-reference-play:active { scale: .995; }
+.nf-reference-play.nf-dragging:active { scale: 1; }
+.nf-reference-art text { font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; }
+.nf-reference-art text:not([text-anchor]) { text-anchor: start; }
+.nf-reference-art text[text-anchor="end"] { text-anchor: end; }
+.nf-reference-art .nf-line { stroke-width: 2; }
+.nf-reference-digit { font-size: 146px; font-weight: 600; }
+.nf-border-stroke { stroke: var(--color-border); }
+.nf-ink-stroke { stroke: var(--color-text); }
+.nf-accent-stroke { stroke: var(--color-accent); }
+.nf-particle { pointer-events: none; }
+
+@media (max-width: 480px) { .not-found { padding-top: 24px; } }

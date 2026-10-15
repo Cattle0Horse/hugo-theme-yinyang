@@ -41,6 +41,7 @@ CSS 由 `head.html` 将 16 个文件按 variables → global → site-header →
 | 通用交互 | `ui-helpers.js`、`tooltip.js`、`copy.js` 提供标签更新、浮层定位、动画结束清理与复制反馈 |
 | 阅读增强 | `tables.js`、`scrollbar.js`、`code-toolbar.js`、`image-loading.js` 管理局部滚动、代码和图片状态 |
 | 页面功能 | `header-nav.js`、`appearance.js`、`toc.js`、`footnotes.js`、`markdown-actions.js` 按 DOM / 配置初始化 |
+| 缺页互动 | `not-found.js` 仅在 404 DOM 存在时选择已启用场景，提供托管的指针 / 动画工具；`js/not-found/*.js` 各自初始化交互 |
 | 导航 | `navigation.js` 管理获取、校验、提交、脚本重放与历史恢复 |
 
 自定义脚本通过当前 `window.yinyangRuntime.page` 使用 `scroll.isWide()`、`bindCopyButton()`、`tooltip.update()` 和 `tooltip.hide()`。滚动订阅返回的取消函数应交给 `addCleanup`。
@@ -88,6 +89,16 @@ KaTeX CDN 固定为 0.19.0，不使用浮动 latest URL；升级须验证 Hugo �
 - `exampleSite/note.nu` / `blog.nu` 无参数创建内容并通过 VS Code 打开；Blog 使用时间戳 Page Bundle 且默认草稿。脚本不负责发布。
 
 ## 跨功能约定
+
+404 的 `params.notFound.available` 指定启用列表，支持 `sleep` / `black-hole` / `flashlight` / `receipt` / `constellation` / `puzzle` / `terminal` / `channel` / `cat` / `draw-home`；多项在浏览器每次 mount 时随机选择，单项固定。`not-found-state.html` 统一过滤、去重；未配置、空数组或无有效项时启用全部。`layouts/404.html` 只输出已启用模板，Head 只合并已启用场景的 CSS。每款分别放在 `layouts/partials/not-found/`、`assets/css/not-found/`、`assets/js/not-found/`，独立拥有标题、状态区、布局和返回入口；公共文件只提供选择、绘图基础样式及生命周期工具，不装配共同可见组件。无 JS 时保留普通 404 与首页链接。终端 / 电台使用构建期输出的站内文章 URL，画路仅在实际轨迹终点靠近小屋时完成，不自动补齐路线。
+
+共有七款以参考稿的 400×245 SVG 构图为准，使用粗无衬线数字；`cat` 展示名为“是猫干的”，只移动独立圆环零。标题使用 `.nf-sr-only`；操作反馈分别融入气泡、票据盖章、定位标记、拼图结果标签和设备屏显，不共用一行说明。状态保留 role=status 与 aria-live。Web Animations、粒子和弹性跟随通过 page 托管并在 dispose 时取消 / 删除；拖动保留速度和当前动画位置，松手后接续惯性或回弹。`sleep` 初始保持睡着，监听整个 document 的光标，仅在约 700ms 内位移达到 36 CSS 像素时唤醒；点击 / 键盘聚焦直接唤醒，回家入睡阶段锁定唤醒，关闭整体视差；日常只移动眼球，点击时人脸局部弹起并出现星点，重复点击从当前动画位置接续，整体画面和两侧数字保持稳定。星图划过点亮、点击 / 回车揭晓。画路区域禁用文本选择，任意位置下笔后 document 接收拖动，SVG 捕获指针；路径不截断在插画 viewBox，允许绘制到整个可视区域，松手自动出发。实际终点进入小屋范围后跳转首页，否则显示可见提示；点击 / 键盘激活小屋沿预设虚线回家；重新下笔、重画按钮和小球均可重置并中断旧运动，重置与 dispose 会取消待执行的跳转。
+
+所有 404 插画都禁止随光标整幅位移或倾斜，只保留眼球追踪、手电筒光圈、拖动和各款自身动画。`sleep` 的回家入口先锁定唤醒，复用正常入睡的缓慢闭眼与 Zzz 淡入，睡着后人脸以 4.8 秒周期做约 1 像素的呼吸微动、Zzz 持续漂浮；该入口不触发人脸位移或弹跳，等待入睡完成再跳转；动画等待使用生命周期监听和计时器兜底。`black-hole` 保留数字公转、吸积盘脉动与点击吞入 / 捞回。
+
+反馈由各款独立布局：睡脸 / 猫爪气泡、小票短章、黑洞信号条、星图定位标记、拼图结果贴签、电台屏显与终端命令输出；光圈和小球的反馈随各自目标定位到可视区域，不能遮挡交互。小票拖动及旧票撕走不受局部裁切，只有重新送纸时启用打印口裁切。光圈监听整个 document，坐标不截断在插画 viewBox。终端按空白分隔命令，`cd` / `cd ~` / `cd ~/` / `cd /` 返回首页，`pwd` 输出站点首页路径，保留 `home` / `random` / `help` / `ls` / `clear`。
+
+404 图形与反馈颜色使用主题变量，实时跟随 indigo / violet / graphite 及明暗模式；黑洞深色内核也从 `variables.css` 取色。暗色模式中的幽灵使用浅色轮廓与深色眼睛，保持主体可辨识。
 
 - 可见颜色使用 `variables.css` 的亮 / 暗 CSS 变量。明暗与配色独立，`theme-changing` 短暂禁用全局过渡；主动明暗切换在支持的浏览器使用圆形 View Transition。
 - 字体使用 `--font-body` / `--font-heading` / `--font-code` 区分正文、标题和代码，标题默认继承所在页面字体；`fonts.css` 通过 UNPKG 加载固定版本 `@zf-web-font/opposans@0.2.0` 的 400 / 500 / 700 字重，通过 jsDelivr 加载 Fira Code 6.2.0 可变字库。正文在桌面和手机上均使用 14px、Regular 400、0.025em 字距和中西文自动间距；段落行高 1.8、下间距 32px；粗体和正文链接使用 600 字重及柔化的主题色。`--color-prose` 管理亮 / 暗正文颜色；代码和公式重置字距与自动间距。使用 `font-display: swap` 并保留系统字体回退，字体文件不随主题分发，示例站无需额外注入字体。正文标题、段落和列表的间距统一在 `global.css` 管理。

@@ -42,6 +42,7 @@
   --accent-bg: var(--color-accent-soft);
   --accent-border: var(--color-accent);
   --color-error: #b94046;
+  --color-void: #111216;
 
   --palette-indigo-light: #3559d8;
   --palette-indigo-hover: #2a46b4;

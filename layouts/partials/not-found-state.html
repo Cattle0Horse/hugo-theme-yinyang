@@ -1,0 +1,14 @@
+{{- $supported := slice "sleep" "black-hole" "flashlight" "receipt" "constellation" "puzzle" "terminal" "channel" "cat" "draw-home" -}}
+{{- $available := slice -}}
+{{- with site.Params.notFound.available -}}
+  {{- if reflect.IsSlice . -}}
+    {{- range . -}}
+      {{- $name := lower (printf "%v" .) -}}
+      {{- if and (in $supported $name) (not (in $available $name)) -}}
+        {{- $available = $available | append $name -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if eq (len $available) 0 -}}{{- $available = $supported -}}{{- end -}}
+{{- return $available -}}

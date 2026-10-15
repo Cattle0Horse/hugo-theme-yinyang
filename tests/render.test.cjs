@@ -118,3 +118,19 @@ test('metadata and links support subdirectory deployment and custom taxonomy URL
   const collection = JSON.parse(html('notes/index.html').match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/)[1])
   assert.equal(collection['@type'], 'CollectionPage')
 })
+
+test('404 available restricts rendered experiences and preserves each scene home URL', () => {
+  // Disabled scenes must not become random candidates; duplicates must not change their odds.
+  const defaults = [...html('404.html').matchAll(/data-nf-template="([^"]+)"/g)].map(match => match[1])
+  assert.ok(defaults.length > 1)
+  for (const available of [['cat'], ['terminal', 'cat', 'terminal', 'unknown'], [], ['unknown']]) {
+    write('not-found.toml', `[params.notFound]\navailable = ${JSON.stringify(available)}\n`)
+    const destination = path.join(fixture, 'not-found-output')
+    execFileSync('hugo', ['-s', fixture, '--themesDir', path.dirname(theme), '--theme', path.basename(theme), '--config', 'config.toml,not-found.toml', '--destination', destination, '--cacheDir', path.join(fixture, 'cache'), '--noBuildLock'], { stdio: 'pipe' })
+    const page = fs.readFileSync(path.join(destination, '404.html'), 'utf8')
+    const scenes = [...page.matchAll(/<template data-nf-template="([^"]+)">([\s\S]*?)<\/template>/g)]
+    const enabled = [...new Set(available.filter(name => name !== 'unknown'))]
+    assert.deepEqual(scenes.map(scene => scene[1]), enabled.length ? enabled : defaults)
+    for (const scene of scenes) assert.ok(scene[2].includes('href="/sub/"'), `Missing home URL in ${scene[1]}`)
+  }
+})

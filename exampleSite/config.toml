@@ -65,6 +65,10 @@ codeMaxLines = 15
 [params.busuanzi]
 enabled = true
 
+[params.notFound]
+# 多项随机显示，单项固定；未配置或没有有效项时启用全部。
+available = ["sleep", "black-hole", "flashlight", "receipt", "constellation", "puzzle", "terminal", "channel", "cat", "draw-home"]
+
 [params.colorScheme]
 default = "indigo"
 available = ["indigo", "violet", "teal", "amber", "rose", "graphite"]

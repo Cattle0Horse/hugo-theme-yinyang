@@ -1,13 +1,15 @@
 {{ define "main" }}
-<article class="post {{ .Site.Language.Locale }}" id="article">
-  <div class="row">
-    <div class="col-xs-12">
-      <div class="post-content markdown-body" style="text-align:center;padding:80px 0;">
-        <h1 style="font-size:4rem;margin-bottom:0;">404</h1>
-        <p style="color:var(--color-text-secondary);margin-top:8px;">页面未找到</p>
-        <p><a href="{{ site.Home.RelPermalink }}" style="text-decoration:underline;">← 返回首页</a></p>
-      </div>
-    </div>
-  </div>
+{{ $available := partial "not-found-state.html" . }}
+<article class="post not-found {{ .Site.Language.Locale }}" id="article" data-not-found>
+  <div class="nf-fallback"><h1>404</h1><p>页面未找到</p><a href="{{ site.Home.RelPermalink }}">← 返回首页</a></div>
+  <div class="nf-scene" hidden></div>
+  {{ range $available }}
+  <template data-nf-template="{{ . }}">{{ partial (printf "not-found/%s.html" .) $ }}</template>
+  {{ end }}
+  {{ $pages := slice }}
+  {{ range first 30 (where site.RegularPages "Section" "in" (site.Params.mainSections | default (slice "posts"))) }}
+    {{ $pages = $pages | append (dict "title" .Title "url" .RelPermalink) }}
+  {{ end }}
+  <script type="application/json" id="nf-pages">{{ $pages | jsonify | safeJS }}</script>
 </article>
 {{ end }}

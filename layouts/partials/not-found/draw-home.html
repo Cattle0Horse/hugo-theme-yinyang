@@ -1,0 +1,11 @@
+<section class="nf-draw-home-scene" data-nf-scene="draw-home">
+<h1 class="nf-sr-only">画一条回家的路</h1>
+<div class="nf-art nf-drawing-field"><button class="nf-draw-home-reset" type="button" aria-label="清空路线，重新画" title="重画">{{ partial "icon.html" (dict "name" "restart") }}</button><svg class="nf-drawing-canvas" viewBox="0 0 640 360" role="group" aria-label="从任意位置画到小屋，重新下笔即可重画">
+  <text x="320" y="234" class="nf-digits nf-ghost" aria-hidden="true">404</text>
+  <path d="M95 85C155 85 166 238 300 205S425 200 527 272" class="nf-guide nf-line nf-muted" stroke-dasharray="3 8"/>
+  <path class="nf-drawn-path nf-line nf-accent"/>
+  <a class="nf-draw-home-house" href="{{ site.Home.RelPermalink }}" aria-label="沿虚线回家，抵达后返回首页"><rect x="484" y="220" width="86" height="94" fill="transparent"/><g class="nf-house"><path d="M503 282v-30l24-21 24 21v30z" class="nf-paper nf-line"/><path d="M520 282v-19h14v19" class="nf-line nf-accent"/><rect x="536" y="250" width="7" height="7" class="nf-house-window nf-soft"/></g><text x="527" y="305" class="nf-small nf-fill-accent">回家 ↗</text></a>
+  <circle class="nf-ball nf-fill-accent" cx="95" cy="85" r="9" role="button" tabindex="0" aria-label="重新画一条路"/>
+</svg></div>
+<p class="nf-draw-home-status" data-nf-status role="status" aria-live="polite"></p>
+</section>
