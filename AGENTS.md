@@ -47,13 +47,13 @@ CSS 由 `head.html` 将 16 个文件按 variables → global → site-header →
 
 ### 双模式滚动与导航
 
-窄屏（< 84em）在 `#appScroll` 内滚动，body 固定；宽屏（≥ 84em）由窗口滚动，app-scroll 回归普通流。`page.scroll` 提供 `isWide`、`element`、`viewport`、`position`、`capture`、`restore`、`target`、`scrollToElement`、`onChange` 和 `onModeChange`。跨断点保存正文锚点及视口偏移，再转移到新容器；普通锚点默认预留 64px，脚注居中，代码收起预留 24px。
+窄屏（< 84em）在 `#appScroll` 内滚动，body 固定；宽屏（≥ 84em）由窗口滚动，app-scroll 回归普通流。`page.scroll` 提供 `isWide`、`element`、`viewport`、`position`、`capture`、`restore`、`target`、`scrollToElement`、`onChange` 和 `onModeChange`。窄屏 appScroll 与宽屏 html 均通过 scrollbar-gutter: stable 预留滚动条空间，避免长短页切换时 Header 和正文横移。跨断点保存正文锚点及视口偏移，再转移到新容器；普通锚点默认预留 64px，脚注居中，代码收起预留 24px。
 
 普通同源 HTML 链接使用 Fetch + History API。新标签页、修饰键点击、下载、资源链接、外链及 `data-no-pjax` 保留原生行为。目标缺少主题结构、运行时版本变化、当前或目标正文含未托管的可执行脚本或内联 module，或请求 / 脚本加载失败时回退完整导航。
 
 获取并校验目标 HTML 后，含公式的目标页先准备 `data-page-math` 样式与公式实际使用的字体；通过屏幕外的公式副本获取字库需求，当前页面和交互保持可用，仅显示加载提示。点击导航的地址与正文在准备结束后一起提交；新的导航或当前页锚点操作会取消准备、移除临时副本和新增样式。资源失败或总等待超过 8 秒时继续切换，避免导航被 CDN 永久阻塞。
 
-提交前发出 `yinyang:before-navigate`，销毁旧 page，更新 `data-page-head` 节点并替换 body；外观属性保留在 documentElement。新正文直接可见，进入动画只保留 6px 位移，不隐藏正文。新页面 mount 后顺序重放 `data-page-runtime` 正文脚本，等待外部经典脚本和外部 module 的 load，再恢复焦点与阅读状态。内联 module 不进入无刷新导航，避免依赖不存在的 load 完成事件或改写模块导入语义。已插入脚本不能回滚，初始化期间的锚点操作保留最新目标，再次跨页使用完整导航。恢复代次防止旧异步定位覆盖新操作。首次加载、普通 fragment 和脚注入口由导航统一路由。`yinyang:page-ready` 在初始化和滚动恢复后由 document 发出，包含 `detail.url`；它不等待所有图片、全站字体或第三方统计完成，首次加载也不额外等待公式资源。
+提交前发出 `yinyang:before-navigate`，销毁旧 page，更新 `data-page-head` 节点并替换 body；外观属性保留在 documentElement。普通链接切换对 article 进行 240ms CSS 交叉淡化；挂载前保留旧正文的不可交互视觉副本，清除副本 ID 和脚本，等待阅读次数时覆盖新正文。加载提示独立运行，不使用会暂停渲染的 View Transition 更新回调。统计完成或最多等待 800ms 后，在滚动恢复完成时交叉淡化并清理副本；Header 和背景不参与动画，无位移和中间空白。统计失败或超时会移除本页阅读次数，避免稍后突现；没有阅读次数的页面不等待统计。历史恢复和带 fragment 的导航直接切换；初始化期间的锚点操作立即移除副本、显示新正文，页面销毁时也清理副本。新页面 mount 后顺序重放 `data-page-runtime` 正文脚本，等待外部经典脚本和外部 module 的 load，再恢复焦点与阅读状态。内联 module 不进入无刷新导航，避免依赖不存在的 load 完成事件或改写模块导入语义。已插入脚本不能回滚，初始化期间的锚点操作保留最新目标，再次跨页使用完整导航。恢复代次防止旧异步定位覆盖新操作。首次加载、普通 fragment 和脚注入口由导航统一路由。`yinyang:page-ready` 在初始化和滚动恢复后由 document 发出，包含 `detail.url`；它不等待所有图片、全站字体或无可见阅读次数的后台统计；无刷新切换的可见阅读次数已完成等待或超时兜底，首次加载不额外等待公式或统计资源。
 
 ### 自定义脚本
 

@@ -12,7 +12,7 @@
   var requestedPosition = null
   var needsReady = true
   var loading = null
-  var loadingTimer = 0
+  var pageTransition = null
 
   function ready(url) {
     if (!needsReady) return
@@ -70,15 +70,6 @@
         if (temporary) page.listen(heading, 'blur', function () { heading.removeAttribute('tabindex') }, { once: true })
       }
     }
-    if (options.animate) {
-      var article = document.querySelector('.app-scroll > article')
-      if (article) {
-        article.classList.add('page-entering')
-        page.onMotionEnd(article, { type: 'animationend', animation: 'page-enter', timeout: 300 }, function () {
-          article.classList.remove('page-entering')
-        })
-      }
-    }
     rememberPosition()
     if (!initializing || options.ready) ready(url)
     return true
@@ -100,8 +91,6 @@
     saved.horizontal = Array.from(document.querySelectorAll(horizontalSelector)).map(function (scroll) { return scroll.scrollLeft })
   }
   function hideLoading() {
-    clearTimeout(loadingTimer)
-    loadingTimer = 0
     if (loading) loading.remove()
     loading = null
   }
@@ -122,12 +111,14 @@
   }
   function cancelPending(invalidate) {
     if (invalidate !== false) {
+      if (pageTransition) pageTransition()
       restoreGeneration++
       requestedPosition = null
       if (lifecycle.page.footnotes) lifecycle.page.footnotes.cancelScroll()
     }
     if (initializing) {
       initializing.interacted = true
+      if (initializing.reveal) initializing.reveal()
     } else {
       if (pending) pending.abort()
       pending = null
@@ -264,6 +255,72 @@
       if (!waits) resolve()
     })
   }
+  function loadAnalytics(source, url, page) {
+    var previous = document.head.querySelector('script[data-page-analytics]')
+    if (!source) {
+      if (previous) previous.remove()
+      return Promise.resolve()
+    }
+    var container = document.getElementById('busuanzi_container_page_pv')
+    var value = document.getElementById('busuanzi_value_page_pv')
+    if (!container || !value) {
+      runScript(source, url, previous).catch(function () {})
+      return Promise.resolve()
+    }
+    // Script load only starts the JSONP request. Wait for its actual DOM result
+    // so the count is included in the new article's transition snapshot.
+    return new Promise(function (resolve) {
+      var finished = false
+      var observer = new MutationObserver(function () { if (value.textContent.trim()) finish() })
+      function finish() {
+        if (finished) return
+        finished = true
+        observer.disconnect()
+        clearTimeout(timer)
+        stopCleanup()
+        if (!value.textContent.trim()) container.remove()
+        resolve()
+      }
+      var timer = setTimeout(finish, 800)
+      var stopCleanup = page.addCleanup(finish)
+      observer.observe(container, { childList: true, characterData: true, subtree: true })
+      runScript(source, url, previous).catch(finish)
+    })
+  }
+  function captureArticle() {
+    var article = document.querySelector('.app-scroll > article')
+    if (!article) return null
+    var bounds = article.getBoundingClientRect()
+    var clone = article.cloneNode(true)
+    clone.removeAttribute('id')
+    clone.querySelectorAll('[id]').forEach(function (node) { node.removeAttribute('id') })
+    clone.querySelectorAll('script').forEach(function (node) { node.remove() })
+    clone.style.cssText = 'position:absolute;margin:0;box-sizing:border-box;left:' + bounds.left +
+      'px;top:' + bounds.top + 'px;width:' + bounds.width + 'px;padding:' + getComputedStyle(article).padding
+    var cover = document.createElement('div')
+    cover.className = 'navigation-outgoing'
+    cover.setAttribute('aria-hidden', 'true')
+    cover.inert = true
+    cover.appendChild(clone)
+    return cover
+  }
+  function fadeArticle(cover, article, page) {
+    var finished = false
+    function finish() {
+      if (finished) return
+      finished = true
+      cover.remove()
+      article.classList.remove('page-preparing', 'page-entering')
+      stopCleanup()
+      if (pageTransition === finish) pageTransition = null
+    }
+    var stopCleanup = page.addCleanup(finish)
+    pageTransition = finish
+    article.classList.remove('page-preparing')
+    article.classList.add('page-entering')
+    cover.classList.add('is-leaving')
+    page.onMotionEnd(cover, { type: 'animationend', animation: 'page-fade-out', timeout: 340 }, finish)
+  }
   async function commitPage(prepared, state, controller) {
     // An inserted script cannot be rolled back. Keep this document's initialization
     // alive; another document request uses a full navigation until it finishes.
@@ -274,33 +331,50 @@
     var destination = prepared.url
     var scripts = Array.from(next.body.querySelectorAll('script[data-page-runtime]'))
     var analytics = next.head.querySelector('script[data-page-analytics]')
-    document.dispatchEvent(new CustomEvent('yinyang:before-navigate', { detail: { url: destination.href } }))
-    rememberPage()
-    var saved = state && state.yinyang ? positions.get(state.yinyang.id) : null
-    lifecycle.page.dispose()
-    displayedId = state && state.yinyang && state.yinyang.url === destination.href ? state.yinyang.id : writeEntry(destination, !!state)
-    displayedURL = destination
-    syncHead(next)
-    document.documentElement.lang = next.documentElement.lang
-    document.documentElement.classList.add('theme-changing')
-    if (saved && saved.folds) next.body.querySelectorAll('.code-block-body').forEach(function (body, index) {
-      if (typeof saved.folds[index] === 'boolean') body.classList.toggle('is-folded', saved.folds[index])
-    })
-    document.body.replaceWith(next.body)
-    if (loading) document.body.appendChild(loading)
-    document.querySelector('.app-shell').setAttribute('aria-busy', 'true')
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-    lifecycle.page = lifecycle.createPage()
-    var page = lifecycle.mount()
-    page.scroll.onChange(rememberPosition)
-    page.requestAnimationFrame(function () { document.documentElement.classList.remove('theme-changing') })
+    var article = next.body.querySelector('.app-scroll > article')
+    var cover = article && !state && !destination.hash ? captureArticle() : null
+    var saved
+    var page
+    var stopCoverCleanup
+    function mountPage() {
+      document.dispatchEvent(new CustomEvent('yinyang:before-navigate', { detail: { url: destination.href } }))
+      rememberPage()
+      saved = state && state.yinyang ? positions.get(state.yinyang.id) : null
+      lifecycle.page.dispose()
+      displayedId = state && state.yinyang && state.yinyang.url === destination.href ? state.yinyang.id : writeEntry(destination, !!state)
+      displayedURL = destination
+      syncHead(next)
+      document.documentElement.lang = next.documentElement.lang
+      document.documentElement.classList.add('theme-changing')
+      if (saved && saved.folds) next.body.querySelectorAll('.code-block-body').forEach(function (body, index) {
+        if (typeof saved.folds[index] === 'boolean') body.classList.toggle('is-folded', saved.folds[index])
+      })
+      if (cover) article.classList.add('page-preparing')
+      document.body.replaceWith(next.body)
+      if (cover) document.body.appendChild(cover)
+      if (loading) document.body.appendChild(loading)
+      document.querySelector('.app-shell').setAttribute('aria-busy', 'true')
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+      lifecycle.page = lifecycle.createPage()
+      page = lifecycle.mount()
+      if (cover) {
+        controller.reveal = function () {
+          if (!cover) return
+          cover.remove()
+          cover = null
+          article.classList.remove('page-preparing')
+        }
+        stopCoverCleanup = page.addCleanup(controller.reveal)
+      }
+      page.scroll.onChange(rememberPosition)
+      page.requestAnimationFrame(function () { document.documentElement.classList.remove('theme-changing') })
+      return loadAnalytics(analytics, destination.href, page)
+    }
+    // Keep a visual copy of the old article while statistics load. Unlike a
+    // View Transition update callback, this leaves the loading animation running.
+    await mountPage()
     for (var script of scripts) {
       await runScript(script, destination.href, script)
-    }
-    if (analytics) runScript(analytics, destination.href, document.head.querySelector('script[data-page-analytics]')).catch(function () {})
-    else {
-      var oldAnalytics = document.head.querySelector('script[data-page-analytics]')
-      if (oldAnalytics) oldAnalytics.remove()
     }
     while (true) {
       // Let a user-requested footnote scroll finish before taking its snapshot.
@@ -311,12 +385,15 @@
           ? requestedPosition.saved : page.scroll.capture()
       }
       if (await restorePosition(displayedURL, position, {
-        focus: !state && !controller.interacted, animate: true, ready: true
+        focus: !state && !controller.interacted, ready: true
       })) break
       // A same-document action owns the new position and URL, including actions
       // during the two-frame restoration window.
       controller.interacted = true
     }
+    if (stopCoverCleanup) stopCoverCleanup()
+    controller.reveal = null
+    if (cover) fadeArticle(cover, article, page)
   }
   async function navigate(url, state) {
     if (initializing || requiresDocumentNavigation(document.body) || document.body.hasAttribute('data-no-pjax')) {
@@ -328,7 +405,7 @@
     rememberPage()
     var controller = new AbortController()
     pending = controller
-    loadingTimer = setTimeout(function () { showLoading(controller) }, 120)
+    showLoading(controller)
     document.querySelector('.app-shell').setAttribute('aria-busy', 'true')
     try {
       var prepared = await fetchPage(url, controller)

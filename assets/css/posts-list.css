@@ -2,11 +2,11 @@
    Posts List (homepage, section pages)
    ======================================================================== */
 
-#posts-list {
+.posts-list {
   padding-top: 40px;
 }
 
-#posts-list > section + section { margin-top: 48px; }
+.posts-list > section + section { margin-top: 48px; }
 
 .posts-line {
   font-size: 1.0625rem;
@@ -29,8 +29,8 @@
     font-size: 16px;
   }
 
-  #posts-list { padding-top: 32px; }
-  #posts-list > section + section { margin-top: 36px; }
+  .posts-list { padding-top: 32px; }
+  .posts-list > section + section { margin-top: 36px; }
 }
 
 

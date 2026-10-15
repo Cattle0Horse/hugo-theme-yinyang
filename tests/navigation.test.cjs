@@ -14,10 +14,12 @@ async function flush() {
   for (let i = 0; i < 10; i++) await new Promise(resolve => setImmediate(resolve))
 }
 
-function navigationFixture({ math = true } = {}) {
+function navigationFixture({ math = true, analytics = false } = {}) {
   const timers = new Map()
   const ready = []
   const font = deferred()
+  const observers = new Set()
+  const animationFrame = callback => setImmediate(callback)
   let fontRequested = false
   let sequence = 0
   class Element extends EventTarget {
@@ -40,8 +42,9 @@ function navigationFixture({ math = true } = {}) {
     querySelector() { return null }
     append() {}
     appendChild(node) { this.children.push(node) }
-    remove() {}
+    remove() { this.removed = true }
     cloneNode() { return new Element(Object.fromEntries(this.attributes)) }
+    getBoundingClientRect() { return { left: 0, top: 100, width: 800 } }
     isEqualNode(other) { return JSON.stringify([...this.attributes]) === JSON.stringify([...other.attributes]) }
   }
   const location = {
@@ -59,6 +62,12 @@ function navigationFixture({ math = true } = {}) {
   const heading = Object.assign(new Element(), { focus() {} })
   const article = new Element()
   const shell = new Element()
+  const countContainer = new Element()
+  const countValue = Object.assign(new Element(), { textContent: '' })
+  const analyticsScript = {
+    src: '/stats.js', attributes: [{ name: 'src', value: '/stats.js' }],
+    getAttribute: () => '/stats.js', textContent: ''
+  }
   const document = Object.assign(new EventTarget(), {
     documentElement: new Element(), baseURI: location.href,
     createElement: () => new Element(),
@@ -91,6 +100,12 @@ function navigationFixture({ math = true } = {}) {
   document.head = head
   document.body = body()
   const originalBody = document.body
+  document.getElementById = id => {
+    if (!analytics || document.body === originalBody || countContainer.removed) return null
+    if (id === 'busuanzi_container_page_pv') return countContainer
+    if (id === 'busuanzi_value_page_pv') return countValue
+    return null
+  }
   document.querySelector = selector => {
     if (selector === '.app-shell') return shell
     if (selector === '[data-page-math]') return head.children.find(node => node.hasAttribute('data-page-math'))
@@ -104,7 +119,11 @@ function navigationFixture({ math = true } = {}) {
   const next = {
     body: body(), documentElement: { lang: 'zh' },
     head: {
-      querySelector: selector => selector === '[data-page-math]' && math ? new Element({ 'data-page-head': '', 'data-page-math': '', href: '/math.css' }) : null,
+      querySelector(selector) {
+        if (selector === '[data-page-math]' && math) return new Element({ 'data-page-head': '', 'data-page-math': '', href: '/math.css' })
+        if (selector === 'script[data-page-analytics]' && analytics) return analyticsScript
+        return null
+      },
       querySelectorAll: () => math ? [new Element({ 'data-page-head': '', 'data-page-math': '', href: '/math.css' })] : []
     },
     getElementById: () => new Element(),
@@ -115,9 +134,11 @@ function navigationFixture({ math = true } = {}) {
   }
   let restoredHash = null
   function createPage() {
+    const cleanups = new Set()
     return {
-      active: true, dispose() { this.active = false }, listen() {},
-      requestAnimationFrame: callback => setImmediate(callback),
+      active: true, dispose() { this.active = false; cleanups.forEach(callback => callback()) }, listen() {},
+      addCleanup(callback) { cleanups.add(callback); return () => cleanups.delete(callback) },
+      requestAnimationFrame: animationFrame,
       onMotionEnd(node, options, callback) { callback() },
       scroll: {
         capture: () => ({ top: 0 }), onChange() {},
@@ -136,15 +157,25 @@ function navigationFixture({ math = true } = {}) {
     window, document, location, history, URL, AbortController,
     DOMParser: class { parseFromString() { return next } },
     NodeFilter: { SHOW_TEXT: 4 },
+    MutationObserver: class {
+      constructor(callback) { this.callback = callback }
+      observe() { observers.add(this) }
+      disconnect() { observers.delete(this) }
+    },
     getComputedStyle: () => ({ fontStyle: 'normal', fontWeight: '400', fontSize: '16px', fontFamily: 'KaTeX_Math' }),
     fetch: async url => ({ ok: true, url, headers: { get: () => 'text/html' }, text: async () => '' }),
     CustomEvent: class extends Event { constructor(type, options) { super(type); this.detail = options.detail } },
     setTimeout(callback, delay) { const id = ++sequence; timers.set(id, { callback, delay }); return id },
     clearTimeout: id => timers.delete(id),
-    requestAnimationFrame: callback => setImmediate(callback)
+    requestAnimationFrame: animationFrame
   })
   return {
     ready, font, article, shell, document, window, location, originalBody,
+    publishCount(value) {
+      if (countContainer.removed) return
+      countValue.textContent = value
+      observers.forEach(observer => observer.callback())
+    },
     get stylesheet() { return head.children[0] },
     get fontRequested() { return fontRequested },
     get restoredHash() { return restoredHash },
@@ -159,9 +190,9 @@ function navigationFixture({ math = true } = {}) {
       document.dispatchEvent(event)
       await flush()
     },
-    expire() {
+    expire(delay) {
       for (const [id, timer] of [...timers]) {
-        if (timer.delay !== 8000) continue
+        if (delay !== undefined && timer.delay !== delay) continue
         timers.delete(id)
         timer.callback()
       }
@@ -228,4 +259,36 @@ test('an action on the current page cancels preparation and prevents a late navi
   assert.equal(fixture.document.body, fixture.originalBody)
   assert.equal(fixture.location.href, 'https://example.test/#current-section')
   assert.equal(fixture.fontRequested, false)
+})
+
+test('the new view becomes ready with its reading count', async () => {
+  const fixture = navigationFixture({ math: false, analytics: true })
+  await fixture.navigate()
+  assert.deepEqual(fixture.ready, [], 'Loading the statistics script is not the same as receiving the count')
+  fixture.publishCount('42')
+  await flush()
+  assert.deepEqual(fixture.ready, ['https://example.test/math/'])
+  assert.equal(fixture.document.getElementById('busuanzi_value_page_pv').textContent, '42')
+})
+
+test('unavailable statistics do not block the new view or pop into it after the timeout', async () => {
+  const fixture = navigationFixture({ math: false, analytics: true })
+  await fixture.navigate()
+  fixture.expire()
+  await flush()
+  assert.deepEqual(fixture.ready, ['https://example.test/math/'])
+  fixture.publishCount('42')
+  assert.equal(fixture.document.getElementById('busuanzi_container_page_pv'), null)
+})
+
+test('an anchor action during the statistics wait reveals the article and retains the requested destination', async () => {
+  const fixture = navigationFixture({ math: false, analytics: true })
+  await fixture.navigate()
+  fixture.window.yinyangNavigation.pushHash('#current-section')
+  await flush()
+  assert.equal(fixture.article.classList.contains('page-preparing'), false)
+  fixture.publishCount('42')
+  await flush()
+  assert.equal(fixture.restoredHash, '#current-section')
+  assert.deepEqual(fixture.ready, ['https://example.test/math/#current-section'])
 })
