@@ -60,8 +60,9 @@
 .note-single-title {
   margin: 0 0 8px;
   font-size: 1.25rem;
-  font-weight: 600;
 }
+
+.note-entry-title { font-weight: 400; }
 
 .note-sources {
   margin-bottom: 10px;
@@ -98,11 +99,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.note-content {
-  font-size: 17px;
-  line-height: 1.8;
 }
 
 .note-content > :first-child {
@@ -184,6 +180,7 @@
 
 .note-single-title {
   font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .note-single-header .note-sources {

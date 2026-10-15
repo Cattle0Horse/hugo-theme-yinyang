@@ -2,12 +2,11 @@
    App Shell
    ======================================================================== */
 
-.app-scroll > article.page-preparing { opacity: 0; }
 .app-scroll > article.page-entering { animation: page-enter 200ms cubic-bezier(.2, .8, .2, 1) both; }
 
 @keyframes page-enter {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
+  from { transform: translateY(6px); }
+  to { transform: none; }
 }
 
 .navigation-loading {

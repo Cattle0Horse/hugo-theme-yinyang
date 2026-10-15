@@ -139,5 +139,15 @@
 .palette-option[data-appearance-value="indigo"] { --swatch-color: var(--palette-indigo-light); }
 .palette-option[data-appearance-value="violet"] { --swatch-color: var(--palette-violet-light); }
 .palette-option[data-appearance-value="graphite"] { --swatch-color: var(--palette-graphite-light); }
+.palette-option[data-appearance-value="teal"] { --swatch-color: var(--palette-teal-light); }
+.palette-option[data-appearance-value="amber"] { --swatch-color: var(--palette-amber-light); }
+.palette-option[data-appearance-value="rose"] { --swatch-color: var(--palette-rose-light); }
+
+:root[data-theme="dark"] .palette-option[data-appearance-value="indigo"] { --swatch-color: var(--palette-indigo-dark); }
+:root[data-theme="dark"] .palette-option[data-appearance-value="violet"] { --swatch-color: var(--palette-violet-dark); }
+:root[data-theme="dark"] .palette-option[data-appearance-value="graphite"] { --swatch-color: var(--palette-graphite-dark); }
+:root[data-theme="dark"] .palette-option[data-appearance-value="teal"] { --swatch-color: var(--palette-teal-dark); }
+:root[data-theme="dark"] .palette-option[data-appearance-value="amber"] { --swatch-color: var(--palette-amber-dark); }
+:root[data-theme="dark"] .palette-option[data-appearance-value="rose"] { --swatch-color: var(--palette-rose-dark); }
 
 

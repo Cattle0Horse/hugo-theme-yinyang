@@ -2,17 +2,25 @@
    Site Header
    ======================================================================== */
 
+.site-header-content {
+  box-sizing: border-box;
+  padding-top: 48px;
+}
+
 .site-date-catalog {
-  font-size: 2rem;
+  margin: 0 0 20px;
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .header-title {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-top: 32px;
-  font-family: inherit;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 600;
+  margin-top: 0;
+  font-family: var(--font-heading, inherit);
+  line-height: 1.3;
+  letter-spacing: -0.025em;
 }
 .header-title a {
   color: var(--color-heading);
@@ -20,7 +28,10 @@
 }
 
 .header-subtitle {
+  margin-top: 10px;
   color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 .header-items {
@@ -28,9 +39,8 @@
   align-items: center;
   flex-wrap: nowrap;
   justify-content: flex-end;
-  gap: 10px;
-  margin: 10px 0 0 0;
-  padding-right: 10px;
+  gap: 16px;
+  margin: 24px 0 16px;
 }
 
 .header-items > .header-item:first-child {
@@ -39,15 +49,24 @@
 
 .header-item {
   margin: 0;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 500;
 }
+
+.header-links a {
+  --link-underline-thickness: 1px;
+  color: var(--color-text-secondary);
+}
+
+.header-links a:hover,
+.header-links a:focus-visible { color: var(--color-accent); }
 
 .appearance-controls { flex-shrink: 0; }
 .header-nav { display: flex; align-items: center; min-width: 0; }
 .header-links {
   display: flex;
   flex-shrink: 0;
-  gap: 10px;
+  gap: 18px;
   width: max-content;
   white-space: nowrap;
 }
@@ -97,9 +116,14 @@
 
 .header-line {
   width: 100%;
-  border-width: 2px;
+  border-width: 1px;
   border-color: var(--color-header-line);
   border-style: solid none none none;
+}
+
+@media screen and (max-width: 600px) {
+  .site-header-content { padding-top: 32px; }
+  .header-links { gap: 14px; }
 }
 
 

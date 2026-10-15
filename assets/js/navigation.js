@@ -73,7 +73,6 @@
     if (options.animate) {
       var article = document.querySelector('.app-scroll > article')
       if (article) {
-        article.classList.remove('page-preparing')
         article.classList.add('page-entering')
         page.onMotionEnd(article, { type: 'animationend', animation: 'page-enter', timeout: 300 }, function () {
           article.classList.remove('page-entering')
@@ -129,8 +128,6 @@
     }
     if (initializing) {
       initializing.interacted = true
-      var article = document.querySelector('.app-scroll > article')
-      if (article) article.classList.remove('page-preparing')
     } else {
       if (pending) pending.abort()
       pending = null
@@ -173,6 +170,77 @@
     })
     previous.forEach(function (node) { node.remove() })
   }
+  function loadMathFonts(root) {
+    var fonts = new Map()
+    root.querySelectorAll('.katex-html').forEach(function (formula) {
+      var walker = document.createTreeWalker(formula, NodeFilter.SHOW_TEXT)
+      var text
+      while ((text = walker.nextNode())) {
+        if (!text.textContent.trim()) continue
+        var style = getComputedStyle(text.parentElement)
+        var font = style.fontStyle + ' ' + style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily
+        fonts.set(font, (fonts.get(font) || '') + text.textContent)
+      }
+    })
+    return Promise.all(Array.from(fonts, function (entry) { return document.fonts.load(entry[0], entry[1]) }))
+  }
+  function prepareMath(next, controller) {
+    var source = next.head.querySelector('[data-page-math]')
+    if (!source) return Promise.resolve()
+    var existing = Array.from(document.head.querySelectorAll('[data-page-math]')).find(function (node) { return node.isEqualNode(source) })
+    var link = existing || source.cloneNode(true)
+    return new Promise(function (resolve) {
+      var finished = false
+      var probe = null
+      var timer = setTimeout(finish, 8000)
+      function finish() {
+        if (finished) return
+        finished = true
+        clearTimeout(timer)
+        link.removeEventListener('load', loaded)
+        link.removeEventListener('error', finish)
+        controller.signal.removeEventListener('abort', finish)
+        if (probe) probe.remove()
+        if (!existing && controller.signal.aborted) link.remove()
+        resolve()
+      }
+      async function loaded() {
+        if (finished) return
+        link.removeEventListener('load', loaded)
+        try {
+          if (document.fonts && document.fonts.load) {
+            // Render only formula clones offscreen; the current article stays live.
+            // Explicit font loads also cover text annotations without waiting for unrelated fonts.
+            probe = document.createElement('div')
+            probe.className = 'markdown-body'
+            probe.setAttribute('aria-hidden', 'true')
+            probe.inert = true
+            probe.style.cssText = 'position:fixed;left:-100000px;top:0;visibility:hidden;pointer-events:none'
+            next.body.querySelectorAll('.katex').forEach(function (formula) {
+              var display = formula.parentElement.classList.contains('katex-display')
+              var clone = (display ? formula.parentElement : formula).cloneNode(true)
+              clone.removeAttribute('id')
+              clone.querySelectorAll('[id]').forEach(function (node) { node.removeAttribute('id') })
+              probe.appendChild(clone)
+            })
+            document.body.appendChild(probe)
+            await loadMathFonts(probe)
+          }
+        } catch (error) {
+          // Failed resources must not trap navigation or cause reload loops.
+        }
+        finish()
+      }
+      controller.signal.addEventListener('abort', finish, { once: true })
+      link.addEventListener('error', finish, { once: true })
+      if (link.sheet) loaded()
+      else {
+        link.addEventListener('load', loaded, { once: true })
+        if (!existing) document.head.appendChild(link)
+      }
+      if (controller.signal.aborted) finish()
+    })
+  }
   function runScript(source, url, target) {
     return new Promise(function (resolve, reject) {
       var script = document.createElement('script')
@@ -206,7 +274,6 @@
     var destination = prepared.url
     var scripts = Array.from(next.body.querySelectorAll('script[data-page-runtime]'))
     var analytics = next.head.querySelector('script[data-page-analytics]')
-    hideLoading()
     document.dispatchEvent(new CustomEvent('yinyang:before-navigate', { detail: { url: destination.href } }))
     rememberPage()
     var saved = state && state.yinyang ? positions.get(state.yinyang.id) : null
@@ -219,9 +286,9 @@
     if (saved && saved.folds) next.body.querySelectorAll('.code-block-body').forEach(function (body, index) {
       if (typeof saved.folds[index] === 'boolean') body.classList.toggle('is-folded', saved.folds[index])
     })
-    var article = next.body.querySelector('.app-scroll > article')
-    if (article) article.classList.add('page-preparing')
     document.body.replaceWith(next.body)
+    if (loading) document.body.appendChild(loading)
+    document.querySelector('.app-shell').setAttribute('aria-busy', 'true')
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     lifecycle.page = lifecycle.createPage()
     var page = lifecycle.mount()
@@ -265,6 +332,8 @@
     document.querySelector('.app-shell').setAttribute('aria-busy', 'true')
     try {
       var prepared = await fetchPage(url, controller)
+      if (pending !== controller) return
+      await prepareMath(prepared.document, controller)
       if (pending !== controller) return
       await commitPage(prepared, state, controller)
     } catch (error) {

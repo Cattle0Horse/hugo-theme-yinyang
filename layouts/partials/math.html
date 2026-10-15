@@ -5,7 +5,5 @@
   {{- end -}}
 {{- end -}}
 {{- if strings.Contains $content `class="katex` -}}
-{{- $css := resources.Get "css/katex.min.css" -}}
-{{- $fontBase := relURL "fonts/katex/" -}}
-<style data-page-head>{{ replace $css.Content "url(fonts/" (printf "url(%s" $fontBase) | safeCSS }}</style>
+<link data-page-head data-page-math rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.19.0/dist/katex.min.css" integrity="sha384-3rdsX6e5mueWyoweR9NIVmtEsUkokpBT/0ALqKKIBMr9j4qhHkaIkAcGgsE6uVlp" crossorigin="anonymous" />
 {{- end -}}

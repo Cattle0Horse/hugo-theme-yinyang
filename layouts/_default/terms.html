@@ -3,9 +3,7 @@
   <div class="row">
     <div class="col-xs-12">
       <h1 class="taxonomy-term">{{ .Data.Plural | humanize }}</h1>
-      <div id="posts-list">
-        {{ partial "terms-list.html" . }}
-      </div>
+      {{ partial "terms-list.html" . }}
     </div>
   </div>
 </article>

@@ -59,14 +59,6 @@ description = "By accumulating small steps, one can reach a thousand miles."
 mainSections = ["posts"]
 favicon = "/logo.png"
 extraCSSFiles = ["css/background.css"]
-extraHead = '''
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@callmebill/lxgw-wenkai-web@latest/lxgwwenkai-regular/result.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.min.css" />
-  <style>
-    body { font-family: "LXGW WenKai", sans-serif; }
-    pre, code { font-family: "Fira Code", "SF Mono", Menlo, monospace; }
-  </style>
-'''
 tableOfContents = true
 codeMaxLines = 15
 
@@ -75,7 +67,7 @@ enabled = true
 
 [params.colorScheme]
 default = "indigo"
-available = ["indigo", "violet", "graphite"]
+available = ["indigo", "violet", "teal", "amber", "rose", "graphite"]
 allowUserChoice = true
 
 [params.image]

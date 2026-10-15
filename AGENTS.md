@@ -25,7 +25,7 @@ node --expose-gc --test
 - `runtime-body.html`：输出 `#yinyang-page-config` JSON（palette、imageLoading、footnotes、copyIcons）和 tooltip 容器；随后 baseof 注入 `extraBody`。
 - 内容 partial 保留构建期职责：文章列表与标签、Notes 来源 / 标签、操作区与编辑 URL、图片结构、代码工具栏与公式 HTML。功能脚本位于 `assets/js/`，不再通过逐页脚本 partial 装配。
 
-CSS 由 `head.html` 将 16 个文件按 variables → global → site-header → theme-toggle → posts-list → notes → post-page → taxonomy → gallery → footnotes → app-shell → code-blocks → actions → toc → image-loading → mobile 合并、压缩后内联。`syntax.css` 独立压缩内联，KaTeX CSS 按实际渲染内容加载；`extraCSSFiles` 生成独立样式链接。
+CSS 由 `head.html` 将 16 个文件按 variables → global → site-header → theme-toggle → posts-list → notes → post-page → taxonomy → gallery → footnotes → app-shell → code-blocks → actions → toc → image-loading → mobile 合并、压缩后内联。`fonts.css` 独立压缩、指纹化并以样式链接加载，`syntax.css` 独立压缩内联，KaTeX CSS 按实际渲染内容加载；`extraCSSFiles` 生成独立样式链接。
 
 ### 页面生命周期与功能层
 
@@ -51,9 +51,9 @@ CSS 由 `head.html` 将 16 个文件按 variables → global → site-header →
 
 普通同源 HTML 链接使用 Fetch + History API。新标签页、修饰键点击、下载、资源链接、外链及 `data-no-pjax` 保留原生行为。目标缺少主题结构、运行时版本变化、当前或目标正文含未托管的可执行脚本或内联 module，或请求 / 脚本加载失败时回退完整导航。
 
-提交前发出 `yinyang:before-navigate`，销毁旧 page，更新 `data-page-head` 节点并替换 body；外观属性保留在 documentElement。新页面 mount 后顺序重放 `data-page-runtime` 正文脚本，等待外部经典脚本和外部 module 的 load，再恢复焦点与阅读状态。内联 module 不进入无刷新导航，避免依赖不存在的 load 完成事件或改写模块导入语义。已插入脚本不能回滚，初始化期间的锚点操作显示正文并保留最新目标，再次跨页使用完整导航。恢复代次防止旧异步定位覆盖新操作。首次加载、普通 fragment 和脚注入口由导航统一路由。`yinyang:page-ready` 在初始化和滚动恢复后由 document 发出，包含 `detail.url`；它不等待所有图片、字体或第三方统计完成。
+获取并校验目标 HTML 后，含公式的目标页先准备 `data-page-math` 样式与公式实际使用的字体；通过屏幕外的公式副本获取字库需求，当前页面和交互保持可用，仅显示加载提示。点击导航的地址与正文在准备结束后一起提交；新的导航或当前页锚点操作会取消准备、移除临时副本和新增样式。资源失败或总等待超过 8 秒时继续切换，避免导航被 CDN 永久阻塞。
 
-历史恢复保存正文锚点及其视口偏移、代码展开状态，以及代码、表格、块级公式和缩进代码的横向位置。状态保存在当前文档内存中，不承诺刷新后恢复。页面进入动画仅作用于 article（200ms opacity + 6px translateY），Header 不参与；超过 120ms 的请求显示进度与状态提示。
+提交前发出 `yinyang:before-navigate`，销毁旧 page，更新 `data-page-head` 节点并替换 body；外观属性保留在 documentElement。新正文直接可见，进入动画只保留 6px 位移，不隐藏正文。新页面 mount 后顺序重放 `data-page-runtime` 正文脚本，等待外部经典脚本和外部 module 的 load，再恢复焦点与阅读状态。内联 module 不进入无刷新导航，避免依赖不存在的 load 完成事件或改写模块导入语义。已插入脚本不能回滚，初始化期间的锚点操作保留最新目标，再次跨页使用完整导航。恢复代次防止旧异步定位覆盖新操作。首次加载、普通 fragment 和脚注入口由导航统一路由。`yinyang:page-ready` 在初始化和滚动恢复后由 document 发出，包含 `detail.url`；它不等待所有图片、全站字体或第三方统计完成，首次加载也不额外等待公式资源。
 
 ### 自定义脚本
 
@@ -73,9 +73,9 @@ CSS 由 `head.html` 将 16 个文件按 variables → global → site-header →
 
 ### 数学公式
 
-`_markup/render-passthrough.html` 配合 Goldmark passthrough，在构建期调用 Hugo `transform.ToMath`，输出 HTML + MathML；非法 LaTeX 使用错误颜色标注，不阻断构建。`math.html` 检查实际渲染 HTML 中的 KaTeX 标记；Notes 时间线通过共用 `notes-paginator.html` 检查当前分页内容，包含标签时间线。字体 URL 使用站点相对路径，支持 baseURL 子目录。
+`_markup/render-passthrough.html` 配合 Goldmark passthrough，在构建期调用 Hugo `transform.ToMath`，输出 HTML + MathML；非法 LaTeX 使用错误颜色标注，不阻断构建。`math.html` 检查实际渲染 HTML 中的 KaTeX 标记；Notes 时间线通过共用 `notes-paginator.html` 检查当前分页内容，包含标签时间线。含公式时输出带 `data-page-head`、SRI 和 crossorigin 的 jsDelivr KaTeX 0.19.0 CSS 链接，字体随 CSS 从 CDN 加载，不包含浏览器公式渲染 JS 或本地 KaTeX 资源。
 
-KaTeX 样式和 `static/fonts/katex/` vendored 字体须与 Hugo 内置版本匹配（当前 0.17.0；0.18 起 class 有 breaking change）。裸 `<` / `>` 使用 `\lt` / `\gt`，对齐 `&` 使用 `\&`，换行用双反斜杠。块级公式内 `=` / `-` 等标记不能单独成行，否则 Markdown 可能将其解析为 setext 标题，打断公式块。Markdown 复制保留原始公式源码。
+KaTeX CDN 固定为 0.19.0，不使用浮动 latest URL；升级须验证 Hugo 构建输出与样式兼容，尤其 0.18 起部分类名添加 `katex-` 前缀（当前 Hugo 0.168.0 已验证）。裸 `<` / `>` 使用 `\lt` / `\gt`，对齐 `&` 使用 `\&`，换行用双反斜杠。块级公式内 `=` / `-` 等标记不能单独成行，否则 Markdown 可能将其解析为 setext 标题，打断公式块。Markdown 复制保留原始公式源码。
 
 ### Notes、Blog 与 Gallery
 
@@ -90,12 +90,15 @@ KaTeX 样式和 `static/fonts/katex/` vendored 字体须与 Hugo 内置版本匹
 ## 跨功能约定
 
 - 可见颜色使用 `variables.css` 的亮 / 暗 CSS 变量。明暗与配色独立，`theme-changing` 短暂禁用全局过渡；主动明暗切换在支持的浏览器使用圆形 View Transition。
+- 字体使用 `--font-body` / `--font-heading` / `--font-code` 区分正文、标题和代码，标题默认继承所在页面字体；`fonts.css` 通过 UNPKG 加载固定版本 `@zf-web-font/opposans@0.2.0` 的 400 / 500 / 700 字重，通过 jsDelivr 加载 Fira Code 6.2.0 可变字库。正文在桌面和手机上均使用 14px、Regular 400、0.025em 字距和中西文自动间距；段落行高 1.8、下间距 32px；粗体和正文链接使用 600 字重及柔化的主题色。`--color-prose` 管理亮 / 暗正文颜色；代码和公式重置字距与自动间距。使用 `font-display: swap` 并保留系统字体回退，字体文件不随主题分发，示例站无需额外注入字体。正文标题、段落和列表的间距统一在 `global.css` 管理。
+- 页头顶部留白由 `.site-header-content` 的 padding 提供，避免标题 margin 沿父级折叠后叠加 `.app-shell` 的整屏最小高度；列表不另设固定最小高度，短页由应用外壳撑满视口。
 - 图标源位于 `assets/icons/*.svg`，`icon.html` 构建期内联并移除 xmlns，通过 currentColor 着色；运行时复制图标由页面 JSON 配置提供。
 - 动画结束监听使用生命周期工具，并带计时器兜底；销毁 DOM 前等待关闭动画，页面 dispose 时直接清理。
 - 模态使用 dialog / aria-modal，打开移入焦点、Esc 关闭、Tab 陷阱、关闭归还焦点；锁定背景须同时覆盖宽屏 html/body 与窄屏 appScroll，保存并恢复位置。
 - 动态交互采用页面生命周期管理的 document 委托和打开态 guard；浮层按需创建、关闭后销毁，动态文本使用 textContent。
 - TOC backdrop / 面板 / 按钮层级为 998 / 1000 / 1001，全屏模态使用 2000；模态控件用 aria-label，不挂 data-tooltip。
 - 宽表格仅溢出时提供焦点和滑动提示；代码、表格与块级公式限制横向 overscroll。全局链接 hover 保持字重稳定。
+- Header 导航、Posts 标题和 Notes 标题 / 时间 / 来源 / 标签链接共用 `global.css` 的动态下划线：hover 或键盘聚焦时从左展开，离开时向右收起；使用逐行背景兼容长标题换行。
 
 ## 配置参数（全部位于 `[params]` 下）
 
@@ -109,7 +112,7 @@ KaTeX 样式和 `static/fonts/katex/` vendored 字体须与 Hugo 内置版本匹
 - `extraBody` — 注入 `</body>` 前的原始 HTML
 - `postContent` — 站点配置（映射），文章首尾注入：`enabled`（布尔值，总闸）、`header` / `footer`（文章正文前后的注入 HTML，`safeHTML`）
 - `extraCSSFiles` — 额外 CSS 路径数组，以 `<link>` 加载
-- `colorScheme` — 站点配置（映射），配色方案：`default`（默认 `indigo`）、`available`（允许 `indigo` / `violet` / `graphite`）、`allowUserChoice`（多于一套有效配色时显示选择器）
+- `colorScheme` — 站点配置（映射），配色方案：`default`（默认 `indigo`）、`available`（允许 `indigo` / `violet` / `teal` / `amber` / `rose` / `graphite`）、`allowUserChoice`（多于一套有效配色时显示选择器）
 - `staticPrefix` — CDN 前缀，同时生成 `dns-prefetch`
 - `image` — 站点配置（映射），图片增强：`enabled`（布尔值，总闸）、`lazy`（布尔值，为 `<img>` 添加 `loading="lazy"`）、`loading`（布尔值，启用骨架屏 + 加载失败重试，首页不生效）、`border` / `galleryBorder`（布尔值，分别启用正文 / Gallery 图片的柔和内描边，默认关闭，跳过 SVG）
 - `actions` — 站点配置（映射），文章操作区总开关与子功能：`enabled`（布尔值，总闸，`false` 或未配时编辑/复制按钮全部不渲染）、`copyMarkdown`（布尔值，启用"复制 Markdown"按钮）、嵌套 `editPage`（`enabled` 布尔值 + `repo` GitHub 仓库 URL + `branch` 分支名默认 `main` + `text` 纠错链接文字）。编辑按钮需 `actions.enabled` + `editPage.enabled` + `editPage.repo` 同时满足

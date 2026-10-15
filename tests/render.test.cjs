@@ -64,13 +64,16 @@ after(() => {
 })
 
 test('Notes and tag pagination load math styles for the displayed notes', () => {
+  const stylesheet = /<link\b[^>]*rel="stylesheet"[^>]*href="https:\/\/cdn\.jsdelivr\.net\/npm\/katex@[^"]+\/dist\/katex\.min\.css"[^>]*>/
   for (const route of ['notes', 'notes/tags/math']) {
     const first = html(`${route}/index.html`)
     const second = html(`${route}/page/2/index.html`)
     assert.equal(first.includes('class="katex"'), false)
-    assert.equal(first.includes('@font-face'), false)
+    assert.equal(stylesheet.test(first), false)
     assert.equal(second.includes('class="katex"'), true)
-    assert.equal(second.includes('@font-face'), true)
+    assert.equal(stylesheet.test(second), true)
+    assert.ok(second.includes('class="katex-base"'), 'Build-time markup must use the classes supported by the CDN stylesheet')
+    assert.equal(/<script\b[^>]*src="[^"]*katex[^"/]*\.js"/.test(second), false)
   }
 })
 

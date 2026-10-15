@@ -14,11 +14,11 @@
 
 | 功能 | 说明 |
 |---|---|
-| 🌓 外观切换 | 靛蓝 / 紫罗兰 / 石墨配色与明暗模式独立选择，支持亮色 / 暗色 / 跟随浏览器、偏好保存与首次加载无闪屏；支持的浏览器中提供明暗切换圆形扩散动画 |
-| 🧭 站内导航 | 无刷新切换页面、正文淡入与加载进度提示；前进后退恢复阅读位置、代码展开状态和内容横向滚动位置 |
+| 🌓 外观切换 | 靛蓝 / 紫罗兰 / 青绿 / 琥珀 / 玫瑰 / 石墨配色与明暗模式独立选择，支持亮色 / 暗色 / 跟随浏览器、偏好保存与首次加载无闪屏；支持的浏览器中提供明暗切换圆形扩散动画 |
+| 🧭 站内导航 | 无刷新切换页面、正文进入动效与加载进度提示；前进后退恢复阅读位置、代码展开状态和内容横向滚动位置 |
 | 📱 自适应布局 | 宽窄屏切换保持阅读位置，页头链接空间不足时自动收进菜单，Gallery 手机单列展示 |
-| 📖 阅读排版 | 系统字体栈、长标题换行、宽表格局部横向滚动与滑动提示，代码和公式独立横向滚动 |
-| 📐 数学公式 | 构建期 KaTeX 渲染行内与块级公式，输出 HTML 与 MathML，按需加载样式，页面加载无需公式渲染 JS、无跳变 |
+| 📖 阅读排版 | OPPO Sans 正文与 Fira Code 代码字体、长标题换行、宽表格局部横向滚动与滑动提示，代码和公式独立横向滚动 |
+| 📐 数学公式 | 构建期 KaTeX 渲染行内与块级公式，输出 HTML 与 MathML，按需从 CDN 加载样式与字体，页面加载无需公式渲染 JS |
 | 💻 代码块工具栏 | 语法高亮、语言标签、一键复制、长代码折叠与展开，缩进式代码块也支持复制 |
 | 🖼 图片增强 | 原生懒加载、异步解码、骨架屏占位、加载淡入与失败重试；正文和 Gallery 可独立启用柔和内描边 |
 | 📑 文章目录 | 宽屏侧边栏 / 窄屏浮层，滚动高亮与自动跟随，点击跳转并标记标题，可按文章禁用 |
@@ -107,17 +107,17 @@ Blog 标签继续使用 `tags`，链接到 `/tags/<tag>/`；Note 标签写在 `n
 
 ### 配色与明暗模式
 
-主题内置靛蓝（`indigo`）、紫罗兰（`violet`）和石墨（`graphite`）三套配色，共用中性背景，每套均支持亮色与暗色。页头的色点按钮展开紧凑色点调色盘，浅色底与细边框标记当前配色。明暗按钮点击轮换「亮色 → 暗色 → 跟随浏览器」，默认跟随浏览器并实时响应其偏好变化。手动选择会保存在浏览器中，重新选择「跟随浏览器」会清除手动明暗偏好。
+主题内置靛蓝（`indigo`）、紫罗兰（`violet`）、青绿（`teal`）、琥珀（`amber`）、玫瑰（`rose`）和石墨（`graphite`）六套配色，共用中性背景，每套均支持亮色与暗色。页头的色点按钮展开紧凑色点调色盘，浅色底与细边框标记当前配色。明暗按钮点击轮换「亮色 → 暗色 → 跟随浏览器」，默认跟随浏览器并实时响应其偏好变化。手动选择会保存在浏览器中，重新选择「跟随浏览器」会清除手动明暗偏好。
 
 ```toml
 [params.colorScheme]
 default = "indigo"
-available = ["indigo", "violet", "graphite"]
+available = ["indigo", "violet", "teal", "amber", "rose", "graphite"]
 allowUserChoice = true
 ```
 
 - `default`：首次访问时使用的配色；未配置或不在 `available` 中时，使用第一套有效配色。
-- `available`：站点允许的配色；目前支持 `indigo`、`violet`、`graphite`，无效值会被忽略。
+- `available`：站点允许的配色；支持上述六种配色，无效值会被忽略。
 - `allowUserChoice`：至少有两套可用配色时，在页头显示调色盘按钮。
 
 不配置 `[params.colorScheme]` 时使用靛蓝配色且不显示调色盘。明暗选择按钮始终保留。旧配色配置或浏览器保存的旧配色值会回退到有效默认配色。
@@ -229,29 +229,14 @@ draft: true
 
 ### 字体
 
-本主题使用**系统字体栈**——无需 CDN、无需下载、无 FOFT。浏览器自动为每个平台选择最佳字体：
+标题、正文和导航默认使用 **OPPO Sans**，代码块与行内代码默认使用 **Fira Code**，代码中的中文回退 OPPO Sans，无需在 `extraHead` 中注入字体。OPPO Sans 通过 UNPKG 加载固定版本 `@zf-web-font/opposans@0.2.0` 的 Regular 400 / Medium 500 / Bold 700 WOFF2；Fira Code 通过 jsDelivr 加载 6.2.0 可变字库。正文在桌面和手机上均使用 14px、Regular 400、0.025em 字距和中西文自动间距，段落使用 1.8 倍行高、32px 下间距；粗体和正文链接使用 600 字重及柔化的主题色。正文颜色和页面背景区分明暗模式，代码与公式保持独立的字距。字体按实际使用请求，文件不随主题分发；OPPO Sans 完整字库的首访下载量较大。`font-display: swap` 让文字先用系统字体显示，加载完成后切换；字库未覆盖的字符或字体加载失败时回退系统字体。
 
 | 用途 | 字体栈 |
 |---|---|
-| 正文 | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", ...` |
-| 代码 | `"SF Mono", "Fira Code", Menlo, Monaco, "Courier New", ...` |
+| 标题、正文与导航 | `"OPPO Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", ...` |
+| 代码 | `"Fira Code", "SF Mono", Menlo, Monaco, "Courier New", ...` |
 
-如需使用自定义字体，通过 `extraHead` 注入 CDN 并覆盖优先级。以下以霞鹜文楷（正文）+
-Fira Code（代码）为例：
-
-```toml
-[params]
-extraHead = '''
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@callmebill/lxgw-wenkai-web@latest/lxgwwenkai-regular/result.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.min.css" />
-  <style>
-    body { font-family: "LXGW WenKai", sans-serif; }
-    pre, code { font-family: "Fira Code", "SF Mono", Menlo, monospace; }
-  </style>
-'''
-```
-
-或者使用 `extraCSSFiles` 加载自己的样式表：
+标题默认继承正文字体；可通过 `--font-body` / `--font-heading` / `--font-code` 分别调整正文、标题与代码字体。使用 `extraCSSFiles` 加载自己的字体样式表：
 
 ```toml
 [params]
@@ -298,7 +283,7 @@ enabled = true
 
 ### 数学公式
 
-本主题在构建期将 `$...$` / `$$...$$` 渲染为 KaTeX HTML，页面加载时**无需加载任何 JS**、公式不会跳动。使用前需启用 Goldmark 的 passthrough 扩展：
+本主题在构建期将 `$...$` / `$$...$$` 渲染为 KaTeX HTML 与 MathML，页面加载时**无需公式渲染 JS**。仅含公式的页面通过 jsDelivr 加载固定版本 KaTeX 0.19.0 的 CSS 及其引用的字体，Notes 时间线按当前分页内容判断。无刷新导航会保留当前页面，等待目标页公式 CSS 和公式实际使用的字体，再切换正文、恢复阅读位置；等待期间仍可操作当前页面或改选其他链接。加载失败或超过 8 秒后继续切换，CDN 不可用时公式排版可能异常。直接打开或刷新页面仍遵循浏览器自身的样式与字体加载流程。使用支持新版 KaTeX 类名的 Hugo（当前已验证 0.168.0），升级样式时须核对构建输出的兼容性。使用前需启用 Goldmark 的 passthrough 扩展：
 
 ```toml
 [markup]
@@ -477,7 +462,7 @@ staticPrefix = "https://cdn.jsdelivr.net/gh/cattle0horse/blog"
 
 [params.colorScheme]
 default = "indigo"
-available = ["indigo", "violet", "graphite"]
+available = ["indigo", "violet", "teal", "amber", "rose", "graphite"]
 allowUserChoice = true
 
 [params.image]

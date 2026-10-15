@@ -3,12 +3,25 @@
    ======================================================================== */
 
 #posts-list {
-  min-height: 600px;
+  padding-top: 40px;
 }
 
+#posts-list > section + section { margin-top: 48px; }
+
 .posts-line {
-  font-size: 1.2rem;
-  margin: 12px 0;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  margin: 16px 0;
+}
+
+.posts-title a { padding-block: 3px; }
+
+.posts-date {
+  padding-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 @media screen and (max-width: 600px) {
@@ -16,10 +29,8 @@
     font-size: 16px;
   }
 
-  .posts-date {
-    font-size: 14px;
-    white-space: nowrap;
-  }
+  #posts-list { padding-top: 32px; }
+  #posts-list > section + section { margin-top: 36px; }
 }
 
 

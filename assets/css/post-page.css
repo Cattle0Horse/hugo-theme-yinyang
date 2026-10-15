@@ -3,17 +3,19 @@
    ======================================================================== */
 
 .post-header {
-  margin-bottom: 50px;
+  margin: 48px 0 40px;
 }
 
 .post-title {
-  font-size: 2rem;
-  font-weight: 600;
+  margin: 0 0 20px;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 500;
+  line-height: 1.35;
 }
 
 .post-tag {
   display: inline-block;
-  font-weight: 600;
+  font-weight: 400;
   padding: 2px 10px;
   margin: 2px 6px 2px 0;
   border: 1px solid var(--color-border);
@@ -29,8 +31,10 @@
 }
 
 .post-date {
-  font-weight: 800;
-  font-style: italic;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---- AI 创作声明 ---- */
@@ -58,18 +62,9 @@
   margin-bottom: 50px;
 }
 
-.post-content a {
-  color: inherit;
-  text-decoration-color: var(--color-link-underline);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.18em;
-}
-
 .post-content p {
   hyphens: auto;
-  line-height: 1.8;
   text-justify: ideographic;
-  margin-bottom: 1em;
 }
 
 .post-content img {
@@ -102,15 +97,7 @@
 }
 
 @media screen and (max-width: 600px) {
-  .markdown-body {
-    font-size: 16px;
-  }
-  .post-title {
-    font-size: 2rem;
-  }
-  .post-content p {
-    letter-spacing: 0.05em;
-  }
+  .post-header { margin: 32px 0; }
   .post-content .post-gallery img {
     width: 100%;
     height: auto;
@@ -141,14 +128,10 @@
   white-space: nowrap;
 }
 
-.post .busuanzi-page-count {
-  font-style: italic;
-}
-
 .busuanzi-page-count:not(:first-child)::before {
   content: "·";
-  margin: 0 16px;
-  color: var(--color-text);
+  margin: 0 12px;
+  color: var(--color-text-muted);
 }
 
 @media screen and (max-width: 600px) {

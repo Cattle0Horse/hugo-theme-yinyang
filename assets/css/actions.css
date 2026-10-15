@@ -34,7 +34,6 @@
 .action-icon { display: inline-flex; width: var(--action-icon-size); height: var(--action-icon-size); }
 
 .header-item a,
-.posts-title a,
 .terms-link,
 .edit-page a {
   display: inline-flex;

@@ -35,6 +35,9 @@
   <meta data-page-head name="description" content="{{ $meta.description }}" />
   <meta data-page-head property="og:locale" content="{{ .Site.Language.Locale }}" />
   {{ range $meta.images }}<meta data-page-head property="og:image" content="{{ . }}" />{{ end }}
+  {{ with resources.Get "css/fonts.css" | minify | fingerprint }}
+  <link data-page-head rel="stylesheet" href="{{ .RelPermalink }}" />
+  {{ end }}
   {{ $files := slice }}
   {{ range $path := slice
     "css/variables.css"

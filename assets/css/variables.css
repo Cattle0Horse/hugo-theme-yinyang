@@ -5,11 +5,16 @@
 :root {
   color-scheme: light;
 
+  --font-body: "OPPO Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --font-code: "Fira Code", "SF Mono", "Fira Mono", "Roboto Mono", Menlo, Monaco, "Liberation Mono", "Courier New", "OPPO Sans", "PingFang SC", "Microsoft YaHei", monospace;
+
   --code-fold-max: 360px;
   --action-button-size: 32px;
   --action-icon-size: 16px;
-  --color-bg: #fff;
+  --color-bg: oklch(98% 0.012 85);
   --color-text: #18181b;
+  --color-prose: oklch(40% 0.005 298);
+  --color-prose-emphasis: color-mix(in srgb, var(--color-accent) 55%, var(--color-prose));
   --color-heading: var(--color-text);
   --color-link: var(--color-accent);
   --color-link-underline: color-mix(in srgb, var(--color-text) 35%, transparent);
@@ -25,7 +30,7 @@
   --color-code-bg: #fafafa;
   --color-table-bg: #fafafa;
   --color-table-code-bg: #f4f4f5;
-  --color-header-line: var(--color-text);
+  --color-header-line: var(--color-border);
   --color-surface: #fff;
   --color-surface-hover: #f4f4f5;
   --color-shadow: rgba(0, 0, 0, 0.1);
@@ -44,6 +49,15 @@
   --palette-violet-light: #7c3aed;
   --palette-violet-hover: #6d28d9;
   --palette-violet-dark: #a78bfa;
+  --palette-teal-light: #0f766e;
+  --palette-teal-hover: #115e59;
+  --palette-teal-dark: #5eead4;
+  --palette-amber-light: #b45309;
+  --palette-amber-hover: #92400e;
+  --palette-amber-dark: #fbbf24;
+  --palette-rose-light: #be185d;
+  --palette-rose-hover: #9d174d;
+  --palette-rose-dark: #f9a8d4;
   --palette-graphite-light: #525963;
   --palette-graphite-hover: #414751;
   --palette-graphite-dark: #b7bec9;
@@ -82,8 +96,9 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-bg: #1b1d21;
+  --color-bg: oklch(22% 0.005 298);
   --color-text: #d9dce2;
+  --color-prose: oklch(77% 0.005 298);
   --color-link-underline: color-mix(in srgb, var(--color-text) 35%, transparent);
   --color-text-secondary: #b3b9c4;
   --color-text-muted: #949da9;
@@ -94,7 +109,7 @@
   --color-code-bg: #22252a;
   --color-table-bg: #22252a;
   --color-table-code-bg: #2c3036;
-  --color-header-line: var(--color-text);
+  --color-header-line: var(--color-border);
   --color-surface: #22252a;
   --color-surface-hover: #2c3036;
   --color-shadow: rgba(0, 0, 0, 0.3);
@@ -140,6 +155,24 @@
   --palette-accent-light: var(--palette-graphite-light);
   --palette-accent-hover: var(--palette-graphite-hover);
   --palette-accent-dark: var(--palette-graphite-dark);
+}
+
+:root[data-palette="teal"] {
+  --palette-accent-light: var(--palette-teal-light);
+  --palette-accent-hover: var(--palette-teal-hover);
+  --palette-accent-dark: var(--palette-teal-dark);
+}
+
+:root[data-palette="amber"] {
+  --palette-accent-light: var(--palette-amber-light);
+  --palette-accent-hover: var(--palette-amber-hover);
+  --palette-accent-dark: var(--palette-amber-dark);
+}
+
+:root[data-palette="rose"] {
+  --palette-accent-light: var(--palette-rose-light);
+  --palette-accent-hover: var(--palette-rose-hover);
+  --palette-accent-dark: var(--palette-rose-dark);
 }
 
 :root.theme-changing,
