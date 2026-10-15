@@ -25,11 +25,21 @@
       <div class="header-links">
         {{ range . }}
         {{- $href := partial "site-url.html" .link -}}
-        {{- $active := and (not (hasPrefix .link "http")) (or (eq $.RelPermalink $href) (and (ne $href site.Home.RelPermalink) (hasPrefix $.RelPermalink (printf "%s/" (strings.TrimSuffix "/" $href))))) -}}
+        {{- $external := hasPrefix .link "http" -}}
+        {{- $active := false -}}
+        {{- if not $external -}}
+          {{- $inSection := and (ne $href site.Home.RelPermalink) (hasPrefix $.RelPermalink (printf "%s/" (strings.TrimSuffix "/" $href))) -}}
+          {{- $active = or (eq $.RelPermalink $href) $inSection -}}
+        {{- end -}}
         {{- if $active }}{{ $navLabel = .name }}{{ end -}}
         <div class="header-item">
-          <a href="{{ $href }}"{{ if hasPrefix .link "http" }} target="_blank" rel="noopener"{{ end }}{{ if $active }} aria-current="page"{{ end }}>
-            {{- with .icon }}{{ $icon := . }}{{ with resources.Get (printf "icons/%s.svg" $icon) }}<span class="action-icon header-link-icon" aria-hidden="true">{{ partial "icon.html" (dict "name" $icon) }}</span>{{ end }}{{ end -}}
+          <a href="{{ $href }}"{{ if $external }} target="_blank" rel="noopener"{{ end }}{{ if $active }} aria-current="page"{{ end }}>
+            {{- with .icon -}}
+              {{- $icon := . -}}
+              {{- with resources.Get (printf "icons/%s.svg" $icon) -}}
+                <span class="action-icon header-link-icon" aria-hidden="true">{{ partial "icon.html" (dict "name" $icon) }}</span>
+              {{- end -}}
+            {{- end -}}
             <span class="header-link-label">{{ .name }}</span>
           </a>
         </div>

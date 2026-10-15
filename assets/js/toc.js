@@ -140,7 +140,8 @@ window.yinyangRuntime.register('toc', function (runtime) {
 
   function headingOffset() {
     var header = document.getElementById('appHeader')
-    return header && getComputedStyle(header).position === 'sticky' ? header.getBoundingClientRect().height + 16 : 64
+    if (!header || getComputedStyle(header).position !== 'sticky') return 64
+    return header.getBoundingClientRect().height + 16
   }
 
   var entries = []
@@ -148,10 +149,7 @@ window.yinyangRuntime.register('toc', function (runtime) {
     var id = decodeHash(link.getAttribute('href').slice(1))
     var heading = document.getElementById(id)
     if (!heading) return
-    entries.push({ link: link, heading: heading, end: null })
-  })
-  entries.forEach(function (entry, index) {
-    entry.end = entries[index + 1] ? entries[index + 1].heading : null
+    entries.push({ link: link, heading: heading })
   })
 
   var indicator = document.getElementById('tocIndicator')
@@ -183,18 +181,21 @@ window.yinyangRuntime.register('toc', function (runtime) {
     positions.forEach(function (top, index) {
       if (top <= currentLine) current = entries[index]
     })
-    var scroller = runtime.scroll.element()
-    if (!wide && runtime.scroll.position().top >= scroller.scrollHeight - scroller.clientHeight - 2) current = entries[entries.length - 1]
+    if (!wide) {
+      var scroller = runtime.scroll.element()
+      var scrollEnd = scroller.scrollHeight - scroller.clientHeight
+      if (runtime.scroll.position().top >= scrollEnd - 2) current = entries[entries.length - 1]
+    }
     var visible = []
     entries.forEach(function (entry, index) {
-      var start = positions[index]
-      var end
-      if (entry.end) {
-        end = positions[index + 1]
-      } else {
-        end = (runtime.scroll.isWide() ? document.documentElement : runtime.scroll.element()).scrollHeight - runtime.scroll.position().top + viewportTop
+      var active = entry === current
+      if (wide) {
+        var end = positions[index + 1]
+        if (index === positions.length - 1) {
+          end = document.documentElement.scrollHeight - runtime.scroll.position().top + viewportTop
+        }
+        active = end > viewportTop && positions[index] < viewportBottom
       }
-      var active = wide ? end > viewportTop && start < viewportBottom : entry === current
       entry.link.classList.toggle('toc-active', active)
       if (entry === current) entry.link.setAttribute('aria-current', 'location')
       else entry.link.removeAttribute('aria-current')
