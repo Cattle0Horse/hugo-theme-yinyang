@@ -9,11 +9,14 @@ window.yinyangRuntime.register('header-nav', function (runtime) {
   var menu = null
   runtime.addCleanup(function () { if (menu) menu.remove() })
   var layoutFrame = 0
+  var mobile = window.matchMedia('(max-width: 600px)')
 
   function updateLabel(open) {
     var label = open ? '关闭导航菜单' : '打开导航菜单'
     button.setAttribute('aria-expanded', String(open))
-    runtime.label(button, label)
+    if (open) button.setAttribute('aria-controls', 'headerNavMenu')
+    else button.removeAttribute('aria-controls')
+    button.setAttribute('aria-label', label)
   }
 
   function positionMenu() {
@@ -72,7 +75,7 @@ window.yinyangRuntime.register('header-nav', function (runtime) {
     var style = getComputedStyle(row)
     var available = row.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
       - appearance.getBoundingClientRect().width - (parseFloat(style.columnGap) || 0)
-    var collapsed = links.scrollWidth > available + 0.5
+    var collapsed = mobile.matches || links.scrollWidth > available + 0.5
     if (links.hidden !== collapsed) links.hidden = collapsed
     if (button.hidden !== !collapsed) button.hidden = !collapsed
     if (collapsed) {

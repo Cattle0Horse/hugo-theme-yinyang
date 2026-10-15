@@ -38,6 +38,17 @@ enabled = true
 copyMarkdown = true
 [params.aiLabel]
 enabled = false
+[[params.socials]]
+name = "Notes"
+link = "/notes/"
+icon = "site-note"
+[[params.socials]]
+name = "Tags"
+link = "/topics/"
+icon = "missing-icon"
+[[params.socials]]
+name = "GitHub"
+link = "https://github.com/example"
 [markup.goldmark.renderer]
 unsafe = true
 [markup.goldmark.extensions.footnote]
@@ -48,6 +59,7 @@ enable = true
 block = [["$$", "$$"]]
 inline = [["$", "$"]]
 `)
+  write('assets/icons/site-note.svg', '<svg viewBox="0 0 24 24" data-fixture-icon="site-note"><path d="M4 4h16v16H4z"/></svg>')
   write('content/notes/_index.md', '---\ntitle: Notes\n---\n')
   for (let i = 1; i <= 31; i++) {
     const form = i === 2 ? '\n<label id="caption" for="email">Email</label><input id="email" name="email" aria-labelledby="caption external" aria-describedby="caption"><a name="legacy"></a><a href="#legacy">legacy target</a><a href="#appScroll">page target</a>\n' : ''
@@ -103,6 +115,23 @@ test('TOC and disabled AI settings retain their configuration contract', () => {
   assert.equal(old.includes('id="copy-markdown-btn"'), true)
   assert.equal(old.includes('id="edit-page-btn"'), false)
   assert.equal(html('posts/new/index.html').includes('id="tocSidebar"'), true)
+})
+
+test('navigation renders optional site icons without breaking text links or active subdirectory routes', () => {
+  const nav = html('notes/2026-08/002/index.html').match(/<nav\b[^>]*aria-label="站点导航"[^>]*>([\s\S]*?)<\/nav>/)[1]
+  const anchors = [...nav.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)]
+  const notes = anchors.find(([, attributes]) => attributes.includes('href="/sub/notes/"'))
+  assert.ok(notes)
+  assert.ok(notes[1].includes('aria-current="page"'))
+  assert.ok(notes[2].includes('data-fixture-icon="site-note"'))
+  const tags = anchors.find(([, attributes]) => attributes.includes('href="/sub/topics/"'))
+  assert.ok(tags[2].includes('Tags'))
+  assert.equal(tags[2].includes('<svg'), false)
+  const external = anchors.find(([, attributes]) => attributes.includes('href="https://github.com/example"'))
+  assert.ok(external[1].includes('target="_blank"'))
+  assert.ok(external[1].includes('rel="noopener"'))
+  assert.ok(external[2].includes('GitHub'))
+  assert.equal(external[2].includes('<svg'), false)
 })
 
 test('metadata and links support subdirectory deployment and custom taxonomy URLs', () => {

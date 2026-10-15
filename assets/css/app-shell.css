@@ -243,6 +243,8 @@ body {
     background: transparent;
     box-shadow: none;
     transform: none;
+    opacity: 1;
+    max-height: none;
     visibility: visible;
     overflow: hidden;
     display: flex;
@@ -253,6 +255,8 @@ body {
     min-height: 36px;
     padding: 0 0 12px;
   }
+  .app-main:has(.post-toc-sidebar) .toc-heading { padding-top: 0; }
+  .app-main:has(.post-toc-sidebar) .toc-article-title { display: none; }
 
   .app-main:has(.post-toc-sidebar) .toc-scroll {
     flex: 1 1 auto;

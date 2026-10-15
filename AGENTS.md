@@ -72,6 +72,8 @@ CSS 由 `head.html` 将 16 个文件按 variables → global → site-header →
 
 `toc.html` 仅渲染目录结构，`toc.js` 管理宽屏侧栏、窄屏浮层、焦点与滚动监听；`toc: false` 禁用目录。`footnotes.js` 按脚注链接语义识别跳转，兼容 Hugo 和 Notes 添加的 ID 前缀。
 
+手机（≤ 600px）使用吸顶紧凑页头，当前栏目按钮展开单列导航，长名称允许换行。`socials.icon` 指向 `assets/icons/<name>.svg`，可由站点资源提供或覆盖，缺省或资源不存在时保留纯文字。桌面空间不足时也使用单列菜单。窄屏 TOC 使用右下角 44px 纯图标圆形入口和悬浮卡片，卡片内部滚动、突出当前章节；打开时隔离背景，关闭恢复阅读位置，跳转避让吸顶页头。宽屏保留侧栏与可见章节范围指示。
+
 ### 数学公式
 
 `_markup/render-passthrough.html` 配合 Goldmark passthrough，在构建期调用 Hugo `transform.ToMath`，输出 HTML + MathML；非法 LaTeX 使用错误颜色标注，不阻断构建。`math.html` 检查实际渲染 HTML 中的 KaTeX 标记；Notes 时间线通过共用 `notes-paginator.html` 检查当前分页内容，包含标签时间线。含公式时输出带 `data-page-head`、SRI 和 crossorigin 的 jsDelivr KaTeX 0.19.0 CSS 链接，字体随 CSS 从 CDN 加载，不包含浏览器公式渲染 JS 或本地 KaTeX 资源。
@@ -117,7 +119,7 @@ KaTeX CDN 固定为 0.19.0，不使用浮动 latest URL；升级须验证 Hugo �
 - `description` — meta description 和页头副标题
 - `mainSections` — 首页和列表页展示的 content sections
 - `author.name` / `author.homepage` — SEO JSON-LD 使用
-- `socials` — 页头链接数组，`{name, link}`
+- `socials` — 页头链接数组，`{name, link, icon?}`；可选 `icon` 对应 `assets/icons/<name>.svg`
 - `favicon` — 网站图标路径
 - `extraHead` — 注入 `</head>` 前的原始 HTML
 - `extraBody` — 注入 `</body>` 前的原始 HTML

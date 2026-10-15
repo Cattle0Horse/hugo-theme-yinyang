@@ -35,11 +35,12 @@ window.yinyangRuntime.register('toc', function (runtime) {
     sidebar.setAttribute('aria-modal', 'true')
     sidebar.inert = false
     setNavTabbable(true)
-    floatBtn.dataset.state = 'open'
     floatBtn.setAttribute('aria-expanded', 'true')
-    runtime.label(floatBtn, '关闭目录')
+    floatBtn.setAttribute('aria-label', '关闭目录')
     backdrop.classList.add('toc-open')
     sidebar.focus({ preventScroll: true })
+    var active = tocNav.querySelector('.toc-active')
+    if (active) tocScroll.scrollTop += active.getBoundingClientRect().top - tocScroll.getBoundingClientRect().top - 8
   }
 
   function unlockBackground() {
@@ -61,11 +62,10 @@ window.yinyangRuntime.register('toc', function (runtime) {
     sidebar.removeAttribute('role')
     sidebar.removeAttribute('aria-modal')
     setNavTabbable(false)
-    floatBtn.dataset.state = ''
     floatBtn.setAttribute('aria-expanded', 'false')
-    runtime.label(floatBtn, '打开目录')
+    floatBtn.setAttribute('aria-label', '打开目录')
     backdrop.classList.remove('toc-open')
-    if (returnFocus !== false) floatBtn.focus()
+    if (returnFocus !== false) floatBtn.focus({ preventScroll: true })
   }
 
   runtime.listen(floatBtn, 'click', function () {
@@ -115,8 +115,7 @@ window.yinyangRuntime.register('toc', function (runtime) {
       sidebar.setAttribute('aria-hidden', 'false')
       backdrop.classList.remove('toc-open')
       floatBtn.setAttribute('aria-expanded', 'false')
-      floatBtn.dataset.state = ''
-      runtime.label(floatBtn, '打开目录')
+      floatBtn.setAttribute('aria-label', '打开目录')
       floatBtn.removeAttribute('aria-disabled')
       setNavTabbable(true)
     } else {
@@ -137,6 +136,11 @@ window.yinyangRuntime.register('toc', function (runtime) {
     } catch (error) {
       return hash
     }
+  }
+
+  function headingOffset() {
+    var header = document.getElementById('appHeader')
+    return header && getComputedStyle(header).position === 'sticky' ? header.getBoundingClientRect().height + 16 : 64
   }
 
   var entries = []
@@ -172,20 +176,31 @@ window.yinyangRuntime.register('toc', function (runtime) {
     var viewport = runtime.scroll.viewport()
     var viewportTop = viewport.top
     var viewportBottom = viewport.bottom
+    var wide = runtime.scroll.isWide()
+    var positions = entries.map(function (entry) { return entry.heading.getBoundingClientRect().top })
+    var current = entries[0]
+    var currentLine = viewportTop + headingOffset() + 2
+    positions.forEach(function (top, index) {
+      if (top <= currentLine) current = entries[index]
+    })
+    var scroller = runtime.scroll.element()
+    if (!wide && runtime.scroll.position().top >= scroller.scrollHeight - scroller.clientHeight - 2) current = entries[entries.length - 1]
     var visible = []
-    entries.forEach(function (entry) {
-      var start = entry.heading.getBoundingClientRect().top
+    entries.forEach(function (entry, index) {
+      var start = positions[index]
       var end
       if (entry.end) {
-        end = entry.end.getBoundingClientRect().top
+        end = positions[index + 1]
       } else {
         end = (runtime.scroll.isWide() ? document.documentElement : runtime.scroll.element()).scrollHeight - runtime.scroll.position().top + viewportTop
       }
-      var active = end > viewportTop && start < viewportBottom
+      var active = wide ? end > viewportTop && start < viewportBottom : entry === current
       entry.link.classList.toggle('toc-active', active)
+      if (entry === current) entry.link.setAttribute('aria-current', 'location')
+      else entry.link.removeAttribute('aria-current')
       if (active) visible.push(entry.link)
     })
-    if (!visible.length) {
+    if (!visible.length || !wide) {
       indicator.classList.remove('is-visible')
       return
     }
@@ -217,7 +232,7 @@ window.yinyangRuntime.register('toc', function (runtime) {
     event.preventDefault()
     if (!runtime.scroll.isWide()) closeToc(true)
     runtime.requestAnimationFrame(function () {
-      runtime.scroll.scrollToElement(target, { offset: 64 })
+      runtime.scroll.scrollToElement(target, { offset: headingOffset() })
       highlightHeading(target)
     })
     runtime.pushHash(link.getAttribute('href'))

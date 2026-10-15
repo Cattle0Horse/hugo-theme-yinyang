@@ -108,15 +108,19 @@ name = "CattleHorse"
 [[params.socials]]
 name = "Tags"
 link = "/tags/"
+icon = "tag"
 
 [[params.socials]]
 name = "Notes"
 link = "/notes/"
+icon = "file"
 
 [[params.socials]]
 name = "RSS"
 link = "/index.xml"
+icon = "rss"
 
 [[params.socials]]
 name = "Github"
 link = "https://github.com/cattle0horse"
+icon = "github"

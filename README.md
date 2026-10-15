@@ -275,7 +275,7 @@ extraCSSFiles = ["css/fonts.css"]
 
 ### 页头导航链接
 
-导航通过 `params.socials` 配置，按配置顺序展示。整排链接放不下时，全部收进导航菜单；空间恢复后自动展开。明暗与配色按钮始终直接展示。
+导航通过 `params.socials` 配置，按配置顺序展示。手机使用吸顶的紧凑页头，点击当前栏目展开单列菜单。桌面直接展示链接，空间不足时收进同样的菜单。明暗与配色按钮始终直接展示。
 
 ```toml
 [[params.socials]]
@@ -284,7 +284,12 @@ link = "https://cattle0horse.github.io"
 [[params.socials]]
 name = "Github"
 link = "https://github.com/cattle0horse"
+icon = "github"
 ```
+
+`icon` 可选，填写 `assets/icons/<名称>.svg` 的文件名，不含扩展名。可使用内置的 `file`、`image`、`tag`、`rss`、`github` 等图标，也可在自己站点的 `assets/icons/` 中添加 SVG（推荐使用 `currentColor`）。不配置或找不到图标时显示纯文字；图标在构建期内联，无额外请求。站内栏目及其子页会标记当前栏目，外链继续在新标签页打开。
+
+手机文章目录使用右下角纯图标圆形按钮，展开为悬浮卡片，显示文章标题、章节层级和当前章节。长目录在卡片内部滚动，点击章节收起并定位正文；点击遮罩、关闭按钮或 Esc 可返回原阅读位置。宽屏保留侧栏目录，`tableOfContents` 与文章 `toc: false` 的配置方式不变。
 
 ### 自定义 Head
 
