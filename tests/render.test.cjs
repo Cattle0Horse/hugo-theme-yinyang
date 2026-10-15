@@ -53,7 +53,7 @@ inline = [["$", "$"]]
     const form = i === 2 ? '\n<label id="caption" for="email">Email</label><input id="email" name="email" aria-labelledby="caption external" aria-describedby="caption"><a name="legacy"></a><a href="#legacy">legacy target</a><a href="#appScroll">page target</a>\n' : ''
     write(`content/notes/2026-08/${String(i).padStart(3, '0')}.md`, `---\ndate: 2026-08-01T12:00:${String(i).padStart(2, '0')}+08:00\nnote_tags: [math]\n---\n\n## Same heading\n\nReference[^1].\n\n[^1]: Footnote ${i}\n\n${i === 1 ? '$x^2$' : ''}${form}`)
   }
-  write('content/posts/old.md', '---\ntitle: old\ndate: 2026-08-01\nlastmod: 2026-08-02\nnotoc: true\ntags: [topic]\nai: assisted\nalbum: ["/a.png", "https://cdn.example.org/b.png"]\n---\n\n## Heading\n\nBody\n')
+  write('content/posts/old.md', '---\ntitle: old\ndate: 2026-08-01\nlastmod: 2026-08-02\ntoc: false\ntags: [topic]\nai: assisted\nalbum: ["/a.png", "https://cdn.example.org/b.png"]\n---\n\n## Heading\n\nBody\n')
   write('content/posts/new.md', '---\ntitle: new\ndate: 2026-08-01\ntoc: true\n---\n\n## Heading\n\nBody\n')
   execFileSync('hugo', ['-s', fixture, '--themesDir', path.dirname(theme), '--theme', path.basename(theme), '--destination', output, '--cacheDir', path.join(fixture, 'cache'), '--noBuildLock'], { stdio: 'pipe' })
 })
@@ -93,7 +93,7 @@ test('aggregated Notes preserve unique anchors, footnote targets and HTML refere
   assert.ok(detail.includes('id="email" name="email"'))
 })
 
-test('legacy TOC and disabled AI settings retain their configuration contract', () => {
+test('TOC and disabled AI settings retain their configuration contract', () => {
   const old = html('posts/old/index.html')
   assert.equal(old.includes('id="tocSidebar"'), false)
   assert.equal(old.includes('class="ai-label"'), false)

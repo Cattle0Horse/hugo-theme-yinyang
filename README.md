@@ -132,7 +132,7 @@ allowUserChoice = true
 
 给链接或其父元素添加 `data-no-pjax` 可强制正常跳转。自定义集成可以在 `document` 上监听 `yinyang:before-navigate`（提交新页面前）和 `yinyang:page-ready`（主题初始化、焦点及滚动恢复后），事件的 `detail.url` 为目标 URL。这些事件只提供通知；ready 不等待所有图片、字体或第三方统计完成。
 
-需要随页面重新执行的正文 / `extraBody` 脚本应标记 `data-page-runtime`，并通过 `window.yinyangRuntime.page` 的监听、计时器和 `addCleanup` 管理资源。导航时先初始化主题功能，再按正文顺序重放这些脚本，等待外部经典脚本和外部 module 加载。内联 module 保留完整页面加载，以保持其原生模块语义。自定义脚本初始化期间，站内锚点仍可操作；再次跨页使用正常导航。首次加载使用 defer 主题 bundle，因此普通 footer 脚本如需 `bindCopyButton` 等主题 helper，应监听 `yinyang:page-ready`。`extraHead` 中的自定义脚本不会随导航重放。
+需要随页面重新执行的正文 / `extraBody` 脚本应标记 `data-page-runtime`，并通过 `window.yinyangRuntime.page` 的监听、计时器和 `addCleanup` 管理资源。导航时先初始化主题功能，再按正文顺序重放这些脚本，等待外部经典脚本和外部 module 加载。内联 module 保留完整页面加载，以保持其原生模块语义。自定义脚本初始化期间，站内锚点仍可操作；再次跨页使用正常导航。首次加载使用 defer 主题 bundle，因此普通 footer 脚本如需调用 `window.yinyangRuntime.page.bindCopyButton()` 等主题服务，应监听 `yinyang:page-ready`。`extraHead` 中的自定义脚本不会随导航重放。
 
 ### RSS
 
@@ -347,7 +347,7 @@ galleryBorder = false
 
 `loading` 启用时，骨架屏图片使用 `decoding="async"` 异步解码：图片字节到位即触发 `load`，解码移出主线程、不再阻塞页面交互；上屏前经 `img.decode()` 协调，保证像素可绘制后立刻淡入（200ms opacity + scale 合成器动画），骨架屏不占用多余等待时间。
 
-`tableOfContents` 启用文章目录。文章 frontmatter 使用 `toc: false` 可单篇禁用目录，旧配置中的 `notoc: true` 也保持兼容。
+`tableOfContents` 启用文章目录。文章 frontmatter 使用 `toc: false` 可单篇禁用目录。
 
 文章操作区（标题下方按钮）由 `[params.actions]` 控制：`enabled` 为总开关，`copyMarkdown` 启用"复制 Markdown"按钮，嵌套 `editPage` 启用编辑原文 / 查看 Raw 按钮和底部纠错链接，`branch` 默认值为 `main`，`text` 可覆盖链接文案：
 

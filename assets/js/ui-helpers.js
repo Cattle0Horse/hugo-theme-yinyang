@@ -24,5 +24,4 @@ window.yinyangRuntime.register('ui-helpers', function (runtime) {
     var removeCleanup = runtime.addCleanup(function () { node.remove() })
     runtime.onMotionEnd(node, { property: 'opacity', timeout: 220 }, function () { removeCleanup(); node.remove() })
   }
-  runtime.expose('isWide', runtime.scroll.isWide)
 })

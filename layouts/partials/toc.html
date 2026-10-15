@@ -1,4 +1,4 @@
-{{ if and .Site.Params.tableOfContents .TableOfContents (not (eq .Params.toc false)) (not .Params.notoc) }}
+{{ if and .Site.Params.tableOfContents .TableOfContents (ne .Params.toc false) }}
 <aside class="post-toc-sidebar" id="tocSidebar" tabindex="-1" aria-label="文章目录" aria-hidden="true">
   <div class="toc-sidebar-header">
     <span class="toc-sidebar-title">目录</span>

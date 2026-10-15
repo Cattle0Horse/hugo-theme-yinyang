@@ -45,8 +45,6 @@ window.yinyangRuntime.register('tooltip', function (runtime) {
   }
 
   runtime.tooltip = { update: update, hide: hide }
-  runtime.expose('updateActionTooltip', update)
-  runtime.expose('hideActionTooltip', hide)
   runtime.addCleanup(function () { hide() })
 
   if (window.matchMedia('(hover: hover)').matches) {

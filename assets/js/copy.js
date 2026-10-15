@@ -85,5 +85,4 @@ window.yinyangRuntime.register('copy', function (runtime) {
     })
   }
   runtime.bindCopyButton = bindCopyButton
-  runtime.expose('bindCopyButton', bindCopyButton)
 })

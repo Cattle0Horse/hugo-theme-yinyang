@@ -29,11 +29,11 @@ CSS 由 `head.html` 将 16 个文件按 variables → global → site-header →
 
 ### 页面生命周期与功能层
 
-`assets/js/page-runtime.js` 建立 `window.yinyangRuntime`。一次加载的主题 bundle 按显式顺序注册功能初始化函数；`mount()` 读取当前页面配置、创建 `page.scroll` 服务，然后初始化功能。首次初始化由 defer bundle 执行，发生在 HTML 解析完成后；正文末尾的普通同步脚本执行时，主题功能和兼容 helper 尚未初始化。
+`assets/js/page-runtime.js` 建立 `window.yinyangRuntime`。一次加载的主题 bundle 按显式顺序注册功能初始化函数；`mount()` 读取当前页面配置、创建 `page.scroll` 服务，然后初始化功能。首次初始化由 defer bundle 执行，发生在 HTML 解析完成后；正文末尾的普通同步脚本执行时，当前 page 的功能服务尚未初始化。
 
 `window.yinyangRuntime.page` 保留扩展协议：`listen` / `unlisten`、`setTimeout` / `clearTimeout`、`requestAnimationFrame` / `cancelAnimationFrame`、`guard`、`addCleanup`、`expose`、`pushHash`。离开页面时 dispose 清理这些托管资源；观察器和自定义资源须主动注册 cleanup，guard 只阻止页面失效后的回调。单个 cleanup 抛错不会阻止其余 cleanup。
 
-功能内部使用当前 page 服务，避免依赖全局 helper：
+功能通过当前 page 服务协作：
 
 | 层 | 文件与职责 |
 |---|---|
@@ -43,7 +43,7 @@ CSS 由 `head.html` 将 16 个文件按 variables → global → site-header →
 | 页面功能 | `header-nav.js`、`appearance.js`、`toc.js`、`footnotes.js`、`markdown-actions.js` 按 DOM / 配置初始化 |
 | 导航 | `navigation.js` 管理获取、校验、提交、脚本重放与历史恢复 |
 
-`isWide`、`bindCopyButton`、`updateActionTooltip`、`hideActionTooltip` 保留为当前页面的全局兼容出口，页面销毁时移除、mount 时重新提供。新增功能使用 page 接口；滚动订阅返回的取消函数应交给 `addCleanup`。
+自定义脚本通过当前 `window.yinyangRuntime.page` 使用 `scroll.isWide()`、`bindCopyButton()`、`tooltip.update()` 和 `tooltip.hide()`。滚动订阅返回的取消函数应交给 `addCleanup`。
 
 ### 双模式滚动与导航
 
@@ -57,7 +57,7 @@ CSS 由 `head.html` 将 16 个文件按 variables → global → site-header →
 
 ### 自定义脚本
 
-`extraHead` 适合只加载一次的全局集成。`extraBody` / 正文中需随导航重新执行的脚本标记 `data-page-runtime`，使用当前 page 管理资源。首次加载的 footer 脚本如需主题 helper，应监听 `yinyang:page-ready`；该脚本在后续导航重放时，主题功能已经 mount，不能假定首次加载也有相同时序。主题不会重放自定义 Head 脚本。
+`extraHead` 适合只加载一次的全局集成。`extraBody` / 正文中需随导航重新执行的脚本标记 `data-page-runtime`，使用当前 page 管理资源。首次加载的 footer 脚本如需使用 page 上的主题服务，应监听 `yinyang:page-ready`；该脚本在后续导航重放时，主题功能已经 mount，不能假定首次加载也有相同时序。主题不会重放自定义 Head 脚本。
 
 事件是通知，不是可取消导航钩子。初始化时机、事件资源清理和自定义脚本依赖应由集成自身明确处理，不将全局监听重复注册到每个页面。
 
@@ -69,7 +69,7 @@ CSS 由 `head.html` 将 16 个文件按 variables → global → site-header →
 
 `image-tag.html` 解析页面资源尺寸（跳过 SVG），输出原生懒加载、可选骨架与失败占位；`image-loading.js` 管理缓存图、解码、淡入与破缓存重试。`image.border` / `galleryBorder` 独立控制正文 / Gallery 内描边，默认关闭、不影响布局且跳过 SVG。
 
-`toc.html` 仅渲染目录结构，`toc.js` 管理宽屏侧栏、窄屏浮层、焦点与滚动监听；`toc: false` 或旧 `notoc: true` 均禁用目录。`footnotes.js` 按脚注链接语义识别跳转，兼容 Hugo 和 Notes 添加的 ID 前缀。
+`toc.html` 仅渲染目录结构，`toc.js` 管理宽屏侧栏、窄屏浮层、焦点与滚动监听；`toc: false` 禁用目录。`footnotes.js` 按脚注链接语义识别跳转，兼容 Hugo 和 Notes 添加的 ID 前缀。
 
 ### 数学公式
 
@@ -116,6 +116,6 @@ KaTeX 样式和 `static/fonts/katex/` vendored 字体须与 Hugo 内置版本匹
 - `tableOfContents` — 布尔值，启用 TOC 侧边栏
 - `codeMaxLines` — 代码块折叠阈值，默认 15
 - `album` — 单页 Open Graph 图片覆盖（字符串数组）
-- `toc` — 文章 front matter（布尔值），单篇禁用 TOC；也兼容旧字段 `notoc`
+- `toc` — 文章 front matter（布尔值），设置为 `false` 时单篇禁用 TOC
 - `ai` — 文章 front matter（字符串），标注 AI 创作方式：`none`（纯人，缺省等同）/ `assisted`（AI 辅助创作）/ `generated`（AI 生成·经人工编辑）。`assisted`/`generated` 时由 `ai-label.html` partial（`single.html` 的 `post-header` 内 meta 行之后调用）渲染 `.ai-label` 标注行（复用 `.action-icon` 图标约定 + 弱色小字，CSS 在 `post-page.css`）；`none`、缺省或未知值不渲染。仅覆盖 `single`，gallery 不进
 - `aiLabel` — 站点配置（映射），AI 标注总开关与文案：`enabled`（布尔值，缺省视为开启，`false` 关闭所有标注渲染）、`assisted` / `generated`（字符串，自定义文案，缺省回退默认 `AI 辅助创作` / `AI 生成 · 经人工编辑`）

@@ -300,14 +300,14 @@ aliases:
   - "/doc/permalinks/"
 groups: ["extras"]
 groups_weight: 30
-notoc: true
+toc: false
 ---
 ```
 
 Here is the corresponding code inside of the template:
 
 ```
-  {{ if not .Params.notoc }}
+  {{ if ne .Params.toc false }}
     <div id="toc" class="well col-md-4 col-sm-6">
     {{ .TableOfContents }}
     </div>
