@@ -1,4 +1,4 @@
-{{ if and .Site.Params.tableOfContents .TableOfContents (not (eq .Params.toc false)) }}
+{{ if and .Site.Params.tableOfContents .TableOfContents (not (eq .Params.toc false)) (not .Params.notoc) }}
 <aside class="post-toc-sidebar" id="tocSidebar" tabindex="-1" aria-label="文章目录" aria-hidden="true">
   <div class="toc-sidebar-header">
     <span class="toc-sidebar-title">目录</span>
@@ -17,5 +17,5 @@
   {{ partial "icon.html" (dict "name" "close" "wrap" "action-icon" "wrapClass" "state-icon state-icon-open") }}
 </button>
 <div class="toc-backdrop" id="tocBackdrop"></div>
-{{ partial "toc-script.html" . }}
+
 {{ end }}

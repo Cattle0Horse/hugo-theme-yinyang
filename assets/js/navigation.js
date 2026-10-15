@@ -1,17 +1,89 @@
 ;(function () {
-  if (!window.fetch || !window.AbortController || !document.querySelector('.app-shell')) return
   var lifecycle = window.yinyangRuntime
-  var wide = window.matchMedia('(min-width: 84em)')
+  var horizontalSelector = '.code-scroll-viewport, .table-scroll, .plain-code-wrapper > pre, .katex-display'
   var positions = new Map()
   var sequence = 0
   var prefix = Date.now().toString(36) + '-'
   var displayedURL = new URL(location.href)
   var displayedId = null
   var pending = null
-  var pendingAnchor = false
+  var initializing = null
+  var restoreGeneration = 0
+  var requestedPosition = null
+  var needsReady = true
   var loading = null
   var loadingTimer = 0
-  history.scrollRestoration = 'manual'
+
+  function ready(url) {
+    if (!needsReady) return
+    needsReady = false
+    document.dispatchEvent(new CustomEvent('yinyang:page-ready', { detail: { url: url.href } }))
+  }
+  function followHash(hash, behavior) {
+    var page = lifecycle.page
+    if (page.footnotes && page.footnotes.followHash(hash, { scroll: true, behavior: behavior })) return
+    var target = page.scroll.target(hash)
+    if (target) page.scroll.scrollToElement(target, { behavior: behavior })
+  }
+  function nextFrame() { return new Promise(function (resolve) { requestAnimationFrame(resolve) }) }
+  async function settleHash(url, follow) {
+    var generation = restoreGeneration
+    // Preserve the requested fragment, not a snapshot taken halfway through its
+    // smooth scroll, if custom-script initialization finishes in the meantime.
+    requestedPosition = { url: url.href, saved: null }
+    if (follow !== false) followHash(url.hash, 'auto')
+    await nextFrame()
+    await nextFrame()
+    if (generation !== restoreGeneration || initializing) return
+    rememberPosition()
+    ready(url)
+  }
+
+  async function restorePosition(url, saved, options) {
+    var generation = ++restoreGeneration
+    requestedPosition = { url: url.href, saved: saved }
+    var body = document.body
+    var page = lifecycle.page
+    function current() { return generation === restoreGeneration && document.body === body && page.active }
+    await nextFrame()
+    await nextFrame()
+    if (!current()) return false
+    if (saved) {
+      if (page.code && saved.folds) page.code.restoreFolds(saved.folds)
+      document.querySelectorAll(horizontalSelector).forEach(function (scroll, index) {
+        scroll.scrollLeft = saved.horizontal && saved.horizontal[index] || 0
+      })
+      page.scroll.restore(saved)
+    } else if (url.hash) {
+      followHash(url.hash, 'instant')
+      // Footnote highlighting schedules its final centered scroll on the next frame.
+      await nextFrame()
+      if (!current()) return false
+    }
+    else page.scroll.element().scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    if (options.focus) {
+      var heading = document.querySelector('.app-scroll h1, .app-scroll h2')
+      if (heading) {
+        var temporary = !heading.hasAttribute('tabindex')
+        if (temporary) heading.setAttribute('tabindex', '-1')
+        heading.focus({ preventScroll: true })
+        if (temporary) page.listen(heading, 'blur', function () { heading.removeAttribute('tabindex') }, { once: true })
+      }
+    }
+    if (options.animate) {
+      var article = document.querySelector('.app-scroll > article')
+      if (article) {
+        article.classList.remove('page-preparing')
+        article.classList.add('page-entering')
+        page.onMotionEnd(article, { type: 'animationend', animation: 'page-enter', timeout: 300 }, function () {
+          article.classList.remove('page-entering')
+        })
+      }
+    }
+    rememberPosition()
+    if (!initializing || options.ready) ready(url)
+    return true
+  }
 
   function writeEntry(url, replace) {
     var id = prefix + (++sequence)
@@ -19,27 +91,21 @@
     history[replace ? 'replaceState' : 'pushState'](state, '', url.href)
     return id
   }
-
-  function rememberPosition() {
-    if (pendingAnchor) return
-    var scroll = document.getElementById('appScroll')
-    positions.set(displayedId, Object.assign({}, positions.get(displayedId), { top: wide.matches ? window.scrollY : scroll.scrollTop, left: wide.matches ? window.scrollX : scroll.scrollLeft }))
+  function rememberPosition(reading) {
+    positions.set(displayedId, Object.assign({}, positions.get(displayedId), reading || lifecycle.page.scroll.capture()))
   }
-
   function rememberPage() {
     rememberPosition()
-    var position = positions.get(displayedId)
-    position.folds = Array.from(document.querySelectorAll('.code-block-body')).map(function (body) { return body.classList.contains('is-folded') })
-    position.horizontal = Array.from(document.querySelectorAll('.code-scroll-viewport, .table-scroll')).map(function (scroll) { return scroll.scrollLeft })
+    var saved = positions.get(displayedId)
+    saved.folds = Array.from(document.querySelectorAll('.code-block-body')).map(function (body) { return body.classList.contains('is-folded') })
+    saved.horizontal = Array.from(document.querySelectorAll(horizontalSelector)).map(function (scroll) { return scroll.scrollLeft })
   }
-
   function hideLoading() {
     clearTimeout(loadingTimer)
     loadingTimer = 0
     if (loading) loading.remove()
     loading = null
   }
-
   function showLoading(controller) {
     if (pending !== controller) return
     loading = document.createElement('div')
@@ -52,24 +118,52 @@
     var label = document.createElement('span')
     label.className = 'navigation-loading-label'
     label.textContent = '正在加载…'
-    loading.appendChild(progress)
-    loading.appendChild(label)
+    loading.append(progress, label)
     document.body.appendChild(loading)
   }
-
-  function cancelPending() {
-    if (pending) pending.abort()
-    pending = null
+  function cancelPending(invalidate) {
+    if (invalidate !== false) {
+      restoreGeneration++
+      requestedPosition = null
+      if (lifecycle.page.footnotes) lifecycle.page.footnotes.cancelScroll()
+    }
+    if (initializing) {
+      initializing.interacted = true
+      var article = document.querySelector('.app-scroll > article')
+      if (article) article.classList.remove('page-preparing')
+    } else {
+      if (pending) pending.abort()
+      pending = null
+    }
     hideLoading()
-    document.querySelector('.app-shell').removeAttribute('aria-busy')
+    var shell = document.querySelector('.app-shell')
+    if (shell) shell.removeAttribute('aria-busy')
   }
-
   function samePage(a, b) { return a.pathname === b.pathname && a.search === b.search }
-
-  function executable(script) {
-    return !script.type || /^(?:module|text\/javascript|application\/javascript)$/i.test(script.type)
+  function executable(script) { return !script.type || /^(?:module|text\/javascript|application\/javascript)$/i.test(script.type) }
+  function requiresDocumentNavigation(body) {
+    return Array.from(body.querySelectorAll('script')).some(function (script) {
+      // Inline modules have no reliable load boundary for ordered replay. Leave
+      // their import resolution and evaluation lifecycle to native navigation.
+      return (executable(script) && !script.hasAttribute('data-page-runtime')) ||
+        (script.type.trim().toLowerCase() === 'module' && !script.hasAttribute('src'))
+    })
   }
 
+  async function fetchPage(url, controller) {
+    var response = await fetch(url.href, { signal: controller.signal, credentials: 'same-origin' })
+    if ((!response.ok && response.status !== 404) || !/text\/html/i.test(response.headers.get('Content-Type') || '')) throw new Error('Not a theme page')
+    var destination = new URL(response.url)
+    if (destination.origin !== location.origin) throw new Error('External redirect')
+    destination.hash = url.hash
+    var next = new DOMParser().parseFromString(await response.text(), 'text/html')
+    if (!next.querySelector('.app-shell #appScroll') || !next.getElementById('yinyang-page-config') || next.body.hasAttribute('data-no-pjax')) throw new Error('Unsupported page')
+    var nextRuntime = next.querySelector('script[data-yinyang-runtime]')
+    var nextBundle = next.querySelector('script[data-yinyang-navigation]')
+    if (!nextRuntime || !nextBundle || nextRuntime.textContent !== document.querySelector('script[data-yinyang-runtime]').textContent || nextBundle.getAttribute('src') !== document.querySelector('script[data-yinyang-navigation]').getAttribute('src')) throw new Error('Runtime version changed')
+    if (requiresDocumentNavigation(next.body)) throw new Error('Custom page scripts require document navigation')
+    return { document: next, url: destination }
+  }
   function syncHead(next) {
     var previous = Array.from(document.head.querySelectorAll('[data-page-head]'))
     next.head.querySelectorAll('[data-page-head]').forEach(function (node) {
@@ -79,133 +173,131 @@
     })
     previous.forEach(function (node) { node.remove() })
   }
-
   function runScript(source, url, target) {
-    var script = document.createElement('script')
-    Array.from(source.attributes).forEach(function (attribute) { script.setAttribute(attribute.name, attribute.value) })
-    if (source.src) script.src = new URL(source.getAttribute('src'), url).href
-    script.async = false
-    script.textContent = source.textContent
-    if (target) target.replaceWith(script)
-    else document.head.appendChild(script)
-  }
-
-  function restorePosition(url, saved, body, focus, animate) {
-    function scrollToPosition() {
-      if (document.body !== body) return
-      var scroll = document.getElementById('appScroll')
-      var top = saved ? saved.top : 0
-      var left = saved ? saved.left : 0
-      if (!saved && url.hash) {
-        var id = url.hash.slice(1)
-        try { id = decodeURIComponent(id) } catch (error) {}
-        var target = document.getElementById(id)
-        if (target) top = target.getBoundingClientRect().top + (wide.matches ? window.scrollY : scroll.scrollTop - scroll.getBoundingClientRect().top) - 64
+    return new Promise(function (resolve, reject) {
+      var script = document.createElement('script')
+      Array.from(source.attributes).forEach(function (attribute) { script.setAttribute(attribute.name, attribute.value) })
+      if (source.src) script.src = new URL(source.getAttribute('src'), url).href
+      script.async = false
+      script.textContent = source.textContent
+      var waits = !!source.src || source.type === 'module'
+      function clean() {
+        script.removeEventListener('load', loaded)
+        script.removeEventListener('error', failed)
       }
-      ;(wide.matches ? window : scroll).scrollTo({ top: Math.max(0, top), left: left, behavior: 'instant' })
-    }
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        if (document.body !== body) return
-        if (saved && saved.horizontal) document.querySelectorAll('.code-scroll-viewport, .table-scroll').forEach(function (scroll, index) { scroll.scrollLeft = saved.horizontal[index] || 0 })
-        scrollToPosition()
-        if (focus) {
-          var heading = document.querySelector('.app-scroll h1, .app-scroll h2')
-          if (heading) {
-            var temporary = !heading.hasAttribute('tabindex')
-            if (temporary) heading.setAttribute('tabindex', '-1')
-            heading.focus({ preventScroll: true })
-            if (temporary) lifecycle.page.listen(heading, 'blur', function () { heading.removeAttribute('tabindex') }, { once: true })
-          }
-        }
-        if (animate) {
-          var article = document.querySelector('.app-scroll > article')
-          if (article) {
-            article.classList.remove('page-preparing')
-            article.classList.add('page-entering')
-            lifecycle.page.listen(article, 'animationend', function (event) {
-              if (event.target === article && event.animationName === 'page-enter') article.classList.remove('page-entering')
-            })
-          }
-        }
-        rememberPosition()
-        if (animate) document.dispatchEvent(new CustomEvent('yinyang:page-ready', { detail: { url: url.href } }))
-      })
+      function loaded() { clean(); resolve() }
+      function failed() { clean(); reject(new Error('Page script failed')) }
+      if (waits) {
+        script.addEventListener('load', loaded, { once: true })
+        script.addEventListener('error', failed, { once: true })
+      }
+      if (target) target.replaceWith(script)
+      else document.head.appendChild(script)
+      if (!waits) resolve()
     })
   }
-
+  async function commitPage(prepared, state, controller) {
+    // An inserted script cannot be rolled back. Keep this document's initialization
+    // alive; another document request uses a full navigation until it finishes.
+    initializing = controller
+    restoreGeneration++
+    needsReady = true
+    var next = prepared.document
+    var destination = prepared.url
+    var scripts = Array.from(next.body.querySelectorAll('script[data-page-runtime]'))
+    var analytics = next.head.querySelector('script[data-page-analytics]')
+    hideLoading()
+    document.dispatchEvent(new CustomEvent('yinyang:before-navigate', { detail: { url: destination.href } }))
+    rememberPage()
+    var saved = state && state.yinyang ? positions.get(state.yinyang.id) : null
+    lifecycle.page.dispose()
+    displayedId = state && state.yinyang && state.yinyang.url === destination.href ? state.yinyang.id : writeEntry(destination, !!state)
+    displayedURL = destination
+    syncHead(next)
+    document.documentElement.lang = next.documentElement.lang
+    document.documentElement.classList.add('theme-changing')
+    if (saved && saved.folds) next.body.querySelectorAll('.code-block-body').forEach(function (body, index) {
+      if (typeof saved.folds[index] === 'boolean') body.classList.toggle('is-folded', saved.folds[index])
+    })
+    var article = next.body.querySelector('.app-scroll > article')
+    if (article) article.classList.add('page-preparing')
+    document.body.replaceWith(next.body)
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    lifecycle.page = lifecycle.createPage()
+    var page = lifecycle.mount()
+    page.scroll.onChange(rememberPosition)
+    page.requestAnimationFrame(function () { document.documentElement.classList.remove('theme-changing') })
+    for (var script of scripts) {
+      await runScript(script, destination.href, script)
+    }
+    if (analytics) runScript(analytics, destination.href, document.head.querySelector('script[data-page-analytics]')).catch(function () {})
+    else {
+      var oldAnalytics = document.head.querySelector('script[data-page-analytics]')
+      if (oldAnalytics) oldAnalytics.remove()
+    }
+    while (true) {
+      // Let a user-requested footnote scroll finish before taking its snapshot.
+      await nextFrame()
+      var position = saved
+      if (controller.interacted) {
+        position = requestedPosition && requestedPosition.url === displayedURL.href
+          ? requestedPosition.saved : page.scroll.capture()
+      }
+      if (await restorePosition(displayedURL, position, {
+        focus: !state && !controller.interacted, animate: true, ready: true
+      })) break
+      // A same-document action owns the new position and URL, including actions
+      // during the two-frame restoration window.
+      controller.interacted = true
+    }
+  }
   async function navigate(url, state) {
+    if (initializing || requiresDocumentNavigation(document.body) || document.body.hasAttribute('data-no-pjax')) {
+      if (state) location.replace(url.href)
+      else location.assign(url.href)
+      return
+    }
     cancelPending()
-    rememberPosition()
+    rememberPage()
     var controller = new AbortController()
     pending = controller
     loadingTimer = setTimeout(function () { showLoading(controller) }, 120)
     document.querySelector('.app-shell').setAttribute('aria-busy', 'true')
     try {
-      var response = await fetch(url.href, { signal: controller.signal, credentials: 'same-origin' })
-      if ((!response.ok && response.status !== 404) || !/text\/html/i.test(response.headers.get('Content-Type') || '')) throw new Error('Not a theme page')
-      var destination = new URL(response.url)
-      if (destination.origin !== location.origin) throw new Error('External redirect')
-      destination.hash = url.hash
-      var next = new DOMParser().parseFromString(await response.text(), 'text/html')
+      var prepared = await fetchPage(url, controller)
       if (pending !== controller) return
-      if (!next.querySelector('.app-shell #appScroll') || !next.querySelector('script[data-yinyang-runtime]') || next.body.hasAttribute('data-no-pjax')) throw new Error('Unsupported page')
-      if (next.querySelector('script[data-yinyang-runtime]').textContent !== document.querySelector('script[data-yinyang-runtime]').textContent || next.querySelector('script[data-yinyang-navigation]').getAttribute('src') !== document.querySelector('script[data-yinyang-navigation]').getAttribute('src')) throw new Error('Runtime version changed')
-      // Unmanaged custom scripts keep their normal full-document lifecycle.
-      if (Array.from(next.body.querySelectorAll('script')).some(function (script) { return executable(script) && !script.hasAttribute('data-page-runtime') })) throw new Error('Custom page scripts')
-      var scripts = Array.from(next.body.querySelectorAll('script[data-page-runtime]'))
-      var analytics = next.head.querySelector('script[data-page-analytics]')
-      hideLoading()
-      document.dispatchEvent(new CustomEvent('yinyang:before-navigate', { detail: { url: destination.href } }))
-      lifecycle.page.dispose()
-      rememberPage()
-      var saved = state && state.yinyang ? positions.get(state.yinyang.id) : null
-      displayedId = state && state.yinyang && state.yinyang.url === destination.href ? state.yinyang.id : writeEntry(destination, !!state)
-      displayedURL = destination
-      pendingAnchor = false
-      syncHead(next)
-      document.documentElement.lang = next.documentElement.lang
-      document.documentElement.classList.add('theme-changing')
-      if (saved && saved.folds) next.body.querySelectorAll('.code-block-body').forEach(function (body, index) {
-        if (typeof saved.folds[index] === 'boolean') body.classList.toggle('is-folded', saved.folds[index])
-      })
-      var nextArticle = next.body.querySelector('.app-scroll > article')
-      if (nextArticle) nextArticle.classList.add('page-preparing')
-      document.body.replaceWith(next.body)
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-      lifecycle.page = lifecycle.createPage()
-      scripts.forEach(function (script) { runScript(script, destination.href, script) })
-      lifecycle.page.requestAnimationFrame(function () { document.documentElement.classList.remove('theme-changing') })
-      if (analytics) runScript(analytics, destination.href, document.head.querySelector('script[data-page-analytics]'))
-      pending = null
-      restorePosition(destination, saved, document.body, !state, true)
+      await commitPage(prepared, state, controller)
     } catch (error) {
       if (controller.signal.aborted) return
-      if (state) location.replace(url.href)
+      if (initializing === controller) location.replace(displayedURL.href)
+      else if (state) location.replace(url.href)
       else location.assign(url.href)
     } finally {
-      if (pending === controller) {
-        pending = null
-        hideLoading()
-        document.querySelector('.app-shell').removeAttribute('aria-busy')
-      }
+      if (initializing === controller) initializing = null
+      if (pending === controller) cancelPending(false)
     }
   }
 
+  lifecycle.mount()
+  if (!window.fetch || !window.AbortController || !document.querySelector('.app-shell')) {
+    restorePosition(displayedURL, null, { ready: true })
+    return
+  }
+  history.scrollRestoration = 'manual'
   displayedId = writeEntry(displayedURL, true)
   rememberPosition()
+  lifecycle.page.scroll.onChange(rememberPosition)
   window.yinyangNavigation = {
     pushHash: function (hash) {
       cancelPending()
-      rememberPosition()
+      rememberPage()
       var url = new URL(location.href)
       url.hash = hash
       displayedId = writeEntry(url, false)
       displayedURL = url
-      pendingAnchor = false
+      settleHash(url, false)
     }
   }
-
   document.addEventListener('click', function (event) {
     if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
     var link = event.target.closest && event.target.closest('a[href]')
@@ -214,49 +306,36 @@
     try { url = new URL(link.getAttribute('href'), document.baseURI) } catch (error) { return }
     if (url.origin !== location.origin || !/^https?:$/.test(url.protocol)) return
     if (/\.(?:xml|json|pdf|zip|gz|png|jpe?g|gif|webp|svg|mp[34]|webm|ogg|woff2?|ttf|css|js)$/i.test(url.pathname)) return
-    cancelPending()
-    rememberPosition()
-    if (samePage(url, displayedURL)) {
-      if (!url.hash) {
-        event.preventDefault()
-        if (displayedURL.hash) {
-          displayedId = writeEntry(url, false)
-          displayedURL = url
-        }
-        restorePosition(url, null, document.body, false)
-        return
-      }
-      pendingAnchor = url.href !== location.href
-      return
-    }
     event.preventDefault()
-    navigate(url, null)
+    if (!samePage(url, displayedURL)) { navigate(url, null); return }
+    cancelPending()
+    rememberPage()
+    if (url.href !== displayedURL.href) {
+      displayedId = writeEntry(url, false)
+      displayedURL = url
+    }
+    if (url.hash) settleHash(url)
+    else restorePosition(url, null, {})
   })
-
   window.addEventListener('popstate', function (event) {
     cancelPending()
-    rememberPosition()
+    rememberPage()
     var url = new URL(location.href)
-    if (!samePage(url, displayedURL)) {
-      // Distinguish history traversal even when another script used a null state.
-      navigate(url, event.state || {})
-      return
-    }
+    if (!samePage(url, displayedURL)) { navigate(url, event.state || {}); return }
     displayedURL = url
     displayedId = event.state && event.state.yinyang ? event.state.yinyang.id : writeEntry(url, true)
-    pendingAnchor = false
-    restorePosition(url, positions.get(displayedId), document.body, false)
+    restorePosition(url, positions.get(displayedId), {})
   })
-
   window.addEventListener('hashchange', function () {
-    if (!samePage(new URL(location.href), displayedURL)) return
+    var url = new URL(location.href)
+    if (!samePage(url, displayedURL)) return
+    // popstate already owns restoration for this entry.
+    if (url.href === displayedURL.href) return
+    cancelPending()
     var state = history.state && history.state.yinyang
-    if (!state || state.url !== location.href) displayedId = writeEntry(new URL(location.href), true)
-    displayedURL = new URL(location.href)
-    pendingAnchor = false
+    if (!state || state.url !== url.href) displayedId = writeEntry(url, true)
+    displayedURL = url
+    settleHash(url)
   })
-  document.addEventListener('scroll', function (event) {
-    if (event.target === document || event.target.id === 'appScroll') rememberPosition()
-  }, { capture: true, passive: true })
-  document.dispatchEvent(new CustomEvent('yinyang:page-ready', { detail: { url: displayedURL.href } }))
+  restorePosition(displayedURL, null, { ready: true })
 })()

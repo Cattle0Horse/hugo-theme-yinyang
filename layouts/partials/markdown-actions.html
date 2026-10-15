@@ -1,8 +1,9 @@
-{{ $s := partial "actions-state.html" . }}
+{{ $s := partialCached "actions-state.html" . .RelPermalink }}
 {{ if $s.hasAny }}
-{{- $urls := partialCached "edit-urls.html" . .File.Path -}}
+
 <span class="markdown-actions">
   {{ if $s.hasGitHub }}
+  {{ $urls := $s.urls }}
   <button id="edit-page-btn" class="markdown-action-btn action-button" type="button" aria-label="编辑原文" data-tooltip="编辑原文">
     <span class="action-icon">{{ partial "icon.html" (dict "name" "edit") }}</span>
   </button>
@@ -23,32 +24,4 @@
 {{ if $s.hasMarkdown }}
 {{ printf "<script id=\"raw-markdown-content\" type=\"application/json\">%s</script>" (.RawContent | jsonify) | safeHTML }}
 {{ end }}
-<script data-page-runtime>
-(function (runtime) {
-  function bindOpen(btnId, urlId) {
-    var btn = document.getElementById(btnId)
-    var url = document.getElementById(urlId)
-    if (!btn || !url) return
-    var locked = false
-    runtime.listen(btn, 'click', function () {
-      if (locked) return
-      locked = true
-      btn.setAttribute('aria-disabled', 'true')
-      window.open(url.textContent, '_blank', 'noopener')
-      runtime.setTimeout(function () {
-        locked = false
-        btn.removeAttribute('aria-disabled')
-      }, 500)
-    })
-  }
-  bindOpen('edit-page-btn', 'edit-page-url')
-  bindOpen('view-raw-btn', 'raw-page-url')
-
-  var raw = document.getElementById('raw-markdown-content')
-  var copyBtn = document.getElementById('copy-markdown-btn')
-  if (!raw || !copyBtn) return
-  var text = JSON.parse(raw.textContent)
-  if (window.bindCopyButton) window.bindCopyButton(copyBtn, text, { defaultLabel: '复制 Markdown' })
-})(window.yinyangRuntime.page)
-</script>
 {{ end }}

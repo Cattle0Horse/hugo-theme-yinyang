@@ -1,6 +1,6 @@
-{{ $s := partial "actions-state.html" . }}
+{{ $s := partialCached "actions-state.html" . .RelPermalink }}
 {{ if $s.hasGitHub }}
-{{- $urls := partialCached "edit-urls.html" . .File.Path -}}
+{{- $urls := $s.urls -}}
 {{- $text := .Site.Params.actions.editPage.text | default "有错误？欢迎提交 Pull Request" -}}
 <div class="edit-page">
   <hr>

@@ -1,6 +1,6 @@
-{{ $actions := .Site.Params.actions }}
-{{ return dict
-  "hasGitHub" (and $actions.enabled $actions.editPage.enabled .File $actions.editPage.repo)
-  "hasMarkdown" (and $actions.enabled .RawContent $actions.copyMarkdown)
-  "hasAny" (or (and $actions.enabled $actions.editPage.enabled .File $actions.editPage.repo) (and $actions.enabled .RawContent $actions.copyMarkdown))
-}}
+{{- $actions := .Site.Params.actions -}}
+{{- $hasGitHub := and $actions.enabled $actions.editPage.enabled .File $actions.editPage.repo -}}
+{{- $hasMarkdown := and $actions.enabled .RawContent $actions.copyMarkdown -}}
+{{- $urls := dict -}}
+{{- if $hasGitHub }}{{ $urls = partial "edit-urls.html" . }}{{ end -}}
+{{- return dict "hasGitHub" $hasGitHub "hasMarkdown" $hasMarkdown "hasAny" (or $hasGitHub $hasMarkdown) "urls" $urls -}}

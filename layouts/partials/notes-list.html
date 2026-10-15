@@ -16,7 +16,7 @@
         <h3 class="note-entry-title"><a href="{{ $note.RelPermalink }}">{{ . }}</a></h3>
         {{ end }}
         {{ partial "note-source.html" . }}
-        <div class="note-content markdown-body">{{ .Content }}</div>
+        <div class="note-content markdown-body">{{ partial "note-content.html" . }}</div>
         {{ partial "note-tags.html" . }}
       </div>
     </article>

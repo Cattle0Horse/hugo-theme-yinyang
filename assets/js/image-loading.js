@@ -1,7 +1,6 @@
-{{ if and .Site.Params.image.enabled .Site.Params.image.loading (not .IsHome) }}
-<script data-page-runtime>
-;(function (runtime) {
-  function frameFor(img) { return img.closest('.loading-image-frame') }
+window.yinyangRuntime.register('image-loading', function (runtime) {
+  if (!runtime.config.imageLoading) return
+function frameFor(img) { return img.closest('.loading-image-frame') }
 
   function setFrameState(frame, state) {
     frame.classList.remove('is-loading', 'is-loaded', 'is-failed', 'is-narrow', 'is-retrying')
@@ -11,9 +10,7 @@
   function setRetryLabel(frame, label) {
     var retry = frame.querySelector('.loading-retry')
     if (!retry) return
-    retry.setAttribute('aria-label', label)
-    retry.setAttribute('data-tooltip', label)
-    if (window.updateActionTooltip) window.updateActionTooltip(retry)
+    runtime.label(retry, label)
   }
 
   function finishLoad(img, frame) {
@@ -94,6 +91,4 @@
     if (img.naturalWidth > 0) onLoad(img)
     else onError(img)
   })
-})(window.yinyangRuntime.page)
-</script>
-{{ end }}
+})

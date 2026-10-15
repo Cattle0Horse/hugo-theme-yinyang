@@ -1,4 +1,4 @@
-{{- $repo := .Site.Params.actions.editPage.repo -}}
+{{- $repo := .Site.Params.actions.editPage.repo | strings.TrimSuffix "/" -}}
 {{- $branchParts := slice -}}
 {{- range split (.Site.Params.actions.editPage.branch | default "main") "/" -}}
   {{- $branchParts = $branchParts | append (urls.PathEscape .) -}}

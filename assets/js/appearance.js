@@ -1,14 +1,14 @@
-<script data-page-runtime>
-;(function (runtime) {
+window.yinyangRuntime.register('appearance', function (runtime) {
   var themeBtn = document.getElementById("theme-toggle")
   if (!themeBtn) return
   var paletteBtn = document.getElementById("palette-toggle")
-  var paletteState = {{ partial "palette-state.html" . | jsonify | safeJS }}
+  var paletteState = runtime.config.palette
   var themeNames = { light: "亮色", dark: "暗色", system: "跟随浏览器" }
   var themeModes = ["light", "dark", "system"]
   var browserTheme = window.matchMedia("(prefers-color-scheme: dark)")
   var html = document.documentElement
   var menu = null
+  runtime.addCleanup(function () { if (menu) menu.remove() })
   var themeTransition = null
   var themeAnimation = null
 
@@ -25,9 +25,7 @@
 
   function updateLabel(button, label) {
     if (!button) return
-    button.setAttribute("aria-label", label)
-    button.setAttribute("data-tooltip", label)
-    if (window.updateActionTooltip) window.updateActionTooltip(button)
+    runtime.label(button, label)
   }
 
   function nextThemeMode(mode) {
@@ -110,13 +108,7 @@
 
   function positionMenu() {
     if (!menu) return
-    var anchor = paletteBtn.getBoundingClientRect()
-    var bounds = menu.getBoundingClientRect()
-    var left = Math.max(8, Math.min(anchor.left, window.innerWidth - bounds.width - 8))
-    var top = anchor.bottom + 8
-    if (top + bounds.height > window.innerHeight - 8) top = Math.max(8, anchor.top - bounds.height - 8)
-    menu.style.left = left + "px"
-    menu.style.top = top + "px"
+    runtime.positionFloating(menu, paletteBtn, 'start')
   }
 
   function closeMenu(returnFocus) {
@@ -130,16 +122,7 @@
     node.inert = true
     paletteBtn.setAttribute("aria-expanded", "false")
     if (returnFocus) paletteBtn.focus()
-    var timer = runtime.setTimeout(finishClose, 220)
-    function finishClose() {
-      runtime.clearTimeout(timer)
-      runtime.unlisten(node, "transitionend", onTransitionEnd)
-      node.remove()
-    }
-    function onTransitionEnd(event) {
-      if (event.target === node && event.propertyName === "opacity") finishClose()
-    }
-    runtime.listen(node, "transitionend", onTransitionEnd)
+    runtime.removeAfterTransition(node)
   }
 
   function openMenu() {
@@ -167,7 +150,7 @@
     document.body.appendChild(node)
     positionMenu()
     paletteBtn.setAttribute("aria-expanded", "true")
-    if (window.hideActionTooltip) window.hideActionTooltip(paletteBtn)
+    runtime.tooltip.hide(paletteBtn)
     runtime.requestAnimationFrame(function () {
       if (menu !== node) return
       node.classList.add("is-open")
@@ -220,12 +203,14 @@
       event.preventDefault()
       options[event.key === "Home" ? 0 : options.length - 1].focus()
     } else if (event.key === "Tab") {
-      event.preventDefault()
-      var controls = Array.prototype.slice.call(document.querySelectorAll(".header-items a, .header-items button"))
-        .filter(function (control) { return control.getClientRects().length > 0 && !control.closest('[hidden]') })
+      var controls = Array.prototype.slice.call(document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
+        .filter(function (control) { return control.tabIndex >= 0 && !control.disabled && control.getClientRects().length && !control.closest('[hidden], [inert]') && !menu.contains(control) })
       var target = controls[controls.indexOf(paletteBtn) + (event.shiftKey ? -1 : 1)]
-      closeMenu(false)
-      if (target) target.focus()
+      closeMenu(!target)
+      if (target) {
+        event.preventDefault()
+        target.focus()
+      }
     }
   })
 
@@ -234,5 +219,4 @@
     if (menu && event.target !== paletteBtn && !menu.contains(event.target)) closeMenu(false)
   })
   runtime.listen(document, "scroll", function () { if (menu) closeMenu(false) }, true)
-})(window.yinyangRuntime.page)
-</script>
+})

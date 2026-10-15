@@ -1,0 +1,10 @@
+<div class="terms-list">
+                    {{ range .Data.Terms.Alphabetical }}
+                    <div class="terms-item">
+                      <a class="terms-link" href="{{ .Page.RelPermalink }}">
+                        <span class="terms-name">{{ .Page.Title }}</span>
+                        <span class="terms-count">{{ .Count }}</span>
+                      </a>
+                    </div>
+                    {{ end }}
+                  </div>

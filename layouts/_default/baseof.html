@@ -15,12 +15,7 @@
       {{ block "toc" . }}{{ end }}
     </main>
   </div>
-  {{ block "runtime" . }}{{ end }}
-  {{ partial "theme-toggle.html" . }}
-  {{ partial "footnotes.html" . }}
-  {{ if .Site.Params.extraBody }}
+  {{ partial "runtime-body.html" . }}
   {{ .Site.Params.extraBody | safeHTML }}
-  {{ end }}
-  {{ partial "ui.html" . }}
 </body>
 </html>

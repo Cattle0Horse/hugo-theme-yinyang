@@ -6,14 +6,8 @@
       {{ with .Content }}<div class="notes-intro markdown-body">{{ . }}</div>{{ end }}
     </header>
 
-    {{ $paginator := .Paginate (.RegularPages.ByDate.Reverse) 30 }}
+    {{ $paginator := partial "notes-paginator.html" . }}
     {{ partial "notes-list.html" (dict "Paginator" $paginator) }}
   </div></div>
 </article>
-{{ end }}
-
-{{ define "runtime" }}
-{{ partial "copy-button.html" . }}
-{{ partial "code-toolbar.html" . }}
-{{ partial "image-loading.html" . }}
 {{ end }}

@@ -5,14 +5,8 @@
       <h1 class="notes-page-title">#{{ .Title }}</h1>
     </header>
 
-    {{ $paginator := .Paginate (.Pages.ByDate.Reverse) 30 }}
+    {{ $paginator := partial "notes-paginator.html" . }}
     {{ partial "notes-list.html" (dict "Paginator" $paginator) }}
   </div></div>
 </article>
-{{ end }}
-
-{{ define "runtime" }}
-{{ partial "copy-button.html" . }}
-{{ partial "code-toolbar.html" . }}
-{{ partial "image-loading.html" . }}
 {{ end }}

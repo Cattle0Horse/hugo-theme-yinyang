@@ -1,0 +1,21 @@
+{{- $title := partial "page-title.html" . -}}
+{{- $description := default .Summary .Description | plainify -}}
+{{- $schemaType := "CollectionPage" -}}
+{{- $ogType := "website" -}}
+{{- if .IsHome -}}
+  {{- $title = .Site.Title -}}
+  {{- $description = .Site.Params.description | plainify -}}
+  {{- $schemaType = "WebSite" -}}
+{{- else if .IsPage -}}
+  {{- $schemaType = "WebPage" -}}
+  {{- if or (eq .Section "notes") (in .Site.Params.mainSections .Type) -}}
+    {{- $schemaType = "BlogPosting" -}}
+    {{- $ogType = "article" -}}
+  {{- end -}}
+{{- else if eq .Kind "404" -}}
+  {{- $schemaType = "WebPage" -}}
+{{- end -}}
+{{- $images := slice -}}
+{{- range .Params.album }}{{ $images = $images | append ((partial "site-url.html" .) | absURL) }}{{ end -}}
+{{- if not $images }}{{ with .Site.Params.favicon }}{{ $images = $images | append ((partial "site-url.html" .) | absURL) }}{{ end }}{{ end -}}
+{{- return dict "title" $title "description" $description "schemaType" $schemaType "ogType" $ogType "images" $images -}}

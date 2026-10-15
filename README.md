@@ -18,7 +18,6 @@
 | 🧭 站内导航 | 无刷新切换页面、正文淡入与加载进度提示；前进后退恢复阅读位置、代码展开状态和内容横向滚动位置 |
 | 📱 自适应布局 | 宽窄屏切换保持阅读位置，页头链接空间不足时自动收进菜单，Gallery 手机单列展示 |
 | 📖 阅读排版 | 系统字体栈、长标题换行、宽表格局部横向滚动与滑动提示，代码和公式独立横向滚动 |
-| 🌫 边缘效果 | 正文和目录上下边缘随滚动显示淡出效果，可选渐进模糊 |
 | 📐 数学公式 | 构建期 KaTeX 渲染行内与块级公式，输出 HTML 与 MathML，按需加载样式，页面加载无需公式渲染 JS、无跳变 |
 | 💻 代码块工具栏 | 语法高亮、语言标签、一键复制、长代码折叠与展开，缩进式代码块也支持复制 |
 | 🖼 图片增强 | 原生懒加载、异步解码、骨架屏占位、加载淡入与失败重试；正文和 Gallery 可独立启用柔和内描边 |
@@ -54,10 +53,19 @@ theme = "yinyang"
 在仓库根目录启动示例站点：
 
 ```shell
-hugo server -s exampleSite --themesDir ../.. --theme $(basename $(pwd))
+hugo server -s exampleSite --themesDir ../.. --theme hugo-theme-yinyang
 ```
 
-浏览器打开 `http://localhost:1313` 即可预览主题效果。
+浏览器打开 `http://localhost:1313` 即可预览主题效果。命令可直接用于 PowerShell / Nushell。
+
+构建示例站与运行回归测试：
+
+```shell
+hugo -s exampleSite --themesDir ../.. --theme hugo-theme-yinyang
+node --expose-gc --test
+```
+
+主题由 Hugo 直接构建，无需 npm 工具链；回归验证需要 Node 和 Hugo，使用 Node 内置测试运行器。
 
 ## 配置
 
@@ -120,9 +128,11 @@ allowUserChoice = true
 
 请求超过 120ms 时显示主题色进度条和“正在加载…”状态，期间保留原内容；完成、取消或失败后清理提示。
 
-外链、新标签页、Ctrl / Command 点击、下载和 RSS 继续由浏览器处理。请求失败、目标不是主题页面、运行时代码版本变化或目标正文含未托管的自定义脚本时，自动使用正常页面跳转。
+外链、新标签页、Ctrl / Command 点击、下载和 RSS 继续由浏览器处理。请求失败、目标不是主题页面、运行时代码版本变化，或当前 / 目标正文含未托管脚本、内联 module 脚本时，自动使用正常页面跳转。
 
-给链接或其父元素添加 `data-no-pjax` 可强制正常跳转。自定义全局脚本可以监听 `yinyang:before-navigate` 和 `yinyang:page-ready`；需要随页面重新执行的正文脚本应标记 `data-page-runtime`，并通过 `window.yinyangRuntime.page` 管理事件和清理工作。
+给链接或其父元素添加 `data-no-pjax` 可强制正常跳转。自定义集成可以在 `document` 上监听 `yinyang:before-navigate`（提交新页面前）和 `yinyang:page-ready`（主题初始化、焦点及滚动恢复后），事件的 `detail.url` 为目标 URL。这些事件只提供通知；ready 不等待所有图片、字体或第三方统计完成。
+
+需要随页面重新执行的正文 / `extraBody` 脚本应标记 `data-page-runtime`，并通过 `window.yinyangRuntime.page` 的监听、计时器和 `addCleanup` 管理资源。导航时先初始化主题功能，再按正文顺序重放这些脚本，等待外部经典脚本和外部 module 加载。内联 module 保留完整页面加载，以保持其原生模块语义。自定义脚本初始化期间，站内锚点仍可操作；再次跨页使用正常导航。首次加载使用 defer 主题 bundle，因此普通 footer 脚本如需 `bindCopyButton` 等主题 helper，应监听 `yinyang:page-ready`。`extraHead` 中的自定义脚本不会随导航重放。
 
 ### RSS
 

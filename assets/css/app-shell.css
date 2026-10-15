@@ -78,10 +78,6 @@ body {
 
 /* ---- header (normal flow, inside app-scroll) ---- */
 
-.app-header {
-  /* block in normal flow, no special layout */
-}
-
 .site-header-content {
   width: 100%;
   max-width: 800px;

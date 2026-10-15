@@ -1,5 +1,11 @@
-{{ if findRE "\\$[^$]*\\$" .RawContent }}
+{{- $content := string .Content -}}
+{{- if or (and (eq .Section "notes") (eq .Kind "section")) (and (eq .Data.Plural "note_tags") (eq .Kind "term")) -}}
+  {{- range (partial "notes-paginator.html" .).Pages -}}
+    {{- $content = printf "%s%s" $content .Content -}}
+  {{- end -}}
+{{- end -}}
+{{- if strings.Contains $content `class="katex` -}}
 {{- $css := resources.Get "css/katex.min.css" -}}
-{{- $fontBase := relURL "/fonts/katex/" -}}
+{{- $fontBase := relURL "fonts/katex/" -}}
 <style data-page-head>{{ replace $css.Content "url(fonts/" (printf "url(%s" $fontBase) | safeCSS }}</style>
-{{ end }}
+{{- end -}}

@@ -1,7 +1,7 @@
-{{- $paletteState := partial "palette-state.html" . -}}
+{{- $paletteState := partialCached "palette-state.html" . .Site.Language.Lang -}}
 <header class="site-header-content">
   <div class="header-title">
-    <a href="/"
+    <a href="{{ site.Home.RelPermalink }}"
       >{{ or .Site.Params.headTitle .Site.Params.author.name }}</a
     >
   </div>
@@ -23,7 +23,7 @@
       <div class="header-links">
         {{ range . }}
         <div class="header-item">
-          <a href="{{ .link }}"{{ if hasPrefix .link "http" }} target="_blank" rel="noopener"{{ end }}>{{ .name }}</a>
+          <a href="{{ partial "site-url.html" .link }}"{{ if hasPrefix .link "http" }} target="_blank" rel="noopener"{{ end }}>{{ .name }}</a>
         </div>
         {{ end }}
       </div>
@@ -35,4 +35,3 @@
   </div>
   <div class="header-line"></div>
 </header>
-{{ with .Site.Params.socials }}{{ partial "header-nav.html" $ }}{{ end }}

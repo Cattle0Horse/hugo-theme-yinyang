@@ -1,0 +1,3 @@
+{{- $url := string . -}}
+{{- if and (hasPrefix $url "/") (not (hasPrefix $url "//")) }}{{ $url = strings.TrimPrefix "/" $url }}{{ end -}}
+{{- return ($url | relURL) -}}

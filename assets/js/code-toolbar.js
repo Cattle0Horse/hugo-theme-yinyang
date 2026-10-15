@@ -1,5 +1,4 @@
-<script data-page-runtime>
-;(function (runtime) {
+window.yinyangRuntime.register('code-toolbar', function (runtime) {
   // 围栏代码块的工具栏/折叠结构已由构建期 render-codeblock.html 输出。
   // 这里只做运行时部分：
   //   1) 给构建期 [data-copy-block] 按钮绑定复制
@@ -7,16 +6,13 @@
   //   3) 缩进式代码块（裸 <pre>，非 .highlight）运行时包装浮动复制按钮
   // 折叠阈值：单一事实源在 CSS 变量 --code-fold-max（variables.css）
   var FOLD_MAX = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--code-fold-max')) || 360
-  var COPY_ICONS =
-    '<span class="action-icon state-icon state-icon-default"><svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span>' +
-    '<span class="action-icon state-icon state-icon-success"><svg viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></svg></span>' +
-    '<span class="action-icon state-icon state-icon-error"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg></span>'
+  var COPY_ICONS = runtime.config.copyIcons
 
   function bindCopy(button, codeEl) {
-    if (!button || !codeEl || !window.bindCopyButton) return
+    if (!button || !codeEl || !runtime.bindCopyButton) return
     var text = codeEl.textContent || ''
     if (text.endsWith('\n')) text = text.slice(0, -1)
-    window.bindCopyButton(button, text, { defaultLabel: '复制代码' })
+    runtime.bindCopyButton(button, text, { defaultLabel: '复制代码' })
   }
 
   function sourceCode(button) {
@@ -59,26 +55,21 @@
         return
       }
 
-      var instance = { viewport: viewport, hl: hl }
+      var instance = { body: body, viewport: viewport, hl: hl, update: updateExpand }
       foldInstances.push(instance)
       updateExpandedHeight(instance)
 
       function updateExpand() {
         var folded = body.classList.contains('is-folded')
         expandBar.setAttribute('aria-expanded', String(!folded))
-        expandBar.setAttribute('aria-label', folded ? '展开全部代码' : '收起代码')
-        expandBar.setAttribute('data-tooltip', folded ? '展开全部代码' : '收起代码')
+        runtime.label(expandBar, folded ? '展开全部代码' : '收起代码')
         if (expandText) expandText.textContent = folded ? '展开全部 (' + lineCount + ' 行)' : '收起'
       }
       runtime.listen(expandBar, 'click', function () {
         if (!body.classList.contains('is-folded')) {
-          var appScroll = document.getElementById('appScroll')
-          var wide = window.isWide ? window.isWide() : window.matchMedia('(min-width: 84em)').matches
-          var viewportTop = wide ? 0 : appScroll.getBoundingClientRect().top
-          var wrapperTop = body.closest('.code-block-wrapper').getBoundingClientRect().top
-          if (wrapperTop < viewportTop) {
-            var offset = wide ? window.scrollY : appScroll.scrollTop
-            ;(wide ? window : appScroll).scrollTo({ top: Math.max(0, offset + wrapperTop - viewportTop - 24), behavior: 'instant' })
+          var wrapper = body.closest('.code-block-wrapper')
+          if (wrapper.getBoundingClientRect().top < runtime.scroll.viewport().top) {
+            runtime.scroll.scrollToElement(wrapper, { offset: 24, behavior: 'instant' })
           }
         }
         body.classList.toggle('is-folded')
@@ -86,6 +77,17 @@
       })
       updateExpand()
     })(codeBodies[f])
+  }
+
+  var foldableBodies = new Set(foldInstances.map(function (instance) { return instance.body }))
+  runtime.code = {
+    restoreFolds: function (folds) {
+      Array.prototype.forEach.call(codeBodies, function (body, index) {
+        if (!foldableBodies.has(body)) body.classList.remove('is-folded')
+        else if (typeof folds[index] === 'boolean') body.classList.toggle('is-folded', folds[index])
+      })
+      foldInstances.forEach(function (instance) { instance.update() })
+    }
   }
 
   if (foldInstances.length) {
@@ -127,5 +129,4 @@
     var el = blocks[j]
     if (!el.classList.contains('highlight')) enhancePlainPre(el)
   }
-})(window.yinyangRuntime.page)
-</script>
+})

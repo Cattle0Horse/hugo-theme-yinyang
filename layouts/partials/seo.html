@@ -1,31 +1,11 @@
-<script data-page-head type="application/ld+json">
-  {{- $pageTitle := cond .IsHome .Site.Title (partial "page-title.html" .) -}}
+{{- $meta := partial "page-metadata.html" . -}}
+{{- $data := dict "@context" "https://schema.org" "@type" $meta.schemaType "name" $meta.title "description" $meta.description "url" .Permalink -}}
+{{- if eq $meta.schemaType "BlogPosting" -}}
   {{- $keywords := default (slice) .Params.tags -}}
   {{- with .Params.note_tags }}{{ $keywords = . }}{{ end -}}
-  {
-      "@context" : "https://schema.org",
-      "@type" : "BlogPosting",
-      "mainEntityOfPage": {
-           "@type": "WebPage",
-           "@id": "{{ .Site.BaseURL }}"
-      },
-      "articleSection" : "{{ .Section }}",
-      "name" : {{ $pageTitle | jsonify | safeJS }},
-      "headline" : {{ $pageTitle | jsonify | safeJS }},
-      {{ if .IsHome -}}
-      "description" : "{{ .Site.Params.description | plainify }}",
-      {{- else -}}
-      "description" : "{{ default .Summary .Description | plainify }}",
-      {{- end }}
-      "author" : "{{ .Site.Params.author.name }}",
-      "creator" : "{{ .Site.Params.author.name }}",
-      "publisher": "{{ .Site.Params.author.name }}",
-      "accountablePerson" : "{{ .Site.Params.author.name }}",
-      "copyrightHolder" : "{{ .Site.Params.author.name }}",
-      "copyrightYear" : "{{ .Date.Format "2006" }}",
-      "datePublished": "{{ .Date }}",
-      "dateModified" : "{{ .Date }}",
-      "url" : "{{ .Permalink }}",
-      "keywords" : {{ $keywords | jsonify | safeJS }}
-  }
-</script>
+  {{- $data = merge $data (dict "headline" $meta.title "mainEntityOfPage" (dict "@type" "WebPage" "@id" .Permalink) "articleSection" .Section "keywords" $keywords "author" (dict "@type" "Person" "name" .Site.Params.author.name)) -}}
+  {{- if not .Date.IsZero }}{{ $data = merge $data (dict "datePublished" (.Date.Format "2006-01-02T15:04:05Z07:00")) }}{{ end -}}
+  {{- if not .Lastmod.IsZero }}{{ $data = merge $data (dict "dateModified" (.Lastmod.Format "2006-01-02T15:04:05Z07:00")) }}{{ end -}}
+{{- end -}}
+{{- if $meta.images }}{{ $data = merge $data (dict "image" $meta.images) }}{{ end -}}
+<script data-page-head type="application/ld+json">{{ $data | jsonify | safeJS }}</script>

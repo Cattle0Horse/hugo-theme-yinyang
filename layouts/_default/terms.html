@@ -1,44 +1,12 @@
-<!DOCTYPE html>
-<html lang="{{ .Site.Language.Locale }}">
-{{ partial "head.html" . }}
-
-<body>
-  <div class="app-shell">
-    <main class="app-main">
-      <div class="app-content">
-        <div class="app-scroll" id="appScroll">
-          <header class="app-header" id="appHeader">
-            {{ partial "header.html" . }}
-          </header>
-          <article class="post {{ .Site.Language.Locale }}" id="article">
-            <div class="row">
-              <div class="col-xs-12">
-                <h1 class="taxonomy-term">{{ .Data.Plural | humanize }}</h1>
-                <div id="posts-list">
-                  <div class="terms-list">
-                    {{ range .Data.Terms.Alphabetical }}
-                    <div class="terms-item">
-                      <a class="terms-link" href="{{ .Page.RelPermalink }}">
-                        <span class="terms-name">{{ .Page.Title }}</span>
-                        <span class="terms-count">{{ .Count }}</span>
-                      </a>
-                    </div>
-                    {{ end }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </article>
-        </div>
+{{ define "main" }}
+<article class="post {{ .Site.Language.Locale }}" id="article">
+  <div class="row">
+    <div class="col-xs-12">
+      <h1 class="taxonomy-term">{{ .Data.Plural | humanize }}</h1>
+      <div id="posts-list">
+        {{ partial "terms-list.html" . }}
       </div>
-    </main>
+    </div>
   </div>
-
-  {{ partial "theme-toggle.html" . }}
-  {{ partial "footnotes.html" . }}
-  {{ if .Site.Params.extraBody }}
-  {{ .Site.Params.extraBody | safeHTML }}
-  {{ end }}
-  {{ partial "ui.html" . }}
-</body>
-</html>
+</article>
+{{ end }}

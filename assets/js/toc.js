@@ -1,5 +1,4 @@
-<script data-page-runtime>
-(function (runtime) {
+window.yinyangRuntime.register('toc', function (runtime) {
   'use strict'
   var sidebar = document.getElementById('tocSidebar')
   var floatBtn = document.getElementById('tocFloatBtn')
@@ -7,13 +6,13 @@
   var tocScroll = document.getElementById('tocScroll')
   var tocNav = sidebar && sidebar.querySelector('.toc-nav')
   var appScroll = document.getElementById('appScroll')
-  var wide = window.matchMedia('(min-width: 84em)')
   var background = document.querySelector('.app-content')
   var backgroundState = null
   if (!sidebar || !tocNav || !appScroll) return
 
   var links = Array.prototype.slice.call(tocNav.querySelectorAll('a[href^="#"]'))
 
+  // Modality: focus containment, background isolation, and responsive state.
   function focusable() {
     return sidebar.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')
   }
@@ -26,8 +25,8 @@
   }
 
   function openToc() {
-    if (wide.matches || sidebar.classList.contains('toc-open')) return
-    backgroundState = { page: window.scrollY, app: appScroll.scrollTop, inert: background.inert }
+    if (runtime.scroll.isWide() || sidebar.classList.contains('toc-open')) return
+    backgroundState = { reading: runtime.scroll.capture(), inert: background.inert }
     background.inert = true
     document.documentElement.classList.add('toc-open')
     sidebar.classList.add('toc-open')
@@ -38,10 +37,8 @@
     setNavTabbable(true)
     floatBtn.dataset.state = 'open'
     floatBtn.setAttribute('aria-expanded', 'true')
-    floatBtn.setAttribute('aria-label', '关闭目录')
-    floatBtn.setAttribute('data-tooltip', '关闭目录')
+    runtime.label(floatBtn, '关闭目录')
     backdrop.classList.add('toc-open')
-    if (window.updateActionTooltip) window.updateActionTooltip(floatBtn)
     sidebar.focus({ preventScroll: true })
   }
 
@@ -49,15 +46,14 @@
     document.documentElement.classList.remove('toc-open')
     if (!backgroundState) return
     background.inert = backgroundState.inert
-    window.scrollTo({ top: backgroundState.page, behavior: 'instant' })
-    appScroll.scrollTo({ top: backgroundState.app, behavior: 'instant' })
+    runtime.scroll.restore(backgroundState.reading)
     backgroundState = null
   }
 
   runtime.addCleanup(unlockBackground)
 
   function closeToc(returnFocus) {
-    if (wide.matches) return
+    if (runtime.scroll.isWide()) return
     sidebar.classList.remove('toc-open')
     unlockBackground()
     sidebar.setAttribute('aria-hidden', 'true')
@@ -67,10 +63,8 @@
     setNavTabbable(false)
     floatBtn.dataset.state = ''
     floatBtn.setAttribute('aria-expanded', 'false')
-    floatBtn.setAttribute('aria-label', '打开目录')
-    floatBtn.setAttribute('data-tooltip', '打开目录')
+    runtime.label(floatBtn, '打开目录')
     backdrop.classList.remove('toc-open')
-    if (window.updateActionTooltip) window.updateActionTooltip(floatBtn)
     if (returnFocus !== false) floatBtn.focus()
   }
 
@@ -112,7 +106,7 @@
   })
 
   function syncMode() {
-    if (wide.matches) {
+    if (runtime.scroll.isWide()) {
       sidebar.classList.remove('toc-open')
       unlockBackground()
       sidebar.inert = false
@@ -122,8 +116,7 @@
       backdrop.classList.remove('toc-open')
       floatBtn.setAttribute('aria-expanded', 'false')
       floatBtn.dataset.state = ''
-      floatBtn.setAttribute('aria-label', '打开目录')
-      floatBtn.setAttribute('data-tooltip', '打开目录')
+      runtime.label(floatBtn, '打开目录')
       floatBtn.removeAttribute('aria-disabled')
       setNavTabbable(true)
     } else {
@@ -134,9 +127,10 @@
       setNavTabbable(open)
     }
   }
-  runtime.listen(wide, 'change', syncMode)
+  runtime.addCleanup(runtime.scroll.onModeChange(syncMode))
   syncMode()
 
+  // Scrollspy and heading feedback.
   function decodeHash(hash) {
     try {
       return decodeURIComponent(hash)
@@ -158,9 +152,10 @@
 
   var indicator = document.getElementById('tocIndicator')
   var highlightedHeading = null
-  var highlightTimer = 0
+  var cancelHighlight = null
   function clearHeadingHighlight() {
-    runtime.clearTimeout(highlightTimer)
+    if (cancelHighlight) cancelHighlight()
+    cancelHighlight = null
     if (highlightedHeading) highlightedHeading.classList.remove('toc-target')
     highlightedHeading = null
   }
@@ -169,17 +164,14 @@
     highlightedHeading = target
     target.offsetWidth
     target.classList.add('toc-target')
-    highlightTimer = runtime.setTimeout(clearHeadingHighlight, 2400)
+    cancelHighlight = runtime.onMotionEnd(target, { type: 'animationend', animation: 'toc-target-fade', timeout: 2400 }, clearHeadingHighlight)
   }
-  runtime.listen(document, 'animationend', function (event) {
-    if (event.target === highlightedHeading && event.animationName === 'toc-target-fade') clearHeadingHighlight()
-  })
+  runtime.addCleanup(clearHeadingHighlight)
   function updateActive() {
     if (!entries.length) return
-    var isBody = wide.matches
-    var scrollRect = appScroll.getBoundingClientRect()
-    var viewportTop = isBody ? 0 : scrollRect.top
-    var viewportBottom = isBody ? window.innerHeight : scrollRect.bottom
+    var viewport = runtime.scroll.viewport()
+    var viewportTop = viewport.top
+    var viewportBottom = viewport.bottom
     var visible = []
     entries.forEach(function (entry) {
       var start = entry.heading.getBoundingClientRect().top
@@ -187,9 +179,7 @@
       if (entry.end) {
         end = entry.end.getBoundingClientRect().top
       } else {
-        end = isBody
-          ? document.documentElement.scrollHeight - window.scrollY
-          : appScroll.scrollHeight - appScroll.scrollTop + scrollRect.top
+        end = (runtime.scroll.isWide() ? document.documentElement : runtime.scroll.element()).scrollHeight - runtime.scroll.position().top + viewportTop
       }
       var active = end > viewportTop && start < viewportBottom
       entry.link.classList.toggle('toc-active', active)
@@ -221,33 +211,19 @@
 
   runtime.listen(tocNav, 'click', function (event) {
     var link = event.target.closest('a[href^="#"]')
-    if (!link) return
+    if (!link || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
     var target = document.getElementById(decodeHash(link.getAttribute('href').slice(1)))
     if (!target) return
     event.preventDefault()
-    if (!wide.matches) closeToc(true)
+    if (!runtime.scroll.isWide()) closeToc(true)
     runtime.requestAnimationFrame(function () {
-      if (wide.matches) {
-        var targetTop = target.getBoundingClientRect().top + window.scrollY - 64
-        window.scrollTo({ top: Math.max(0, targetTop) })
-      } else {
-        var scrollRect = appScroll.getBoundingClientRect()
-        var top = target.getBoundingClientRect().top - scrollRect.top + appScroll.scrollTop - 64
-        appScroll.scrollTo({ top: Math.max(0, top) })
-      }
+      runtime.scroll.scrollToElement(target, { offset: 64 })
       highlightHeading(target)
     })
     runtime.pushHash(link.getAttribute('href'))
   })
 
-  var activeFrame = 0
-  function onScroll() {
-    runtime.cancelAnimationFrame(activeFrame)
-    activeFrame = runtime.requestAnimationFrame(updateActive)
-  }
-  runtime.listen(appScroll, 'scroll', onScroll, { passive: true })
-  runtime.listen(window, 'scroll', onScroll, { passive: true })
+  runtime.addCleanup(runtime.scroll.onChange(updateActive))
   runtime.listen(window, 'resize', updateActive)
   updateActive()
-})(window.yinyangRuntime.page)
-</script>
+})

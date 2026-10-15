@@ -1,5 +1,4 @@
-<script data-page-runtime>
-;(function (runtime) {
+window.yinyangRuntime.register('header-nav', function (runtime) {
   var nav = document.getElementById('headerNav')
   if (!nav) return
   var row = nav.closest('.header-items')
@@ -8,25 +7,18 @@
   var button = document.getElementById('headerNavToggle')
   var appearance = row.querySelector('.appearance-controls')
   var menu = null
+  runtime.addCleanup(function () { if (menu) menu.remove() })
   var layoutFrame = 0
 
   function updateLabel(open) {
     var label = open ? '关闭导航菜单' : '打开导航菜单'
     button.setAttribute('aria-expanded', String(open))
-    button.setAttribute('aria-label', label)
-    button.setAttribute('data-tooltip', label)
-    if (window.updateActionTooltip) window.updateActionTooltip(button)
+    runtime.label(button, label)
   }
 
   function positionMenu() {
     if (!menu) return
-    var anchor = button.getBoundingClientRect()
-    var bounds = menu.getBoundingClientRect()
-    var left = Math.max(8, Math.min(anchor.right - bounds.width, window.innerWidth - bounds.width - 8))
-    var top = anchor.bottom + 8
-    if (top + bounds.height > window.innerHeight - 8) top = Math.max(8, anchor.top - bounds.height - 8)
-    menu.style.left = left + 'px'
-    menu.style.top = top + 'px'
+    runtime.positionFloating(menu, button, 'end')
   }
 
   function closeMenu(returnFocus) {
@@ -40,16 +32,7 @@
     node.inert = true
     updateLabel(false)
     if (returnFocus) button.focus({ preventScroll: true })
-    var timer = runtime.setTimeout(finishClose, 220)
-    function finishClose() {
-      runtime.clearTimeout(timer)
-      runtime.unlisten(node, 'transitionend', onTransitionEnd)
-      node.remove()
-    }
-    function onTransitionEnd(event) {
-      if (event.target === node && event.propertyName === 'opacity') finishClose()
-    }
-    runtime.listen(node, 'transitionend', onTransitionEnd)
+    runtime.removeAfterTransition(node)
   }
 
   function openMenu(last) {
@@ -70,7 +53,7 @@
       document.body.appendChild(node)
       positionMenu()
       updateLabel(true)
-      if (window.hideActionTooltip) window.hideActionTooltip(button)
+      runtime.tooltip.hide(button)
     }
     var current = menu
     runtime.requestAnimationFrame(function () {
@@ -173,5 +156,4 @@
     runtime.listen(document.fonts, 'loadingdone', scheduleLayout)
   }
   updateLayout()
-})(window.yinyangRuntime.page)
-</script>
+})

@@ -1,80 +1,50 @@
-<!DOCTYPE html>
-<html lang="{{ .Site.Language.Locale }}">
-{{ partial "head.html" . }}
-
-<body>
-  {{ partial "copy-button.html" . }}
-  <div class="app-shell">
-    <main class="app-main">
-      <div class="app-content">
-        <div class="app-scroll" id="appScroll">
-          <header class="app-header" id="appHeader">
-            {{ partial "header.html" . }}
-          </header>
-          <article class="post {{ .Site.Language.Locale }}" id="article">
-            <div class="row">
-              <div class="col-xs-12">
-                <header class="post-header">
-                  <h1 class="post-title">{{ .Title }}</h1>
-                  {{ $hasActions := (partial "actions-state.html" .).hasAny }}
-                  {{ if or (in .Site.Params.mainSections .Type) $hasActions .Site.Params.busuanzi.enabled }}
-                  <div class="row post-desc">
-                    <div class="col-xs-12 post-desc-inner">
-                      {{ if .Site.Params.busuanzi.enabled }}<span class="post-meta-group">{{ end }}
-                        {{ if and .Date (in .Site.Params.mainSections .Type) }}
-                        <time class="post-date" datetime="{{ .Date.Format "2006-01-02 15:04:05 MST" }}">
-                          {{ .Date.Format "2006.01.02" }}
-                        </time>
-                        {{ end }}
-                        {{ partial "busuanzi-page.html" . }}
-                      {{ if .Site.Params.busuanzi.enabled }}</span>{{ end }}
-                      {{ partial "markdown-actions.html" . }}
-                    </div>
-                  </div>
-                  {{ end }}
-                  {{ partial "ai-label.html" . }}
-                </header>
-
-                <div class="post-content markdown-body">
-                  {{ with .Site.Params.postContent }}
-                    {{ if .enabled }}{{ .header | safeHTML }}{{ end }}
-                  {{ end }}
-                  {{ .Content }}
-                </div>
-
-                {{ partial "post-tags.html" . }}
-                {{ if in .Site.Params.mainSections .Type }}
-                  <div class="row">
-                    <div class="col-xs-12">
-                      {{ with .Site.Params.postContent }}
-                        {{ if .enabled }}{{ .footer | safeHTML }}{{ end }}
-                      {{ end }}
-                    </div>
-                  </div>
-
-
-                  <!-- split -->
-                  <div style="height: 50px;"></div>
-                {{ end }}
-              </div>
-            </div>
-          </article>
-          {{ partial "edit-page.html" . }}
+{{ define "main" }}
+<article class="post {{ .Site.Language.Locale }}" id="article">
+  <div class="row">
+    <div class="col-xs-12">
+      <header class="post-header">
+        <h1 class="post-title">{{ .Title }}</h1>
+        {{ $hasActions := (partialCached "actions-state.html" . .RelPermalink).hasAny }}
+        {{ if or (in .Site.Params.mainSections .Type) $hasActions .Site.Params.busuanzi.enabled }}
+        <div class="row post-desc">
+          <div class="col-xs-12 post-desc-inner">
+            {{ if .Site.Params.busuanzi.enabled }}<span class="post-meta-group">{{ end }}
+              {{ if and .Date (in .Site.Params.mainSections .Type) }}
+              <time class="post-date" datetime="{{ .Date.Format "2006-01-02 15:04:05 MST" }}">
+                {{ .Date.Format "2006.01.02" }}
+              </time>
+              {{ end }}
+              {{ partial "busuanzi-page.html" . }}
+            {{ if .Site.Params.busuanzi.enabled }}</span>{{ end }}
+            {{ partial "markdown-actions.html" . }}
+          </div>
         </div>
+        {{ end }}
+        {{ partial "ai-label.html" . }}
+      </header>
+
+      <div class="post-content markdown-body">
+        {{ with .Site.Params.postContent }}
+          {{ if .enabled }}{{ .header | safeHTML }}{{ end }}
+        {{ end }}
+        {{ .Content }}
       </div>
-      {{ partial "toc.html" . }}
-    </main>
+
+      {{ partial "post-tags.html" . }}
+      {{ if in .Site.Params.mainSections .Type }}
+        <div class="row">
+          <div class="col-xs-12">
+            {{ with .Site.Params.postContent }}
+              {{ if .enabled }}{{ .footer | safeHTML }}{{ end }}
+            {{ end }}
+          </div>
+        </div>
+
+        <div style="height: 50px;"></div>
+      {{ end }}
+    </div>
   </div>
-
-  {{ partial "image-loading.html" . }}
-  {{ partial "code-toolbar.html" . }}
-  {{ partial "theme-toggle.html" . }}
-  {{ partial "footnotes.html" . }}
-  {{ if .Site.Params.extraBody }}
-  {{ .Site.Params.extraBody | safeHTML }}
-  {{ end }}
-  {{ partial "ui.html" . }}
-
-</body>
-
-</html>
+</article>
+{{ partial "edit-page.html" . }}
+{{ end }}
+{{ define "toc" }}{{ partial "toc.html" . }}{{ end }}

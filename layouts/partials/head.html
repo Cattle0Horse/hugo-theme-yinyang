@@ -1,34 +1,9 @@
 <head>
-  {{- with resources.Get "js/page-runtime.js" | minify -}}
-  <script data-yinyang-runtime>{{ .Content | safeJS }}</script>
-  {{- end -}}
-  {{- with resources.Get "js/navigation.js" | minify | fingerprint -}}
-  <script defer src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" data-yinyang-navigation></script>
-  {{- end -}}
-  {{- $paletteState := partial "palette-state.html" . -}}
-  <script>
-    ;(function () {
-      var t = null
-      var p = null
-      var palettes = {{ $paletteState.available | jsonify | safeJS }}
-      var defaultPalette = {{ $paletteState.default | jsonify | safeJS }}
-      try {
-        t = localStorage.getItem("theme")
-        p = localStorage.getItem("palette")
-      } catch (error) {}
-      if (t !== "light" && t !== "dark") t = "system"
-      if (!p || palettes.indexOf(p) === -1) p = defaultPalette
-      document.documentElement.setAttribute("data-theme-mode", t)
-      var theme = t
-      if (t === "system") theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-      document.documentElement.setAttribute("data-theme", theme)
-      document.documentElement.setAttribute("data-palette", p)
-    })();
-  </script>
+  {{ partial "runtime-head.html" . }}
+  {{ $meta := partial "page-metadata.html" . }}
   <meta data-page-head charset="utf-8" />
   {{ hugo.Generator }}
 
-  <meta data-page-head http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta data-page-head name="viewport" content="width=device-width, initial-scale=1" />
   <meta data-page-head name="author" content="{{ .Site.Params.author.name }}" />
   <meta data-page-head property="og:url" content="{{ .Permalink }}" />
@@ -38,9 +13,8 @@
   <link data-page-head rel="dns-prefetch" href="{{ .Site.Params.staticPrefix }}" />
   {{- end -}}
   {{- if .Site.Params.favicon -}}
-  <link data-page-head rel="apple-touch-icon" href="{{ .Site.Params.favicon }}" />
-  <link data-page-head rel="icon" href="{{ .Site.Params.favicon }}" />
-  <link data-page-head rel="shortcut" href="{{ .Site.Params.favicon }}" />
+  <link data-page-head rel="apple-touch-icon" href="{{ partial "site-url.html" .Site.Params.favicon }}" />
+  <link data-page-head rel="icon" href="{{ partial "site-url.html" .Site.Params.favicon }}" />
   {{- end -}}
   {{- $feedPage := site.Home -}}
   {{- if or (eq .Section "notes") (eq .Data.Plural "note_tags") -}}
@@ -54,32 +28,13 @@
 
   {{ partial "seo" . }}
 
-  {{- if .IsHome -}}
-  <title data-page-head>{{ .Site.Title }}</title>
-  <meta data-page-head property="og:title" content="{{ .Site.Title }}" />
-  <meta data-page-head property="og:type" content="website" />
-  <meta data-page-head property="og:description" content="{{ .Site.Params.description }}" />
-  <meta data-page-head name="description" content="{{ .Site.Params.description }}" />
-  {{- else -}}
-  {{- $pageTitle := partial "page-title.html" . -}}
-  <title data-page-head>{{ $pageTitle }}</title>
-  <meta data-page-head property="og:title" content="{{ $pageTitle }}" />
-  <meta data-page-head property="og:type" content="article" />
-  <meta data-page-head
-    property="og:description"
-    content="{{ default .Summary .Description | plainify }}"
-  />
-  <meta data-page-head
-    name="description"
-    content="{{ default .Summary .Description | plainify }}"
-  />
-  {{- end }}
+  <title data-page-head>{{ $meta.title }}</title>
+  <meta data-page-head property="og:title" content="{{ $meta.title }}" />
+  <meta data-page-head property="og:type" content="{{ $meta.ogType }}" />
+  <meta data-page-head property="og:description" content="{{ $meta.description }}" />
+  <meta data-page-head name="description" content="{{ $meta.description }}" />
   <meta data-page-head property="og:locale" content="{{ .Site.Language.Locale }}" />
-  {{- if .Params.album -}}
-  <meta data-page-head property="og:image" content="{{ .Params.album }}" />
-  {{- else -}}
-  <meta data-page-head property="og:image" content="{{ .Site.Params.favicon }}" />
-  {{ end }}
+  {{ range $meta.images }}<meta data-page-head property="og:image" content="{{ . }}" />{{ end }}
   {{ $files := slice }}
   {{ range $path := slice
     "css/variables.css"
@@ -112,14 +67,14 @@
   {{ range .Site.Params.extraCSSFiles -}}
   <link data-page-head
     rel="stylesheet"
-    href="{{ $.Site.Params.staticPrefix }}{{ . | relURL }}"
+    href="{{ $.Site.Params.staticPrefix }}{{ partial "site-url.html" . }}"
   />
   {{- end }}
 
 
   {{ .Site.Params.extraHead | safeHTML }}
 
-  {{ partialCached "math.html" . .RelPermalink }}
+  {{ partial "math.html" . }}
   {{ if .Site.Params.busuanzi.enabled }}
   <script async data-page-analytics src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
   {{ end }}

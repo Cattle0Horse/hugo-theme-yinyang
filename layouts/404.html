@@ -1,38 +1,13 @@
-<!DOCTYPE html>
-<html lang="{{ .Site.Language.Locale }}">
-{{ partial "head.html" . }}
-
-<body>
-  <div class="app-shell">
-    <main class="app-main">
-      <div class="app-content">
-        <div class="app-scroll" id="appScroll">
-          <header class="app-header" id="appHeader">
-            {{ partial "header.html" . }}
-          </header>
-          <article class="post {{ .Site.Language.Locale }}" id="article">
-            <div class="row">
-              <div class="col-xs-12">
-                <div class="post-content markdown-body" style="text-align:center;padding:80px 0;">
-                  <h1 style="font-size:4rem;margin-bottom:0;">404</h1>
-                  <p style="color:var(--color-text-secondary);margin-top:8px;">页面未找到</p>
-                  <p><a href="{{ "/" | relURL }}" style="text-decoration:underline;">← 返回首页</a></p>
-                </div>
-              </div>
-            </div>
-          </article>
-        </div>
+{{ define "main" }}
+<article class="post {{ .Site.Language.Locale }}" id="article">
+  <div class="row">
+    <div class="col-xs-12">
+      <div class="post-content markdown-body" style="text-align:center;padding:80px 0;">
+        <h1 style="font-size:4rem;margin-bottom:0;">404</h1>
+        <p style="color:var(--color-text-secondary);margin-top:8px;">页面未找到</p>
+        <p><a href="{{ site.Home.RelPermalink }}" style="text-decoration:underline;">← 返回首页</a></p>
       </div>
-    </main>
+    </div>
   </div>
-
-  {{ partial "theme-toggle.html" . }}
-  {{ partial "footnotes.html" . }}
-  {{ if .Site.Params.extraBody }}
-  {{ .Site.Params.extraBody | safeHTML }}
-  {{ end }}
-  {{ partial "ui.html" . }}
-
-</body>
-
-</html>
+</article>
+{{ end }}

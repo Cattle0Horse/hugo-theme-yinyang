@@ -1,7 +1,7 @@
 <div class="row middle-xs">
   <div class="col-xs-12">
-    {{ range .Params.tags }}
-    <a class="post-tag" href="{{ (printf "/tags/%s/" (. | urlize)) | relURL }}">{{ . }}</a>
+    {{ range .GetTerms "tags" }}
+    <a class="post-tag" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
     {{ end }}
   </div>
 </div>

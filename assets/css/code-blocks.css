@@ -190,12 +190,3 @@
 .code-toolbar > .code-copy-btn {
   margin-left: auto;
 }
-
-.floating-code-copy > .code-copy-btn,
-.plain-code-copy > .code-copy-btn {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-}
-
-

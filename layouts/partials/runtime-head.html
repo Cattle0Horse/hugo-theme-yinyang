@@ -1,0 +1,30 @@
+  {{- with resources.Get "js/page-runtime.js" | minify -}}
+  <script data-yinyang-runtime>{{ .Content | safeJS }}</script>
+  {{- end -}}
+  {{- $scripts := slice -}}
+  {{- range slice "scroll" "ui-helpers" "tooltip" "tables" "scrollbar" "copy" "markdown-actions" "code-toolbar" "image-loading" "header-nav" "appearance" "toc" "footnotes" "navigation" -}}
+    {{- $scripts = $scripts | append (resources.Get (printf "js/%s.js" .)) -}}
+  {{- end -}}
+  {{- with $scripts | resources.Concat "js/yinyang.js" | minify | fingerprint -}}
+  <script defer src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" data-yinyang-navigation></script>
+  {{- end -}}
+  {{- $paletteState := partialCached "palette-state.html" . .Site.Language.Lang -}}
+  <script>
+    ;(function () {
+      var t = null
+      var p = null
+      var palettes = {{ $paletteState.available | jsonify | safeJS }}
+      var defaultPalette = {{ $paletteState.default | jsonify | safeJS }}
+      try {
+        t = localStorage.getItem("theme")
+        p = localStorage.getItem("palette")
+      } catch (error) {}
+      if (t !== "light" && t !== "dark") t = "system"
+      if (!p || palettes.indexOf(p) === -1) p = defaultPalette
+      document.documentElement.setAttribute("data-theme-mode", t)
+      var theme = t
+      if (t === "system") theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+      document.documentElement.setAttribute("data-theme", theme)
+      document.documentElement.setAttribute("data-palette", p)
+    })();
+  </script>

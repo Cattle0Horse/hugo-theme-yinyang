@@ -204,12 +204,6 @@ a:hover {
   background-color: var(--color-table-code-bg);
 }
 
-/* i18n */
-
-.Chinese .markdown-body {
-  line-height: 200%;
-}
-
 /* ---- minimal grid (replaces flexboxgrid) ---- */
 
 .row {
@@ -223,19 +217,13 @@ a:hover {
 }
 
 .col-xs-12,
-.col-xs-11,
 .col-xs-9,
 .col-xs-6,
-.col-xs-3,
-.col-xs-2,
-.col-xs-1 { box-sizing: border-box; flex: 0 0 auto; padding-left: 0.5rem; padding-right: 0.5rem; }
+.col-xs-3 { box-sizing: border-box; flex: 0 0 auto; padding-left: 0.5rem; padding-right: 0.5rem; }
 .col-xs-12 { flex-basis: 100%; max-width: 100%; }
-.col-xs-11 { flex-basis: 91.667%; max-width: 91.667%; }
 .col-xs-9  { flex-basis: 75%; max-width: 75%; }
 .col-xs-6  { flex-basis: 50%; max-width: 50%; }
 .col-xs-3  { flex-basis: 25%; max-width: 25%; }
-.col-xs-2  { flex-basis: 16.667%; max-width: 16.667%; }
-.col-xs-1  { flex-basis: 8.333%; max-width: 8.333%; }
 
 .middle-xs { align-items: center; }
 

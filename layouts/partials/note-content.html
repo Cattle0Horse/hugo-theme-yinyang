@@ -1,0 +1,50 @@
+{{- $html := string .Content -}}
+{{- $prefix := printf "note-%s-" (crypto.MD5 .RelPermalink) -}}
+{{- $tags := findRE `(?is)<[a-z][^>]*>` $html -}}
+{{- $ids := dict -}}
+{{- $anchors := dict -}}
+{{- /* Collect targets first so references to IDs outside this Note remain intact. */ -}}
+{{- range $tags -}}
+  {{- range findRE `(?i)\sid\s*=\s*["'][^"']+["']` . -}}
+    {{- $id := replaceRE `(?is)^.*?=[\s"']*([^"']+)["']$` `${1}` . -}}
+    {{- $ids = merge $ids (dict $id (printf "%s%s" $prefix $id)) -}}
+  {{- end -}}
+  {{- if findRE `(?i)^<a(?:\s|>)` . -}}
+    {{- range findRE `(?i)\sname\s*=\s*["'][^"']+["']` . -}}
+      {{- $name := replaceRE `(?is)^.*?=[\s"']*([^"']+)["']$` `${1}` . -}}
+      {{- $anchors = merge $anchors (dict $name (printf "%s%s" $prefix $name)) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- range $tags -}}
+  {{- $original := . -}}
+  {{- $tag := . -}}
+  {{- $isAnchor := findRE `(?i)^<a(?:\s|>)` $tag -}}
+  {{- range findRE `(?i)\s(?:id|name|href|for|headers|list|form|aria-labelledby|aria-describedby|aria-controls|aria-owns|aria-activedescendant|aria-details|aria-errormessage)\s*=\s*["'][^"']*["']` $tag -}}
+    {{- $attribute := . -}}
+    {{- $key := replaceRE `(?is)^\s*([^\s=]+).*` `${1}` $attribute | lower -}}
+    {{- $value := replaceRE `(?is)^.*?=\s*["']([^"']*)["']$` `${1}` $attribute -}}
+    {{- $next := $value -}}
+    {{- if eq $key "id" -}}
+      {{- $next = default $value (index $ids $value) -}}
+    {{- else if and (eq $key "name") $isAnchor -}}
+      {{- $next = default $value (index $anchors $value) -}}
+    {{- else if and (eq $key "href") (hasPrefix $value "#") -}}
+      {{- $target := strings.TrimPrefix "#" $value -}}
+      {{- with or (index $ids $target) (index $anchors $target) }}{{ $next = printf "#%s" . }}{{ end -}}
+    {{- else if not (in (slice "name" "href") $key) -}}
+      {{- $tokens := slice -}}
+      {{- range findRE `\S+` $value -}}
+        {{- $tokens = $tokens | append (default . (index $ids .)) -}}
+      {{- end -}}
+      {{- $next = delimit $tokens " " -}}
+    {{- end -}}
+    {{- if ne $value $next -}}
+      {{- $start := replaceRE `(?is)^(.*?=\s*["']).*$` `${1}` $attribute -}}
+      {{- $quote := strings.Substr $attribute -1 -}}
+      {{- $tag = strings.Replace $tag $attribute (printf "%s%s%s" $start $next $quote) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $html = strings.Replace $html $original $tag -}}
+{{- end -}}
+{{- return ($html | safeHTML) -}}

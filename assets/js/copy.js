@@ -1,6 +1,5 @@
-<script data-page-runtime>
-;(function (runtime) {
-  runtime.expose('bindCopyButton', function (button, text, options) {
+window.yinyangRuntime.register('copy', function (runtime) {
+  function bindCopyButton(button, text, options) {
     if (!button) return
     options = options || {}
     var defaultLabel = options.defaultLabel || button.getAttribute('aria-label') || ''
@@ -16,16 +15,7 @@
       if (!node) return
       node.setAttribute('aria-hidden', 'true')
       node.classList.remove('is-visible')
-      var timer = runtime.setTimeout(finishClose, 220)
-      function finishClose() {
-        runtime.clearTimeout(timer)
-        runtime.unlisten(node, 'transitionend', onTransitionEnd)
-        node.remove()
-      }
-      function onTransitionEnd(event) {
-        if (event.target === node && event.propertyName === 'opacity') finishClose()
-      }
-      runtime.listen(node, 'transitionend', onTransitionEnd)
+      runtime.removeAfterTransition(node)
     }
 
     function showFeedback(label) {
@@ -38,16 +28,11 @@
       document.body.appendChild(node)
       feedback = node
       button.setAttribute('data-copy-feedback', 'true')
-      if (window.hideActionTooltip) window.hideActionTooltip(button)
+      runtime.tooltip.hide(button)
       runtime.requestAnimationFrame(function () {
         if (feedback !== node) return
         node.textContent = label
-        var rect = button.getBoundingClientRect()
-        var bounds = node.getBoundingClientRect()
-        node.style.left = Math.max(8, Math.min(rect.left + (rect.width - bounds.width) / 2, window.innerWidth - bounds.width - 8)) + 'px'
-        var top = rect.top - bounds.height - 8
-        if (top < 8) top = rect.bottom + 8
-        node.style.top = Math.min(top, window.innerHeight - bounds.height - 8) + 'px'
+        runtime.positionFloating(node, button, 'center')
         node.classList.add('is-visible')
       })
       runtime.listen(document, 'scroll', removeFeedback, true)
@@ -73,19 +58,17 @@
       button.disabled = false
       var label = success ? (options.successLabel || '已复制') : (options.errorLabel || '复制失败，请手动选择')
       button.dataset.state = success ? 'success' : 'error'
-      button.setAttribute('aria-label', label)
-      button.setAttribute('data-tooltip', label)
-      if (window.updateActionTooltip) window.updateActionTooltip(button)
+      runtime.label(button, label)
       showFeedback(label)
       runtime.clearTimeout(resetTimer)
       resetTimer = runtime.setTimeout(function () {
         removeFeedback()
         button.dataset.state = ''
-        button.setAttribute('aria-label', defaultLabel)
-        button.setAttribute('data-tooltip', defaultLabel)
-        if (window.updateActionTooltip) window.updateActionTooltip(button)
+        runtime.label(button, defaultLabel)
       }, options.resetDelay || (success ? 2000 : 4000))
     }
+
+    runtime.addCleanup(function () { if (feedback) feedback.remove() })
 
     runtime.listen(button, 'click', function () {
       if (button.disabled) return
@@ -100,6 +83,7 @@
         setState(fallbackCopy(text))
       }
     })
-  })
-})(window.yinyangRuntime.page)
-</script>
+  }
+  runtime.bindCopyButton = bindCopyButton
+  runtime.expose('bindCopyButton', bindCopyButton)
+})

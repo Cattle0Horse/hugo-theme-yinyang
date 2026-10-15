@@ -1,5 +1,4 @@
 {{ define "main" }}
-{{ partial "copy-button.html" . }}
 <article class="note-single {{ .Site.Language.Locale }}">
   <div class="row"><div class="col-xs-12">
     <header class="note-single-header">
@@ -18,9 +17,4 @@
   </div></div>
 </article>
 {{ partial "edit-page.html" . }}
-{{ end }}
-
-{{ define "runtime" }}
-{{ partial "code-toolbar.html" . }}
-{{ partial "image-loading.html" . }}
 {{ end }}
