@@ -256,13 +256,13 @@ a.note-tag:is(:hover, :focus-visible) {
   content: "";
   display: table-caption;
   caption-side: bottom;
-  height: 22px;
+  height: var(--table-hint-space);
 }
 
 .table-wrapper {
   position: relative;
   margin: 1em 0;
-  padding-bottom: 22px;
+  padding-bottom: var(--table-hint-space);
 }
 
 .table-scroll {

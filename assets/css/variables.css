@@ -12,6 +12,7 @@
   --code-line-height: 1.6;
   --code-padding: 16px;
   --code-fold-lines: 15;
+  --table-hint-space: 22px;
   --action-button-size: 32px;
   --action-icon-size: 16px;
   --color-bg: oklch(98% 0.012 85);

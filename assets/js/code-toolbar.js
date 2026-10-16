@@ -19,10 +19,9 @@ window.yinyangRuntime.register('code-toolbar', function (runtime) {
   }
 
   // 1) 构建期按钮：绑定复制
-  var prebuilt = document.querySelectorAll('button[data-copy-block]')
-  for (var i = 0; i < prebuilt.length; i++) {
-    bindCopy(prebuilt[i], sourceCode(prebuilt[i]))
-  }
+  document.querySelectorAll('button[data-copy-block]').forEach(function (button) {
+    bindCopy(button, sourceCode(button))
+  })
 
   // 2) 折叠交互：构建期按 codeMaxLines 决定折叠，CSS 使用相同的行数。
   var foldInstances = []

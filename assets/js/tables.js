@@ -3,12 +3,9 @@ window.yinyangRuntime.register('tables', function (runtime) {
   document.querySelectorAll('.markdown-body table').forEach(function (table) {
     if (table.closest('.highlight')) return
     var wrapper = table.closest('.table-wrapper')
-    var region
-    var hint
-    if (wrapper) {
-      region = wrapper.querySelector('.table-scroll')
-      hint = wrapper.querySelector('.table-scroll-hint')
-    } else {
+    var region = wrapper && wrapper.querySelector('.table-scroll')
+    var hint = wrapper && wrapper.querySelector('.table-scroll-hint')
+    if (!wrapper) {
       // Raw HTML tables do not pass through the Markdown render hook.
       wrapper = document.createElement('div')
       region = document.createElement('div')
