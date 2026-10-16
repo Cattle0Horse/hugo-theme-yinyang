@@ -34,8 +34,18 @@
 
 :root.navigation-sharing::view-transition { pointer-events: none; }
 :root.navigation-sharing::view-transition-group(*) {
-  animation-duration: 420ms;
+  animation-duration: var(--navigation-shared-duration, 420ms);
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Date formats and wrapped titles can have different snapshot aspect ratios. */
+:root.navigation-sharing::view-transition-old(yinyang-title),
+:root.navigation-sharing::view-transition-new(yinyang-title),
+:root.navigation-sharing::view-transition-old(yinyang-time),
+:root.navigation-sharing::view-transition-new(yinyang-time) {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left top;
 }
 :root.navigation-sharing::view-transition-old(root),
 :root.navigation-sharing::view-transition-old(yinyang-title),

@@ -25,6 +25,7 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
   const sharedFinished = deferred()
   let sharedStarted = false
   let sharedSkipped = false
+  let sharedDuration = null
   const animationFrame = callback => setImmediate(callback)
   let fontRequested = false
   let sequence = 0
@@ -33,7 +34,11 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
       super()
       this.tagName = tagName
       this.attributes = new Map(Object.entries(attributes))
-      this.style = {}
+      this.style = {
+        getPropertyValue(name) { return this[name] || '' },
+        setProperty(name, value) { this[name] = value },
+        removeProperty(name) { delete this[name] }
+      }
       this.children = []
       this.scrollLeft = 0
       this.scrollTop = 0
@@ -233,6 +238,7 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
   if (sharedTransition) document.startViewTransition = update => {
     if (transitionFails) throw new Error('Transition unavailable')
     sharedStarted = true
+    sharedDuration = parseFloat(document.documentElement.style.getPropertyValue('--navigation-shared-duration'))
     const updateCallbackDone = Promise.resolve().then(update)
     return {
       updateCallbackDone, ready: updateCallbackDone, finished: sharedFinished.promise,
@@ -265,6 +271,7 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
     sharedTargets, sharedFinished,
     get sharedStarted() { return sharedStarted },
     get sharedSkipped() { return sharedSkipped },
+    get sharedDuration() { return sharedDuration },
     finishTransition() { motions.splice(0).forEach(callback => callback()) },
     publishCount(value) {
       if (countContainer.removed) return
@@ -446,6 +453,26 @@ test('reading input skips shared snapshots and leaves the destination immediatel
   assert.equal(fixture.sharedTargets.every(node => !node.style.viewTransitionName), true)
   assert.equal(fixture.previousStylesheet.removed, true)
   assert.equal(fixture.location.href, 'https://example.test/post/')
+})
+
+test('shared motion duration grows continuously with distance and restores the previous page style', async () => {
+  const durations = []
+  for (const distance of [0, 40, 41, 200, 400]) {
+    const fixture = navigationFixture({ math: false, sharedTransition: true })
+    fixture.document.documentElement.style.setProperty('--navigation-shared-duration', '321ms')
+    for (const target of fixture.sharedTargets) {
+      target.getBoundingClientRect = () => ({ left: distance, top: 100, bottom: 200, width: 800 })
+    }
+    await fixture.navigate('/post/')
+    durations.push(fixture.sharedDuration)
+    fixture.sharedFinished.resolve()
+    await flush()
+    assert.equal(fixture.document.documentElement.style.getPropertyValue('--navigation-shared-duration'), '321ms')
+    fixture.finishTransition()
+  }
+  assert.ok(durations.every(duration => duration >= 180 && duration <= 420))
+  assert.ok(durations[0] < durations[1] && durations[2] < durations[3] && durations[3] < durations[4])
+  assert.ok(Math.abs(durations[2] - durations[1]) <= 1, 'A one-pixel distance change must not switch motion modes')
 })
 
 test('a browser that rejects shared capture still completes navigation and releases resources', async () => {

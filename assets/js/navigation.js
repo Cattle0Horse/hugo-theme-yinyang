@@ -424,15 +424,24 @@
   async function revealArticle(snapshot, entering, page, removeCover) {
     if (!page.active) { removeCover(); return }
     var viewport = page.scroll.viewport()
-    var pairs = snapshot.shared.filter(function (pair) {
+    var pairs = []
+    var distance = 0
+    for (var pair of snapshot.shared) {
       var bounds = pair.to.getBoundingClientRect()
-      return bounds.width > 0 && bounds.bottom > viewport.top && bounds.top < viewport.bottom
-    })
+      if (bounds.width <= 0 || bounds.bottom <= viewport.top || bounds.top >= viewport.bottom) continue
+      var previousBounds = pair.from.getBoundingClientRect()
+      distance = Math.max(distance, Math.hypot(bounds.left - previousBounds.left, bounds.top - previousBounds.top))
+      pairs.push(pair)
+    }
     if (!pairs.length) {
       slideArticle(snapshot.element, entering, page, removeCover)
       return
     }
     var html = document.documentElement
+    var durationProperty = '--navigation-shared-duration'
+    var previousDuration = html.style.getPropertyValue(durationProperty)
+    // One distance-based duration keeps the title and time moving together.
+    html.style.setProperty(durationProperty, Math.min(420, Math.round(180 + distance * 0.8)) + 'ms')
     var transition
     var cancelled = false
     var cleaned = false
@@ -449,6 +458,8 @@
         pair.from.style.viewTransitionName = pair.oldName
         pair.to.style.viewTransitionName = pair.newName
       })
+      if (previousDuration) html.style.setProperty(durationProperty, previousDuration)
+      else html.style.removeProperty(durationProperty)
       html.classList.remove('navigation-sharing')
       stopCleanup()
       if (pageTransition === stop) pageTransition = null
