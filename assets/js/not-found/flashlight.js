@@ -1,4 +1,4 @@
-window.yinyangRuntime.register('not-found-flashlight', function (page) {
+function initialize(page) {
   var tools = page.notFound
   if (!tools || !tools.scene.querySelector('[data-nf-scene="flashlight"]')) return
 
@@ -65,4 +65,4 @@ window.yinyangRuntime.register('not-found-flashlight', function (page) {
     page.cancelAnimationFrame(frame); frame = 0; last = 0
     if (!document.hidden) request()
   })
-})
+}

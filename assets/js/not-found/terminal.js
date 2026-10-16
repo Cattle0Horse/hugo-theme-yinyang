@@ -1,4 +1,4 @@
-window.yinyangRuntime.register('not-found-terminal', function (page) {
+function initialize(page) {
   var tools = page.notFound
   if (!tools || !tools.scene.querySelector('[data-nf-scene="terminal"]')) return
   var find = tools.find
@@ -43,4 +43,4 @@ window.yinyangRuntime.register('not-found-terminal', function (page) {
     else if (command === '404') line('你找到了：没找到。')
     else line('command not found，试试 help。')
   })
-})
+}

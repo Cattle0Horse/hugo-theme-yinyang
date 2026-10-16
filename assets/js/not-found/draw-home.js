@@ -1,4 +1,4 @@
-window.yinyangRuntime.register('not-found-draw-home', function (page) {
+function initialize(page) {
   var tools = page.notFound
   if (!tools || !tools.scene.querySelector('[data-nf-scene="draw-home"]')) return
   var say = tools.say
@@ -102,4 +102,4 @@ window.yinyangRuntime.register('not-found-draw-home', function (page) {
     }
     frame = page.requestAnimationFrame(tick)
   }
-})
+}

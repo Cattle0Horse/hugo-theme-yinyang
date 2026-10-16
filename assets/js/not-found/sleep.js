@@ -1,4 +1,4 @@
-window.yinyangRuntime.register('not-found-sleep', function (page) {
+function initialize(page) {
   var tools = page.notFound
   if (!tools || !tools.scene.querySelector('[data-nf-scene="sleep"]')) return
 
@@ -122,4 +122,4 @@ window.yinyangRuntime.register('not-found-sleep', function (page) {
     page.clearTimeout(timer)
     fallAsleep(function () { tools.openArticle({ url: home.getAttribute('href') }) })
   })
-})
+}

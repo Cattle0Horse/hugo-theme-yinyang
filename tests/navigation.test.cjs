@@ -14,36 +14,66 @@ async function flush() {
   for (let i = 0; i < 10; i++) await new Promise(resolve => setImmediate(resolve))
 }
 
-function navigationFixture({ math = true, analytics = false } = {}) {
+function navigationFixture({ math = true, analytics = false, leaving404 = false, oldStyles = false, target404 = false, withFooter = false } = {}) {
   const timers = new Map()
   const ready = []
   const font = deferred()
+  const scene = deferred()
   const observers = new Set()
+  const motions = []
+  const initializers = []
   const animationFrame = callback => setImmediate(callback)
   let fontRequested = false
   let sequence = 0
   class Element extends EventTarget {
-    constructor(attributes = {}) {
+    constructor(attributes = {}, tagName = 'DIV') {
       super()
+      this.tagName = tagName
       this.attributes = new Map(Object.entries(attributes))
       this.style = {}
       this.children = []
-      const classes = new Set()
+      const classes = new Set((attributes.class || '').split(/\s+/))
       this.classList = {
-        add: name => classes.add(name), remove: name => classes.delete(name),
+        add: (...names) => names.forEach(name => classes.add(name)),
+        remove: (...names) => names.forEach(name => classes.delete(name)),
         contains: name => classes.has(name)
       }
+    }
+    get type() { return this.getAttribute('type') || '' }
+    get nextElementSibling() {
+      if (!this.parentNode) return null
+      const siblings = this.parentNode.children
+      return siblings[siblings.indexOf(this) + 1] || null
     }
     getAttribute(name) { return this.attributes.get(name) ?? null }
     setAttribute(name, value) { this.attributes.set(name, value) }
     hasAttribute(name) { return this.attributes.has(name) }
     removeAttribute(name) { this.attributes.delete(name) }
-    querySelectorAll(selector) { return selector === '.katex-html' ? this.children : [] }
-    querySelector() { return null }
+    querySelectorAll(selector) {
+      if (selector === '.katex-html') return this.children
+      return this.children.flatMap(node => {
+        let matches
+        if (selector.startsWith('#')) matches = node.getAttribute('id') === selector.slice(1)
+        else if (selector.startsWith('.')) matches = node.classList.contains(selector.slice(1))
+        else if (/^\[[\w-]+\]$/.test(selector)) matches = node.hasAttribute(selector.slice(1, -1))
+        else matches = node.tagName.toLowerCase() === selector
+        return [...(matches ? [node] : []), ...node.querySelectorAll(selector)]
+      })
+    }
+    querySelector(selector) { return this.querySelectorAll(selector)[0] || null }
     append() {}
-    appendChild(node) { this.children.push(node) }
-    remove() { this.removed = true }
-    cloneNode() { return new Element(Object.fromEntries(this.attributes)) }
+    appendChild(node) { this.children.push(node); node.parentNode = this }
+    remove() {
+      this.removed = true
+      if (this.parentNode) this.parentNode.children = this.parentNode.children.filter(node => node !== this)
+    }
+    cloneNode(deep) {
+      const clone = new Element(Object.fromEntries(this.attributes), this.tagName)
+      clone.textContent = this.textContent
+      if (this.content) clone.content = this.content.cloneNode(true)
+      if (deep) this.children.forEach(node => clone.appendChild(node.cloneNode(true)))
+      return clone
+    }
     getBoundingClientRect() { return { left: 0, top: 100, width: 800 } }
     isEqualNode(other) { return JSON.stringify([...this.attributes]) === JSON.stringify([...other.attributes]) }
   }
@@ -61,6 +91,8 @@ function navigationFixture({ math = true, analytics = false } = {}) {
   const bundleScript = new Element({ src: '/bundle.js' })
   const heading = Object.assign(new Element(), { focus() {} })
   const article = new Element()
+  const originalFooter = withFooter ? Object.assign(new Element({}, 'FOOTER'), { textContent: 'Previous footer' }) : null
+  const footer = withFooter ? Object.assign(new Element({}, 'FOOTER'), { textContent: 'New footer' }) : null
   const shell = new Element()
   const countContainer = new Element()
   const countValue = Object.assign(new Element(), { textContent: '' })
@@ -70,7 +102,7 @@ function navigationFixture({ math = true, analytics = false } = {}) {
   }
   const document = Object.assign(new EventTarget(), {
     documentElement: new Element(), baseURI: location.href,
-    createElement: () => new Element(),
+    createElement: tag => new Element({}, tag.toUpperCase()),
     fonts: { load() { fontRequested = true; return font.promise } },
     createTreeWalker() {
       let read = false
@@ -81,24 +113,35 @@ function navigationFixture({ math = true, analytics = false } = {}) {
       } }
     }
   })
-  const head = Object.assign(new Element(), {
-    children: [],
-    appendChild(node) { this.children.push(node) },
-    querySelectorAll() { return this.children },
-    querySelector() { return null }
-  })
-  function body() {
-    return Object.assign(new Element(), {
-      querySelector(selector) { return selector === '.app-scroll > article' ? article : null },
+  const head = new Element()
+  const previousStyle = new Element({ 'data-page-head': '' }, 'STYLE')
+  const previousStylesheet = new Element({ 'data-page-head': '', rel: 'stylesheet', href: '/old.css' }, 'LINK')
+  const previousTitle = new Element({ 'data-page-head': '' }, 'TITLE')
+  if (oldStyles) [previousStyle, previousStylesheet, previousTitle].forEach(node => head.appendChild(node))
+  function body(content, footer) {
+    const node = Object.assign(new Element(), {
+      querySelector(selector) {
+        return selector === '.app-scroll > article' ? content : Element.prototype.querySelector.call(this, selector)
+      },
       querySelectorAll(selector) {
-        if (selector !== '.katex' || !math) return []
-        return [Object.assign(new Element(), { parentElement: new Element() })]
+        if (selector === '.katex' && math) return [Object.assign(new Element(), { parentElement: new Element() })]
+        return Element.prototype.querySelectorAll.call(this, selector)
       },
       replaceWith(next) { document.body = next }
     })
+    const scroll = new Element({ class: 'app-scroll' })
+    scroll.appendChild(content)
+    if (footer) scroll.appendChild(footer)
+    node.appendChild(scroll)
+    return node
+  }
+  const originalArticle = new Element(leaving404 ? { 'data-not-found': '' } : {})
+  if (leaving404) {
+    const template = new Element({ 'data-nf-template': 'cat', 'data-nf-devices': 'mobile desktop' }, 'TEMPLATE')
+    for (const node of [template, new Element({ class: 'nf-scene' }), new Element({ class: 'nf-fallback' })]) originalArticle.appendChild(node)
   }
   document.head = head
-  document.body = body()
+  document.body = body(originalArticle, originalFooter)
   const originalBody = document.body
   document.getElementById = id => {
     if (!analytics || document.body === originalBody || countContainer.removed) return null
@@ -111,20 +154,20 @@ function navigationFixture({ math = true, analytics = false } = {}) {
     if (selector === '[data-page-math]') return head.children.find(node => node.hasAttribute('data-page-math'))
     if (selector === 'script[data-yinyang-runtime]') return runtimeScript
     if (selector === 'script[data-yinyang-navigation]') return bundleScript
-    if (selector === '.app-scroll > article') return article
+    if (selector === '.app-scroll > article') return document.body.querySelector(selector)
     if (selector === '.app-scroll h1, .app-scroll h2') return heading
-    return null
+    return document.body.querySelector(selector)
   }
   document.querySelectorAll = selector => selector === '.katex-html' && math ? [new Element()] : []
   const next = {
-    body: body(), documentElement: { lang: 'zh' },
+    body: body(article, footer), documentElement: { lang: 'zh' },
     head: {
       querySelector(selector) {
-        if (selector === '[data-page-math]' && math) return new Element({ 'data-page-head': '', 'data-page-math': '', href: '/math.css' })
+        if (selector === '[data-page-math]' && math) return new Element({ 'data-page-head': '', 'data-page-math': '', href: '/math.css' }, 'LINK')
         if (selector === 'script[data-page-analytics]' && analytics) return analyticsScript
         return null
       },
-      querySelectorAll: () => math ? [new Element({ 'data-page-head': '', 'data-page-math': '', href: '/math.css' })] : []
+      querySelectorAll: () => math ? [new Element({ 'data-page-head': '', 'data-page-math': '', href: '/math.css' }, 'LINK')] : []
     },
     getElementById: () => new Element(),
     querySelector(selector) {
@@ -137,9 +180,10 @@ function navigationFixture({ math = true, analytics = false } = {}) {
     const cleanups = new Set()
     return {
       active: true, dispose() { this.active = false; cleanups.forEach(callback => callback()) }, listen() {},
+      guard(callback) { return (...args) => { if (this.active) return callback(...args) } },
       addCleanup(callback) { cleanups.add(callback); return () => cleanups.delete(callback) },
       requestAnimationFrame: animationFrame,
-      onMotionEnd(node, options, callback) { callback() },
+      onMotionEnd(node, options, callback) { motions.push(callback) },
       scroll: {
         capture: () => ({ top: 0 }), onChange() {},
         element: () => ({ scrollTo() {} }), restore() {},
@@ -148,12 +192,20 @@ function navigationFixture({ math = true, analytics = false } = {}) {
       }
     }
   }
-  const lifecycle = { createPage, page: createPage(), mount() { return this.page } }
+  const lifecycle = {
+    createPage, page: createPage(), loadNotFound: () => Promise.resolve(null),
+    register(name, initialize) { initializers.push(initialize) },
+    mount() {
+      initializers.forEach(initialize => initialize(this.page))
+      if (target404 && document.body !== originalBody) this.page.notFoundReady = scene.promise
+      return this.page
+    }
+  }
   const window = Object.assign(new EventTarget(), {
-    yinyangRuntime: lifecycle, fetch: true, AbortController, scrollTo() {}
+    yinyangRuntime: lifecycle, fetch: true, AbortController, scrollTo() {}, matchMedia: () => ({ matches: false })
   })
   document.addEventListener('yinyang:page-ready', event => ready.push(event.detail.url))
-  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../assets/js/navigation.js'), 'utf8'), {
+  const context = {
     window, document, location, history, URL, AbortController,
     DOMParser: class { parseFromString() { return next } },
     NodeFilter: { SHOW_TEXT: 4 },
@@ -168,15 +220,20 @@ function navigationFixture({ math = true, analytics = false } = {}) {
     setTimeout(callback, delay) { const id = ++sequence; timers.set(id, { callback, delay }); return id },
     clearTimeout: id => timers.delete(id),
     requestAnimationFrame: animationFrame
-  })
+  }
+  for (const filename of ['not-found.js', 'navigation.js']) {
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../assets/js', filename), 'utf8'), context)
+  }
   return {
-    ready, font, article, shell, document, window, location, originalBody,
+    ready, font, scene, article, shell, document, window, location, originalBody, lifecycle,
+    previousStyle, previousStylesheet, previousTitle,
+    finishTransition() { motions.splice(0).forEach(callback => callback()) },
     publishCount(value) {
       if (countContainer.removed) return
       countValue.textContent = value
       observers.forEach(observer => observer.callback())
     },
-    get stylesheet() { return head.children[0] },
+    get stylesheet() { return head.querySelector('[data-page-math]') },
     get fontRequested() { return fontRequested },
     get restoredHash() { return restoredHash },
     async navigate(href = '/math/') {
@@ -271,6 +328,8 @@ test('the new view becomes ready with its reading count', async () => {
   assert.equal(fixture.document.getElementById('busuanzi_value_page_pv').textContent, '42')
 })
 
+
+
 test('unavailable statistics do not block the new view or pop into it after the timeout', async () => {
   const fixture = navigationFixture({ math: false, analytics: true })
   await fixture.navigate()
@@ -291,4 +350,75 @@ test('an anchor action during the statistics wait reveals the article and retain
   await flush()
   assert.equal(fixture.restoredHash, '#current-section')
   assert.deepEqual(fixture.ready, ['https://example.test/math/#current-section'])
+})
+
+test('leaving a 404 mounts the destination without reinitializing the outgoing scene', async () => {
+  const fixture = navigationFixture({ math: false, leaving404: true })
+  await fixture.navigate('/home/')
+  assert.deepEqual(fixture.ready, ['https://example.test/home/'])
+  assert.notEqual(fixture.document.body, fixture.originalBody)
+  assert.equal(fixture.lifecycle.page.notFound, undefined)
+})
+
+test('entering a 404 waits for its scene before restoring reading and announcing readiness', async () => {
+  const fixture = navigationFixture({ math: false, target404: true })
+  await fixture.navigate('/missing/')
+  assert.deepEqual(fixture.ready, [])
+  fixture.scene.resolve()
+  await flush()
+  assert.deepEqual(fixture.ready, ['https://example.test/missing/'])
+})
+
+test('an anchor selected while a 404 scene loads retains its destination', async () => {
+  const fixture = navigationFixture({ math: false, target404: true })
+  await fixture.navigate('/missing/')
+  fixture.window.yinyangNavigation.pushHash('#section')
+  fixture.scene.resolve()
+  await flush()
+  assert.equal(fixture.restoredHash, '#section')
+  assert.deepEqual(fixture.ready, ['https://example.test/missing/#section'])
+})
+
+test('outgoing styles survive the statistics wait and fade, while old metadata is removed immediately', async () => {
+  const fixture = navigationFixture({ math: false, analytics: true, oldStyles: true })
+  await fixture.navigate('/plain/')
+  assert.ok(fixture.document.head.children.includes(fixture.previousStyle))
+  assert.ok(fixture.document.head.children.includes(fixture.previousStylesheet))
+  assert.equal(fixture.previousTitle.removed, true)
+  fixture.publishCount('42')
+  await flush()
+  assert.deepEqual(fixture.ready, ['https://example.test/plain/'])
+  assert.ok(fixture.document.head.children.includes(fixture.previousStyle))
+  assert.ok(fixture.document.head.children.includes(fixture.previousStylesheet))
+  fixture.finishTransition()
+  assert.equal(fixture.previousStyle.removed, true)
+  assert.equal(fixture.previousStylesheet.removed, true)
+})
+
+test('revealing the destination during initialization also releases outgoing styles', async () => {
+  const fixture = navigationFixture({ math: false, analytics: true, oldStyles: true })
+  await fixture.navigate('/plain/')
+  fixture.window.yinyangNavigation.pushHash('#section')
+  assert.equal(fixture.previousStyle.removed, true)
+  assert.equal(fixture.previousStylesheet.removed, true)
+  fixture.publishCount('42')
+  await flush()
+  assert.deepEqual(fixture.ready, ['https://example.test/plain/#section'])
+})
+
+test('disposing a destination during its fade releases outgoing styles', async () => {
+  const fixture = navigationFixture({ math: false, oldStyles: true })
+  await fixture.navigate('/plain/')
+  fixture.lifecycle.page.dispose()
+  assert.equal(fixture.previousStyle.removed, true)
+  assert.equal(fixture.previousStylesheet.removed, true)
+  fixture.finishTransition()
+})
+
+test('navigation without a fade removes obsolete styles at commit', async () => {
+  const fixture = navigationFixture({ math: false, oldStyles: true })
+  await fixture.navigate('/plain/#section')
+  assert.deepEqual(fixture.ready, ['https://example.test/plain/#section'])
+  assert.equal(fixture.previousStyle.removed, true)
+  assert.equal(fixture.previousStylesheet.removed, true)
 })

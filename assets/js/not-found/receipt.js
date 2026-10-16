@@ -1,4 +1,4 @@
-window.yinyangRuntime.register('not-found-receipt', function (page) {
+function initialize(page) {
   var tools = page.notFound
   if (!tools || !tools.scene.querySelector('[data-nf-scene="receipt"]')) return
 
@@ -59,4 +59,4 @@ window.yinyangRuntime.register('not-found-receipt', function (page) {
     }
   })
   tools.activate(play, print)
-})
+}

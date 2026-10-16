@@ -1,4 +1,4 @@
-window.yinyangRuntime.register('not-found-constellation', function (page) {
+function initialize(page) {
   var tools = page.notFound
   if (!tools || !tools.scene.querySelector('[data-nf-scene="constellation"]')) return
 
@@ -44,4 +44,4 @@ window.yinyangRuntime.register('not-found-constellation', function (page) {
     }
   })
   tools.drag(play, function () {}, function () {}, function () {})
-})
+}

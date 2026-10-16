@@ -5,7 +5,6 @@ const vm = require('node:vm')
 const { test } = require('node:test')
 
 function sleepingFace() {
-  let initialize
   let now = 0
   let feedback = ''
   let timerId = 0
@@ -23,10 +22,11 @@ function sleepingFace() {
   play.setAttribute = () => {}
   const elements = { '.nf-play': play, '.nf-sleep-face': {}, '.nf-sleep-home': home, '.nf-eye-open': {}, '.nf-dreams': {} }
   const context = {
-    window: { yinyangRuntime: { register(name, callback) { initialize = callback } }, matchMedia: () => ({ matches: false }) },
+    window: { matchMedia: () => ({ matches: false }) },
     document, performance: { now: () => now }, getComputedStyle: () => ({ transform: 'none', scale: '1 1' })
   }
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../assets/js/not-found/sleep.js'), 'utf8'), context)
+  const initialize = context.initialize
   initialize({
     clearTimeout: id => timers.delete(id), setTimeout: callback => { const id = ++timerId; timers.set(id, callback); return id },
     notFound: {

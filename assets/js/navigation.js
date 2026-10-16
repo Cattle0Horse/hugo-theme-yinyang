@@ -152,14 +152,25 @@
     if (requiresDocumentNavigation(next.body)) throw new Error('Custom page scripts require document navigation')
     return { document: next, url: destination }
   }
-  function syncHead(next) {
+  function syncHead(next, keepStyles) {
     var previous = Array.from(document.head.querySelectorAll('[data-page-head]'))
     next.head.querySelectorAll('[data-page-head]').forEach(function (node) {
       var index = previous.findIndex(function (old) { return old.isEqualNode(node) })
       if (index !== -1) previous.splice(index, 1)
       else document.head.appendChild(node.cloneNode(true))
     })
-    previous.forEach(function (node) { node.remove() })
+    var retained = []
+    previous.forEach(function (node) {
+      if (keepStyles && (node.tagName === 'STYLE' || (node.tagName === 'LINK' && node.getAttribute('rel') === 'stylesheet'))) retained.push(node)
+      else node.remove()
+    })
+    return function () { retained.forEach(function (node) { node.remove() }) }
+  }
+  function cloneWithoutIds(node) {
+    var clone = node.cloneNode(true)
+    clone.removeAttribute('id')
+    clone.querySelectorAll('[id]').forEach(function (child) { child.removeAttribute('id') })
+    return clone
   }
   function loadMathFonts(root) {
     var fonts = new Map()
@@ -209,10 +220,7 @@
             probe.style.cssText = 'position:fixed;left:-100000px;top:0;visibility:hidden;pointer-events:none'
             next.body.querySelectorAll('.katex').forEach(function (formula) {
               var display = formula.parentElement.classList.contains('katex-display')
-              var clone = (display ? formula.parentElement : formula).cloneNode(true)
-              clone.removeAttribute('id')
-              clone.querySelectorAll('[id]').forEach(function (node) { node.removeAttribute('id') })
-              probe.appendChild(clone)
+              probe.appendChild(cloneWithoutIds(display ? formula.parentElement : formula))
             })
             document.body.appendChild(probe)
             await loadMathFonts(probe)
@@ -291,9 +299,7 @@
     var article = document.querySelector('.app-scroll > article')
     if (!article) return null
     var bounds = article.getBoundingClientRect()
-    var clone = article.cloneNode(true)
-    clone.removeAttribute('id')
-    clone.querySelectorAll('[id]').forEach(function (node) { node.removeAttribute('id') })
+    var clone = cloneWithoutIds(article)
     clone.querySelectorAll('script').forEach(function (node) { node.remove() })
     clone.style.cssText = 'position:absolute;margin:0;box-sizing:border-box;left:' + bounds.left +
       'px;top:' + bounds.top + 'px;width:' + bounds.width + 'px;padding:' + getComputedStyle(article).padding
@@ -304,13 +310,13 @@
     cover.appendChild(clone)
     return cover
   }
-  function fadeArticle(cover, article, page) {
+  function fadeArticle(cover, article, page, removeCover) {
     var finished = false
     function finish() {
       if (finished) return
       finished = true
-      cover.remove()
-      article.classList.remove('page-preparing', 'page-entering')
+      removeCover()
+      article.classList.remove('page-entering')
       stopCleanup()
       if (pageTransition === finish) pageTransition = null
     }
@@ -333,46 +339,45 @@
     var analytics = next.head.querySelector('script[data-page-analytics]')
     var article = next.body.querySelector('.app-scroll > article')
     var cover = article && !state && !destination.hash ? captureArticle() : null
-    var saved
-    var page
     var stopCoverCleanup
-    function mountPage() {
-      document.dispatchEvent(new CustomEvent('yinyang:before-navigate', { detail: { url: destination.href } }))
-      rememberPage()
-      saved = state && state.yinyang ? positions.get(state.yinyang.id) : null
-      lifecycle.page.dispose()
-      displayedId = state && state.yinyang && state.yinyang.url === destination.href ? state.yinyang.id : writeEntry(destination, !!state)
-      displayedURL = destination
-      syncHead(next)
-      document.documentElement.lang = next.documentElement.lang
-      document.documentElement.classList.add('theme-changing')
-      if (saved && saved.folds) next.body.querySelectorAll('.code-block-body').forEach(function (body, index) {
-        if (typeof saved.folds[index] === 'boolean') body.classList.toggle('is-folded', saved.folds[index])
-      })
-      if (cover) article.classList.add('page-preparing')
-      document.body.replaceWith(next.body)
-      if (cover) document.body.appendChild(cover)
-      if (loading) document.body.appendChild(loading)
-      document.querySelector('.app-shell').setAttribute('aria-busy', 'true')
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-      lifecycle.page = lifecycle.createPage()
-      page = lifecycle.mount()
-      if (cover) {
-        controller.reveal = function () {
-          if (!cover) return
-          cover.remove()
-          cover = null
-          article.classList.remove('page-preparing')
-        }
-        stopCoverCleanup = page.addCleanup(controller.reveal)
-      }
-      page.scroll.onChange(rememberPosition)
-      page.requestAnimationFrame(function () { document.documentElement.classList.remove('theme-changing') })
-      return loadAnalytics(analytics, destination.href, page)
+    function removeCover() {
+      if (!cover) return
+      cover.remove()
+      cover = null
+      removeOldStyles()
+      article.classList.remove('page-preparing')
     }
+    document.dispatchEvent(new CustomEvent('yinyang:before-navigate', { detail: { url: destination.href } }))
+    rememberPage()
+    var saved = state && state.yinyang ? positions.get(state.yinyang.id) : null
+    lifecycle.page.dispose()
+    displayedId = state && state.yinyang && state.yinyang.url === destination.href ? state.yinyang.id : writeEntry(destination, !!state)
+    displayedURL = destination
+    var removeOldStyles = syncHead(next, !!cover)
+    document.documentElement.lang = next.documentElement.lang
+    document.documentElement.classList.add('theme-changing')
+    if (saved && saved.folds) next.body.querySelectorAll('.code-block-body').forEach(function (body, index) {
+      if (typeof saved.folds[index] === 'boolean') body.classList.toggle('is-folded', saved.folds[index])
+    })
+    if (cover) article.classList.add('page-preparing')
+    document.body.replaceWith(next.body)
+    if (loading) document.body.appendChild(loading)
+    document.querySelector('.app-shell').setAttribute('aria-busy', 'true')
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    lifecycle.page = lifecycle.createPage()
+    var page = lifecycle.mount()
+    if (cover) {
+      // Keep the visual copy out of feature initialization and its DOM queries.
+      document.body.appendChild(cover)
+      controller.reveal = removeCover
+      stopCoverCleanup = page.addCleanup(removeCover)
+    }
+    page.scroll.onChange(rememberPosition)
+    page.requestAnimationFrame(function () { document.documentElement.classList.remove('theme-changing') })
     // Keep a visual copy of the old article while statistics load. Unlike a
     // View Transition update callback, this leaves the loading animation running.
-    await mountPage()
+    if (page.notFoundReady) await page.notFoundReady
+    await loadAnalytics(analytics, destination.href, page)
     for (var script of scripts) {
       await runScript(script, destination.href, script)
     }
@@ -393,7 +398,7 @@
     }
     if (stopCoverCleanup) stopCoverCleanup()
     controller.reveal = null
-    if (cover) fadeArticle(cover, article, page)
+    if (cover) fadeArticle(cover, article, page, removeCover)
   }
   async function navigate(url, state) {
     if (initializing || requiresDocumentNavigation(document.body) || document.body.hasAttribute('data-no-pjax')) {
@@ -425,8 +430,13 @@
   }
 
   lifecycle.mount()
+  function restoreInitialPage(page) {
+    var restore = page.guard(function () { restorePosition(displayedURL, null, { ready: true }) })
+    if (page.notFoundReady) page.notFoundReady.then(restore)
+    else restore()
+  }
   if (!window.fetch || !window.AbortController || !document.querySelector('.app-shell')) {
-    restorePosition(displayedURL, null, { ready: true })
+    restoreInitialPage(lifecycle.page)
     return
   }
   history.scrollRestoration = 'manual'
@@ -483,5 +493,5 @@
     displayedURL = url
     settleHash(url)
   })
-  restorePosition(displayedURL, null, { ready: true })
+  restoreInitialPage(lifecycle.page)
 })()

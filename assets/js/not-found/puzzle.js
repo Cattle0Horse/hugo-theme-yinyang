@@ -1,4 +1,4 @@
-window.yinyangRuntime.register('not-found-puzzle', function (page) {
+function initialize(page) {
   var tools = page.notFound
   if (!tools || !tools.scene.querySelector('[data-nf-scene="puzzle"]')) return
 
@@ -43,4 +43,4 @@ window.yinyangRuntime.register('not-found-puzzle', function (page) {
     place(cancelled ? solved : Math.hypot(base.x + p.x - origin.x + 61, base.y + p.y - origin.y + 87) < 55)
   })
   tools.activate(play, function () { place(!solved) })
-})
+}

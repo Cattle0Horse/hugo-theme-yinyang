@@ -67,11 +67,7 @@
   <style data-page-head>{{ .Content|safeCSS }}</style>
   {{ end }}
   {{ if eq .Kind "404" }}
-    {{ $notFoundCSS := slice (resources.Get "css/not-found.css") }}
-    {{ range partial "not-found-state.html" . }}
-      {{ $notFoundCSS = $notFoundCSS | append (resources.Get (printf "css/not-found/%s.css" .)) }}
-    {{ end }}
-    {{ with $notFoundCSS | resources.Concat "not-found.css" | minify }}
+    {{ with resources.Get "css/not-found.css" | minify }}
   <style data-page-head>{{ .Content | safeCSS }}</style>
     {{ end }}
   {{ end }}

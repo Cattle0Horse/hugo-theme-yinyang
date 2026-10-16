@@ -1,15 +1,7 @@
 {{ define "main" }}
-{{ $available := partial "not-found-state.html" . }}
 <article class="post not-found {{ .Site.Language.Locale }}" id="article" data-not-found>
   <div class="nf-fallback"><h1>404</h1><p>页面未找到</p><a href="{{ site.Home.RelPermalink }}">← 返回首页</a></div>
   <div class="nf-scene" hidden></div>
-  {{ range $available }}
-  <template data-nf-template="{{ . }}">{{ partial (printf "not-found/%s.html" .) $ }}</template>
-  {{ end }}
-  {{ $pages := slice }}
-  {{ range first 30 (where site.RegularPages "Section" "in" (site.Params.mainSections | default (slice "posts"))) }}
-    {{ $pages = $pages | append (dict "title" .Title "url" .RelPermalink) }}
-  {{ end }}
-  <script type="application/json" id="nf-pages">{{ $pages | jsonify | safeJS }}</script>
+  {{ partial "not-found-assets.html" . }}
 </article>
 {{ end }}

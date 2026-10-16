@@ -5,7 +5,6 @@ const vm = require('node:vm')
 const { test } = require('node:test')
 
 function terminal() {
-  let initialize
   let destination = null
   const input = { value: '' }
   const output = {
@@ -17,11 +16,11 @@ function terminal() {
   const home = { href: 'https://example.test/sub/', click() { destination = this.href } }
   const elements = { input, form, '.nf-terminal-output': output, '.nf-terminal-home': home }
   const context = {
-    window: { yinyangRuntime: { register(name, callback) { initialize = callback } } },
     document: { createElement: () => ({ textContent: '' }) },
     URL, location: { href: 'https://example.test/sub/missing/' }
   }
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../assets/js/not-found/terminal.js'), 'utf8'), context)
+  const initialize = context.initialize
   initialize({ notFound: {
     scene: { querySelector: () => ({}) }, find: name => elements[name],
     listen: (node, type, listener) => node.addEventListener(type, listener),

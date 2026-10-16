@@ -1,4 +1,4 @@
-window.yinyangRuntime.register('not-found-channel', function (page) {
+function initialize(page) {
   var tools = page.notFound
   if (!tools || !tools.scene.querySelector('[data-nf-scene="channel"]')) return
   var tuner = tools.find('input')
@@ -41,4 +41,4 @@ window.yinyangRuntime.register('not-found-channel', function (page) {
     tune()
   }, function () {})
   tune()
-})
+}

@@ -5,7 +5,7 @@ const vm = require('node:vm')
 const { test } = require('node:test')
 
 function drawing() {
-  let initialize, gesture, id = 0, destination = null
+  let gesture, id = 0, destination = null
   const frames = new Map(), timers = new Map()
   function element() {
     const node = new EventTarget(), attrs = new Map()
@@ -28,8 +28,9 @@ function drawing() {
   svg.createSVGPoint = () => ({ x: 0, y: 0, matrixTransform() { return this } })
   svg.getScreenCTM = () => ({})
   const nodes = { '.nf-drawn-path': route, '.nf-ball': ball, '.nf-drawing-field': element(), '.nf-draw-home-house': house, '[data-nf-status]': status, '.nf-draw-home-reset': reset }
-  const context = { window: { innerWidth: 1280, innerHeight: 900, yinyangRuntime: { register(name, callback) { initialize = callback } } }, document: new EventTarget() }
+  const context = { window: { innerWidth: 1280, innerHeight: 900 }, document: new EventTarget() }
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../assets/js/not-found/draw-home.js'), 'utf8'), context)
+  const initialize = context.initialize
   initialize({
     requestAnimationFrame: callback => { const key = ++id; frames.set(key, callback); return key },
     cancelAnimationFrame: key => frames.delete(key),

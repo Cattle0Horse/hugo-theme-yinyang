@@ -1,4 +1,4 @@
-window.yinyangRuntime.register('not-found-cat', function (page) {
+function initialize(page) {
   var tools = page.notFound
   if (!tools || !tools.scene.querySelector('[data-nf-scene="cat"]')) return
 
@@ -44,4 +44,4 @@ window.yinyangRuntime.register('not-found-cat', function (page) {
     if (!dragged) return
     roll(base.x + p.x - origin.x + velocity.x * 80 > 15, velocity.x)
   })
-})
+}

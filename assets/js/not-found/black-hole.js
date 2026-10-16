@@ -1,4 +1,4 @@
-window.yinyangRuntime.register('not-found-black-hole', function (page) {
+function initialize(page) {
   var tools = page.notFound
   if (!tools || !tools.scene.querySelector('[data-nf-scene="black-hole"]')) return
 
@@ -9,4 +9,4 @@ window.yinyangRuntime.register('not-found-black-hole', function (page) {
     if (swallowed) tools.emit(200, 128, 22)
     tools.say(swallowed ? '连 404，也被吸进去了。' : '把数字捞回来了。')
   })
-})
+}

@@ -1,0 +1,27 @@
+{{ $core := resources.Get "js/not-found-scene.js" }}
+{{ range partial "not-found-state.html" . }}
+{{ $name := . }}
+{{ $html := partial (printf "not-found/%s.html" $name) $ | string }}
+{{ $devices := "" }}
+{{ with findRESubmatch `\bdata-nf-devices="([^"]*)"` $html 1 }}{{ $devices = index (index . 0) 1 }}{{ end }}
+{{ $pages := slice }}
+{{ if in (slice "terminal" "channel") $name }}
+  {{ range first 30 (where site.RegularPages "Section" "in" (site.Params.mainSections | default (slice "posts"))) }}
+    {{ $pages = $pages | append (dict "title" .Title "url" .RelPermalink) }}
+  {{ end }}
+{{ end }}
+{{ $css := resources.Get (printf "css/not-found/%s.css" .) | minify | fingerprint }}
+{{ $source := resources.Get (printf "js/not-found/%s.js" $name) }}
+{{ $script := printf `;(function(){
+%s
+%s
+window.yinyangRuntime.notFoundScenes[%s] = {
+  mount: mountScene,
+  initialize: initialize,
+  html: %s,
+  articles: %s
+};
+})();` $core.Content $source.Content ($name | jsonify) ($html | jsonify) ($pages | jsonify) }}
+{{ $js := resources.FromString (printf "js/not-found/%s/%s.js" $.Site.Language.Lang $name) $script | minify | fingerprint }}
+<template data-nf-template="{{ $name }}" data-nf-devices="{{ $devices }}" data-nf-css="{{ $css.RelPermalink }}" data-nf-js="{{ $js.RelPermalink }}"></template>
+{{ end }}

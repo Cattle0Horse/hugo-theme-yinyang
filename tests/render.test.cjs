@@ -2,6 +2,7 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
+const vm = require('node:vm')
 const { execFileSync } = require('node:child_process')
 const { test, before, after } = require('node:test')
 
@@ -157,9 +158,22 @@ test('404 available restricts rendered experiences and preserves each scene home
     const destination = path.join(fixture, 'not-found-output')
     execFileSync('hugo', ['-s', fixture, '--themesDir', path.dirname(theme), '--theme', path.basename(theme), '--config', 'config.toml,not-found.toml', '--destination', destination, '--cacheDir', path.join(fixture, 'cache'), '--noBuildLock'], { stdio: 'pipe' })
     const page = fs.readFileSync(path.join(destination, '404.html'), 'utf8')
-    const scenes = [...page.matchAll(/<template data-nf-template="([^"]+)">([\s\S]*?)<\/template>/g)]
+    const scenes = [...page.matchAll(/<template data-nf-template="([^"]+)"[^>]*>([\s\S]*?)<\/template>/g)]
     const enabled = [...new Set(available.filter(name => name !== 'unknown'))]
     assert.deepEqual(scenes.map(scene => scene[1]), enabled.length ? enabled : defaults)
-    for (const scene of scenes) assert.ok(scene[2].includes('href="/sub/"'), `Missing home URL in ${scene[1]}`)
+    for (const scene of scenes) {
+      const assets = {}
+      for (const attribute of ['data-nf-css', 'data-nf-js']) {
+        const url = scene[0].match(new RegExp(attribute + '="([^"]+)"'))?.[1]
+        assert.ok(url, `Missing ${attribute} in ${scene[1]}`)
+        assets[attribute] = path.join(destination, url.replace(/^\/sub\//, ''))
+        assert.ok(fs.existsSync(assets[attribute]), `Missing scene asset ${url}`)
+      }
+      const definitions = {}
+      vm.runInNewContext(fs.readFileSync(assets['data-nf-js'], 'utf8'), { window: { yinyangRuntime: { notFoundScenes: definitions } } })
+      assert.equal(typeof definitions[scene[1]].mount, 'function')
+      assert.equal(typeof definitions[scene[1]].initialize, 'function')
+      assert.ok(definitions[scene[1]].html.includes('href="/sub/"'), `Missing home URL in ${scene[1]}`)
+    }
   }
 })
