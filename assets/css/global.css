@@ -61,7 +61,7 @@ a:hover {
   text-decoration: underline;
 }
 
-:is(.header-links, .posts-title, .note-entry-title, .note-entry-time) a,
+:is(.header-links, .edit-page, .posts-title, .note-entry-title, .note-entry-time) a,
 a.note-source,
 a.note-tag {
   background-image: linear-gradient(var(--color-accent), var(--color-accent));
@@ -74,7 +74,7 @@ a.note-tag {
   transition: color 180ms ease, background-size 220ms ease;
 }
 
-:is(.header-links, .posts-title, .note-entry-title, .note-entry-time) a:is(:hover, :focus-visible),
+:is(.header-links, .edit-page, .posts-title, .note-entry-title, .note-entry-time) a:is(:hover, :focus-visible),
 a.note-source:is(:hover, :focus-visible),
 a.note-tag:is(:hover, :focus-visible) {
   background-position: left bottom;

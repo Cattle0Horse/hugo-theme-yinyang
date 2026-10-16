@@ -192,12 +192,14 @@
 }
 
 .edit-page a {
+  --link-underline-thickness: 1px;
   font-size: 14px;
   color: var(--color-text-muted);
 }
 
-.edit-page a:hover {
-  color: var(--color-text);
+.edit-page a:hover,
+.edit-page a:focus-visible {
+  color: var(--color-accent);
 }
 
 /* ---- site footer ---- */
