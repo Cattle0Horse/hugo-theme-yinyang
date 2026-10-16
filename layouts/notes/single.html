@@ -1,10 +1,10 @@
 {{ define "main" }}
-<article class="note-single {{ .Site.Language.Locale }}">
+<article class="note-single {{ .Site.Language.Locale }}" data-transition-page="{{ .RelPermalink }}">
   <div class="row"><div class="col-xs-12">
     <header class="note-single-header">
-      {{ with .Params.title }}<h1 class="note-single-title">{{ . }}</h1>{{ end }}
+      {{ with .Params.title }}<h1 class="note-single-title"><span data-transition-title="{{ $.RelPermalink }}">{{ . }}</span></h1>{{ end }}
       <div class="note-single-meta">
-        <time class="note-single-time" datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+        <time class="note-single-time" data-transition-time="{{ .RelPermalink }}" datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
           {{ .Date.Format "2006.01.02 · 15:04" }}
         </time>
         {{ partial "busuanzi-page.html" . }}

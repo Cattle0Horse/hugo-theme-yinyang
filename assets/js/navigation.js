@@ -295,17 +295,28 @@
       runScript(source, url, previous).catch(finish)
     })
   }
-  function captureArticle() {
+  function captureArticle(next) {
     var article = document.querySelector('.app-scroll > article')
     if (!article) return null
     var header = document.querySelector('.app-header')
     var headerBounds = header && header.getBoundingClientRect()
-    var viewport = headerBounds && lifecycle.page.scroll.viewport()
+    var viewport = lifecycle.page.scroll.viewport()
     var cover = document.createElement('div')
     cover.className = 'navigation-outgoing'
     cover.setAttribute('aria-hidden', 'true')
     cover.inert = true
     var scrolls = []
+    var shared = []
+    if (document.startViewTransition) {
+      var detail = next.body.querySelector('[data-transition-page]') || document.querySelector('[data-transition-page]')
+      var key = detail && detail.getAttribute('data-transition-page')
+      if (key) ['title', 'time'].forEach(function (kind) {
+        var target = Array.from(next.body.querySelectorAll('[data-transition-' + kind + ']')).find(function (node) {
+          return node.getAttribute('data-transition-' + kind) === key
+        })
+        if (target) shared.push({ kind: kind, to: target, from: null })
+      })
+    }
     // Trailing page content, including the correction/footer area, fades with the article.
     for (var node = article; node; node = node.nextElementSibling) {
       if (node.tagName === 'SCRIPT') continue
@@ -317,6 +328,13 @@
         if (original.scrollLeft || original.scrollTop) {
           scrolls.push({ node: copies[index], left: original.scrollLeft, top: original.scrollTop })
         }
+        shared.forEach(function (pair) {
+          if (pair.from || original.getAttribute('data-transition-' + pair.kind) !== key) return
+          var bounds = original.getBoundingClientRect()
+          if (bounds.bottom > viewport.top && bounds.top < viewport.bottom) {
+            pair.from = copies[index]
+          }
+        })
       })
       clone.querySelectorAll('script').forEach(function (script) { script.remove() })
       clone.style.cssText = 'position:absolute;margin:0;box-sizing:border-box;left:' + bounds.left +
@@ -325,6 +343,7 @@
     }
     return {
       element: cover,
+      shared: shared.filter(function (pair) { return pair.from }),
       headerVisible: !headerBounds || (headerBounds.bottom > viewport.top && headerBounds.top < viewport.bottom),
       restoreScroll: function () {
         // Detached clones cannot retain scroll offsets; restore after insertion.
@@ -334,23 +353,130 @@
       }
     }
   }
-  function fadeArticle(cover, entering, page, removeCover) {
+  function slideArticle(cover, entering, page, removeCover, shared, stopShared) {
+    shared = shared || []
+    var article = entering[0]
+    var viewport = page.scroll.viewport()
+    var candidates = article.querySelectorAll('.post-header, .note-single-header, .markdown-body > *, .site-date-catalog, .posts-line, .notes-header, .notes-month-title, .note-entry, .notes-pagination, .taxonomy-term, .terms-item')
+    var nodes = entering.slice(1)
+    // Animate visible content groups only; a Note entry owns its nested body.
+    for (var node of candidates) {
+      if (shared.some(function (pair) { return node.contains(pair.to) })) continue
+      if (nodes.some(function (parent) { return parent.contains(node) })) continue
+      var bounds = node.getBoundingClientRect()
+      if (bounds.top >= viewport.bottom + 24) break
+      if (bounds.bottom > viewport.top && bounds.top < viewport.bottom + 24) nodes.push(node)
+    }
+    if (!shared.length && !nodes.some(function (node) { return article.contains(node) })) nodes.push(article)
+    for (var sibling = article.nextElementSibling; sibling; sibling = sibling.nextElementSibling) {
+      if (sibling.tagName === 'SCRIPT') continue
+      var bounds = sibling.getBoundingClientRect()
+      if (bounds.bottom > viewport.top && bounds.top < viewport.bottom + 24) nodes.push(sibling)
+    }
+    var items = nodes.map(function (node) { return { node: node, delay: node.style.animationDelay } })
     var finished = false
+    var stopListeners = []
+    var stopMotion
     function finish() {
       if (finished) return
       finished = true
       removeCover()
+      items.forEach(function (item) {
+        item.node.classList.remove('navigation-enter-item')
+        item.node.style.animationDelay = item.delay
+      })
+      stopListeners.forEach(function (stop) { stop() })
+      if (stopMotion) stopMotion()
+      if (stopShared) stopShared()
       stopCleanup()
       if (pageTransition === finish) pageTransition = null
     }
     var stopCleanup = page.addCleanup(finish)
     pageTransition = finish
+    items.forEach(function (item, index) {
+      item.node.style.animationDelay = (80 + Math.min(index * 45, 240)) + 'ms'
+      item.node.classList.add('navigation-enter-item')
+    })
     entering.forEach(function (node) {
       node.classList.remove('page-preparing')
       node.classList.add('page-entering')
     })
     cover.classList.add('is-leaving')
-    page.onMotionEnd(cover, { type: 'animationend', animation: 'page-fade-out', timeout: 340 }, finish)
+    var last = nodes[nodes.length - 1] || article
+    var animation = 'page-slide-in'
+    var duration = 500 + Math.min((nodes.length - 1) * 45, 240)
+    var sidebar = document.getElementById('tocSidebar')
+    if (sidebar && page.scroll.isWide()) {
+      var links = sidebar.querySelectorAll('.toc-nav a')
+      var tocDuration = 575 + Math.min((links.length - 1) * 35, 240)
+      if (links.length && tocDuration > duration) {
+        last = links[links.length - 1]
+        animation = 'toc-item-enter'
+        duration = tocDuration
+      }
+    }
+    stopMotion = page.onMotionEnd(last, { type: 'animationend', animation: animation, timeout: duration + 100 }, finish)
+    // Reading and activation take precedence over the remaining entrance delay.
+    ;['pointerdown', 'click', 'wheel', 'touchmove', 'keydown'].forEach(function (type) {
+      stopListeners.push(page.listen(document, type, finish, { capture: true, passive: true }))
+    })
+  }
+  async function revealArticle(snapshot, entering, page, removeCover) {
+    if (!page.active) { removeCover(); return }
+    var viewport = page.scroll.viewport()
+    var pairs = snapshot.shared.filter(function (pair) {
+      var bounds = pair.to.getBoundingClientRect()
+      return bounds.width > 0 && bounds.bottom > viewport.top && bounds.top < viewport.bottom
+    })
+    if (!pairs.length) {
+      slideArticle(snapshot.element, entering, page, removeCover)
+      return
+    }
+    var html = document.documentElement
+    var transition
+    var cancelled = false
+    var cleaned = false
+    pairs.forEach(function (pair) {
+      pair.oldName = pair.from.style.viewTransitionName
+      pair.newName = pair.to.style.viewTransitionName
+      pair.from.style.viewTransitionName = 'yinyang-' + pair.kind
+    })
+    html.classList.add('navigation-sharing')
+    function clean() {
+      if (cleaned) return
+      cleaned = true
+      pairs.forEach(function (pair) {
+        pair.from.style.viewTransitionName = pair.oldName
+        pair.to.style.viewTransitionName = pair.newName
+      })
+      html.classList.remove('navigation-sharing')
+      stopCleanup()
+      if (pageTransition === stop) pageTransition = null
+    }
+    function stop() {
+      cancelled = true
+      if (transition) transition.skipTransition()
+      clean()
+    }
+    var stopCleanup = page.addCleanup(stop)
+    pageTransition = stop
+    try {
+      // All resource and script waits have finished. The callback only changes
+      // the visible DOM, so the browser never pauses rendering for network I/O.
+      transition = document.startViewTransition(function () {
+        if (cancelled || !page.active) { removeCover(); return }
+        snapshot.element.remove()
+        pairs.forEach(function (pair) { pair.to.style.viewTransitionName = 'yinyang-' + pair.kind })
+        slideArticle(snapshot.element, entering, page, removeCover, pairs, stop)
+      })
+    } catch (error) {
+      clean()
+      slideArticle(snapshot.element, entering, page, removeCover)
+      return
+    }
+    transition.ready.catch(function () {})
+    transition.finished.then(clean, clean)
+    await transition.updateCallbackDone
   }
   async function commitPage(prepared, state, controller) {
     // An inserted script cannot be rolled back. Keep this document's initialization
@@ -363,7 +489,7 @@
     var scripts = Array.from(next.body.querySelectorAll('script[data-page-runtime]'))
     var analytics = next.head.querySelector('script[data-page-analytics]')
     var article = next.body.querySelector('.app-scroll > article')
-    var snapshot = article && !state && !destination.hash ? captureArticle() : null
+    var snapshot = article && !state && !destination.hash ? captureArticle(next) : null
     var cover = snapshot && snapshot.element
     var entering = [article]
     var header = next.body.querySelector('.app-header')
@@ -430,7 +556,7 @@
     }
     if (stopCoverCleanup) stopCoverCleanup()
     controller.reveal = null
-    if (cover) fadeArticle(cover, entering, page, removeCover)
+    if (cover) await revealArticle(snapshot, entering, page, removeCover)
   }
   async function navigate(url, state) {
     if (initializing || requiresDocumentNavigation(document.body) || document.body.hasAttribute('data-no-pjax')) {

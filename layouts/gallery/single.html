@@ -1,9 +1,9 @@
 {{ define "main" }}
-<article class="post {{ .Site.Language.Locale }}" id="article">
+<article class="post {{ .Site.Language.Locale }}" id="article" data-transition-page="{{ .RelPermalink }}">
   <div class="row">
     <div class="col-xs-12">
       <header class="post-header">
-        <h1 class="post-title">{{ .Title }}</h1>
+        <h1 class="post-title"><span data-transition-title="{{ .RelPermalink }}">{{ .Title }}</span></h1>
         <div class="row post-desc">
           <div class="col-xs-12 post-desc-inner">
             {{ if .Site.Params.busuanzi.enabled }}<span class="post-meta-group">{{ partial "busuanzi-page.html" . }}</span>{{ end }}

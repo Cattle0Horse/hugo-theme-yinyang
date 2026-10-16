@@ -14,7 +14,7 @@ async function flush() {
   for (let i = 0; i < 10; i++) await new Promise(resolve => setImmediate(resolve))
 }
 
-function navigationFixture({ math = true, analytics = false, leaving404 = false, oldStyles = false, target404 = false, withFooter = false } = {}) {
+function navigationFixture({ math = true, analytics = false, leaving404 = false, oldStyles = false, target404 = false, withFooter = false, sharedTransition = false, transitionFails = false } = {}) {
   const timers = new Map()
   const ready = []
   const font = deferred()
@@ -22,6 +22,9 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
   const observers = new Set()
   const motions = []
   const initializers = []
+  const sharedFinished = deferred()
+  let sharedStarted = false
+  let sharedSkipped = false
   const animationFrame = callback => setImmediate(callback)
   let fontRequested = false
   let sequence = 0
@@ -48,6 +51,7 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
       return siblings[siblings.indexOf(this) + 1] || null
     }
     getAttribute(name) { return this.attributes.get(name) ?? null }
+    contains(node) { return this === node || this.children.some(child => child.contains(node)) }
     scrollTo(options) { this.scrollLeft = options.left; this.scrollTop = options.top }
     setAttribute(name, value) { this.attributes.set(name, value) }
     hasAttribute(name) { return this.attributes.has(name) }
@@ -78,7 +82,7 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
       if (deep) this.children.forEach(node => clone.appendChild(node.cloneNode(true)))
       return clone
     }
-    getBoundingClientRect() { return { left: 0, top: 100, width: 800 } }
+    getBoundingClientRect() { return { left: 0, top: 100, bottom: 200, width: 800 } }
     isEqualNode(other) { return JSON.stringify([...this.attributes]) === JSON.stringify([...other.attributes]) }
   }
   const location = {
@@ -140,6 +144,17 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
     return node
   }
   const originalArticle = new Element(leaving404 ? { 'data-not-found': '' } : {})
+  const sharedTargets = []
+  if (sharedTransition) {
+    article.setAttribute('data-transition-page', '/post/')
+    for (const kind of ['title', 'time']) {
+      const attributes = { ['data-transition-' + kind]: '/post/' }
+      originalArticle.appendChild(new Element(attributes))
+      const target = new Element(attributes)
+      article.appendChild(target)
+      sharedTargets.push(target)
+    }
+  }
   if (leaving404) {
     const template = new Element({ 'data-nf-template': 'cat', 'data-nf-devices': 'mobile desktop' }, 'TEMPLATE')
     for (const node of [template, new Element({ class: 'nf-scene' }), new Element({ class: 'nf-fallback' })]) originalArticle.appendChild(node)
@@ -183,13 +198,20 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
   function createPage() {
     const cleanups = new Set()
     return {
-      active: true, dispose() { this.active = false; cleanups.forEach(callback => callback()) }, listen() {},
+      active: true, dispose() { this.active = false; cleanups.forEach(callback => callback()) },
+      listen(target, type, handler, options) {
+        target.addEventListener(type, handler, options)
+        const stop = () => target.removeEventListener(type, handler, options)
+        cleanups.add(stop)
+        return () => { stop(); cleanups.delete(stop) }
+      },
       guard(callback) { return (...args) => { if (this.active) return callback(...args) } },
       addCleanup(callback) { cleanups.add(callback); return () => cleanups.delete(callback) },
       requestAnimationFrame: animationFrame,
       onMotionEnd(node, options, callback) { motions.push(callback) },
       scroll: {
         capture: () => ({ top: 0 }), onChange() {},
+        viewport: () => ({ top: 0, bottom: 800 }),
         element: () => ({ scrollTo() {} }), restore() {},
         target: hash => hash,
         scrollToElement(hash) { restoredHash = hash }
@@ -208,6 +230,15 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
   const window = Object.assign(new EventTarget(), {
     yinyangRuntime: lifecycle, fetch: true, AbortController, scrollTo() {}, matchMedia: () => ({ matches: false })
   })
+  if (sharedTransition) document.startViewTransition = update => {
+    if (transitionFails) throw new Error('Transition unavailable')
+    sharedStarted = true
+    const updateCallbackDone = Promise.resolve().then(update)
+    return {
+      updateCallbackDone, ready: updateCallbackDone, finished: sharedFinished.promise,
+      skipTransition() { sharedSkipped = true; sharedFinished.resolve() }
+    }
+  }
   document.addEventListener('yinyang:page-ready', event => ready.push(event.detail.url))
   const context = {
     window, document, location, history, URL, AbortController,
@@ -231,6 +262,9 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
   return {
     ready, font, scene, article, shell, document, window, location, originalBody, lifecycle,
     previousStyle, previousStylesheet, previousTitle,
+    sharedTargets, sharedFinished,
+    get sharedStarted() { return sharedStarted },
+    get sharedSkipped() { return sharedSkipped },
     finishTransition() { motions.splice(0).forEach(callback => callback()) },
     publishCount(value) {
       if (countContainer.removed) return
@@ -363,6 +397,65 @@ test('the outgoing view retains nested horizontal and vertical scroll positions'
   await flush()
   fixture.finishTransition()
   assert.equal(cover.removed, true)
+})
+
+test('reading input finishes the entrance immediately and releases the outgoing page resources', async () => {
+  for (const type of ['pointerdown', 'wheel', 'touchmove', 'keydown']) {
+    const fixture = navigationFixture({ math: false, oldStyles: true })
+    await fixture.navigate('/post/')
+    const cover = fixture.document.body.children.find(node => node.className === 'navigation-outgoing')
+    assert.equal(cover.removed, undefined)
+    assert.equal(fixture.previousStylesheet.removed, undefined)
+    assert.deepEqual(fixture.ready, ['https://example.test/post/'])
+    fixture.document.dispatchEvent(new Event(type))
+    assert.equal(cover.removed, true)
+    assert.equal(fixture.previousStylesheet.removed, true)
+    fixture.finishTransition()
+    assert.deepEqual(fixture.ready, ['https://example.test/post/'])
+  }
+})
+
+test('shared element capture starts only after formula and visible reading count preparation', async () => {
+  const fixture = navigationFixture({ sharedTransition: true, analytics: true, oldStyles: true })
+  await fixture.navigate('/post/')
+  assert.equal(fixture.sharedStarted, false)
+  assert.equal(fixture.document.body, fixture.originalBody)
+  fixture.stylesheet.dispatchEvent(new Event('load'))
+  fixture.font.resolve([])
+  await flush()
+  assert.equal(fixture.sharedStarted, false)
+  fixture.publishCount('42')
+  await flush()
+  assert.equal(fixture.sharedStarted, true)
+  assert.deepEqual(fixture.ready, ['https://example.test/post/'])
+  fixture.sharedFinished.resolve()
+  await flush()
+  assert.equal(fixture.sharedTargets.every(node => !node.style.viewTransitionName), true)
+  assert.equal(fixture.document.documentElement.classList.contains('navigation-sharing'), false)
+  fixture.finishTransition()
+  assert.equal(fixture.previousStylesheet.removed, true)
+})
+
+test('reading input skips shared snapshots and leaves the destination immediately usable', async () => {
+  const fixture = navigationFixture({ math: false, sharedTransition: true, oldStyles: true })
+  await fixture.navigate('/post/')
+  assert.equal(fixture.sharedStarted, true)
+  fixture.document.dispatchEvent(new Event('wheel'))
+  await flush()
+  assert.equal(fixture.sharedSkipped, true)
+  assert.equal(fixture.sharedTargets.every(node => !node.style.viewTransitionName), true)
+  assert.equal(fixture.previousStylesheet.removed, true)
+  assert.equal(fixture.location.href, 'https://example.test/post/')
+})
+
+test('a browser that rejects shared capture still completes navigation and releases resources', async () => {
+  const fixture = navigationFixture({ math: false, sharedTransition: true, transitionFails: true, oldStyles: true })
+  await fixture.navigate('/post/')
+  assert.deepEqual(fixture.ready, ['https://example.test/post/'])
+  assert.equal(fixture.sharedTargets.every(node => !node.style.viewTransitionName), true)
+  assert.equal(fixture.document.documentElement.classList.contains('navigation-sharing'), false)
+  fixture.finishTransition()
+  assert.equal(fixture.previousStylesheet.removed, true)
 })
 
 test('an anchor action reveals the new footer and removes its outgoing copy immediately', async () => {

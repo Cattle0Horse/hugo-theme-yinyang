@@ -26,19 +26,12 @@
   margin-top: 32px;
 }
 
-.notes-month-title {
-  margin: 0 0 8px;
-  font-size: 1.5rem;
-  font-weight: 600;
+.note-entry {
+  --timeline-entry-offset: 19px;
+  padding: 12px 0 26px;
 }
 
-.note-entry {
-  display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
-  gap: 24px;
-  padding: 18px 0;
-  border-bottom: 1px solid var(--color-border-light);
-}
+.note-entry + .note-entry { --timeline-entry-offset: 30px; padding-top: 23px; }
 
 .note-entry-time,
 .note-single-time {
@@ -51,6 +44,8 @@
 .note-entry-time a {
   color: inherit;
 }
+
+.note-entry-time { margin-bottom: 12px; font-size: 12px; line-height: 1.8; }
 
 .note-entry-main {
   min-width: 0;
@@ -186,10 +181,7 @@
 }
 
 @media screen and (max-width: 600px) {
-  .note-entry {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
+  .note-entry-time { font-size: 11px; }
 
   .notes-page-link {
     width: 44px;

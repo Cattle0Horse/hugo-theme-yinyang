@@ -11,6 +11,27 @@ window.yinyangRuntime.register('toc', function (runtime) {
   if (!sidebar || !tocNav || !appScroll) return
 
   var links = Array.prototype.slice.call(tocNav.querySelectorAll('a[href^="#"]'))
+  function setEntranceDelays(viewport) {
+    var index = 0
+    var last = null
+    links.forEach(function (link) {
+      var bounds = viewport && link.getBoundingClientRect()
+      if (bounds && (bounds.bottom <= viewport.top || bounds.top >= viewport.bottom)) return
+      link.style.setProperty('--toc-enter-delay', Math.min(index++ * 35, 240) + 'ms')
+      last = link
+    })
+    return last
+  }
+  var cancelEntrance = null
+  function finishEntrance() {
+    sidebar.classList.remove('toc-entering')
+    if (cancelEntrance) cancelEntrance()
+    cancelEntrance = null
+  }
+  runtime.addCleanup(finishEntrance)
+  ;['pointerdown', 'wheel', 'touchmove', 'keydown'].forEach(function (type) {
+    runtime.listen(sidebar, type, finishEntrance, { capture: true, passive: true })
+  })
 
   // Modality: focus containment, background isolation, and responsive state.
   function focusable() {
@@ -40,7 +61,16 @@ window.yinyangRuntime.register('toc', function (runtime) {
     backdrop.classList.add('toc-open')
     sidebar.focus({ preventScroll: true })
     var active = tocNav.querySelector('.toc-active')
-    if (active) tocScroll.scrollTop += active.getBoundingClientRect().top - tocScroll.getBoundingClientRect().top - 8
+    if (active) tocScroll.scrollTo({
+      top: tocScroll.scrollTop + active.getBoundingClientRect().top - tocScroll.getBoundingClientRect().top - 8,
+      behavior: 'instant'
+    })
+    finishEntrance()
+    var last = setEntranceDelays(tocScroll.getBoundingClientRect())
+    sidebar.classList.add('toc-entering')
+    if (last) cancelEntrance = runtime.onMotionEnd(last, {
+      type: 'animationend', animation: 'toc-item-enter', timeout: 780
+    }, finishEntrance)
   }
 
   function unlockBackground() {
@@ -55,6 +85,7 @@ window.yinyangRuntime.register('toc', function (runtime) {
 
   function closeToc(returnFocus) {
     if (runtime.scroll.isWide()) return
+    finishEntrance()
     sidebar.classList.remove('toc-open')
     unlockBackground()
     sidebar.setAttribute('aria-hidden', 'true')
@@ -106,6 +137,8 @@ window.yinyangRuntime.register('toc', function (runtime) {
   })
 
   function syncMode() {
+    finishEntrance()
+    setEntranceDelays()
     if (runtime.scroll.isWide()) {
       sidebar.classList.remove('toc-open')
       unlockBackground()

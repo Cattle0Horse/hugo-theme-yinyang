@@ -13,12 +13,42 @@
 .app-scroll > .page-preparing,
 .app-scroll > article.page-preparing ~ * { opacity: 0; }
 .app-header.page-preparing { visibility: hidden; }
-.app-scroll > .page-entering,
-.app-scroll > article.page-entering ~ * { animation: page-fade-in 240ms ease-in-out both; }
-.navigation-outgoing.is-leaving { animation: page-fade-out 240ms ease-in-out both; }
+.navigation-enter-item { animation: page-slide-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.navigation-outgoing.is-leaving { animation: page-slide-out 140ms ease-in both; }
 
-@keyframes page-fade-out { to { opacity: 0; } }
-@keyframes page-fade-in { from { opacity: 0; } }
+@keyframes page-slide-out { to { opacity: 0; translate: 0 -8px; } }
+@keyframes page-slide-in {
+  from { opacity: 0; translate: 0 24px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+[data-transition-title],
+[data-transition-time] { display: inline-block; }
+
+.posts-title[data-transition-title],
+.note-entry-title[data-transition-title] {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+}
+
+:root.navigation-sharing::view-transition { pointer-events: none; }
+:root.navigation-sharing::view-transition-group(*) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+:root.navigation-sharing::view-transition-old(root),
+:root.navigation-sharing::view-transition-old(yinyang-title),
+:root.navigation-sharing::view-transition-old(yinyang-time) {
+  animation: shared-content-out 180ms cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+:root.navigation-sharing::view-transition-new(root),
+:root.navigation-sharing::view-transition-new(yinyang-title),
+:root.navigation-sharing::view-transition-new(yinyang-time) {
+  animation: shared-content-in 180ms cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+@keyframes shared-content-out { to { opacity: 0; } }
+@keyframes shared-content-in { from { opacity: 0; } }
 
 .navigation-loading {
   position: fixed;

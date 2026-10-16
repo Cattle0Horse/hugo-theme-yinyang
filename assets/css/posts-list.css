@@ -2,6 +2,64 @@
    Posts List (homepage, section pages)
    ======================================================================== */
 
+.timeline-group {
+  --timeline-inset: 31px;
+  position: relative;
+  margin-left: 7px;
+  padding-left: var(--timeline-inset);
+}
+
+.timeline-group::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: var(--color-border);
+}
+
+.timeline-group > .timeline-heading {
+  position: relative;
+  margin: 0 0 14px;
+  color: var(--color-accent);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.timeline-heading::before,
+.timeline-entry::before {
+  content: '';
+  position: absolute;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--color-bg);
+}
+
+.timeline-heading::before {
+  top: 10px;
+  left: calc(0px - var(--timeline-inset) - 5px);
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--color-bg);
+  background: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.timeline-entry {
+  position: relative;
+  min-width: 0;
+}
+
+.timeline-entry::before {
+  top: var(--timeline-entry-offset, 25px);
+  left: calc(0px - var(--timeline-inset) - 3px);
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--color-text-muted);
+}
+
 .posts-list {
   padding-top: 40px;
 }
@@ -9,26 +67,34 @@
 .posts-list > section + section { margin-top: 48px; }
 
 .posts-line {
-  font-size: 1.0625rem;
-  line-height: 1.65;
-  margin: 16px 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 24px;
+  padding: 15px 0;
+  font-size: 15px;
+  line-height: 1.7;
 }
 
+.posts-title { min-width: 0; overflow-wrap: anywhere; }
 .posts-title a { padding-block: 3px; }
 
 .posts-date {
-  padding-top: 2px;
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 @media screen and (max-width: 600px) {
+  .timeline-group { --timeline-inset: 24px; margin-left: 3px; }
+
   .posts-line {
-    font-size: 16px;
+    gap: 14px;
+    font-size: 14px;
   }
 
+  .posts-date { font-size: 11px; }
   .posts-list { padding-top: 32px; }
   .posts-list > section + section { margin-top: 36px; }
 }

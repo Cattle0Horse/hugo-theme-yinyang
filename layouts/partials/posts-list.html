@@ -1,11 +1,11 @@
 <div id="posts-list" class="posts-list">
   {{ range .Pages.GroupByDate "2006" }}
-  <section>
-    <h1 class="site-date-catalog">{{ .Key }}</h1>
+  <section class="timeline-group">
+    <h1 class="site-date-catalog timeline-heading">{{ .Key }}</h1>
     {{ range .Pages }}
-    <div class="row posts-line">
-      <div class="posts-date col-xs-3 col-sm-2"><time datetime="{{ .Date.Format "2006-01-02 15:04:05 MST" }}">{{ .Date.Format $.DateFormat }}</time></div>
-      <div class="posts-title col-xs-9 col-sm-10">{{ if $.Nested }}<div class="row"><div class="col-xs-12">{{ end }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ if $.Nested }}</div></div>{{ end }}</div>
+    <div class="posts-line timeline-entry">
+      <div class="posts-date"><time data-transition-time="{{ .RelPermalink }}" datetime="{{ .Date.Format "2006-01-02 15:04:05 MST" }}">{{ .Date.Format $.DateFormat }}</time></div>
+      <div class="posts-title" data-transition-title="{{ .RelPermalink }}"><a href="{{ .RelPermalink }}">{{ .Title }}</a></div>
     </div>
     {{ end }}
   </section>

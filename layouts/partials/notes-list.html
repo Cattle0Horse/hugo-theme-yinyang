@@ -1,19 +1,19 @@
 {{- $paginator := .Paginator -}}
 <div class="notes-list">
   {{ range $paginator.Pages.GroupByDate "2006-01" }}
-  <section class="notes-month">
-    <h2 class="notes-month-title">{{ replace .Key "-" " / " }}</h2>
+  <section class="notes-month timeline-group">
+    <h2 class="notes-month-title timeline-heading">{{ replace .Key "-" " / " }}</h2>
     {{ range .Pages }}
     {{ $note := . }}
-    <article class="note-entry">
+    <article class="note-entry timeline-entry">
       <div class="note-entry-time">
         <a href="{{ .RelPermalink }}">
-          <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "01.02 · 15:04" }}</time>
+          <time data-transition-time="{{ .RelPermalink }}" datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "01.02 · 15:04" }}</time>
         </a>
       </div>
       <div class="note-entry-main">
         {{ with .Params.title }}
-        <h3 class="note-entry-title"><a href="{{ $note.RelPermalink }}">{{ . }}</a></h3>
+        <h3 class="note-entry-title" data-transition-title="{{ $note.RelPermalink }}"><a href="{{ $note.RelPermalink }}">{{ . }}</a></h3>
         {{ end }}
         {{ partial "note-source.html" . }}
         <div class="note-content markdown-body">{{ partial "note-content.html" . }}</div>

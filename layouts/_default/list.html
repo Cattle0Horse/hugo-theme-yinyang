@@ -2,7 +2,7 @@
 <article class="posts">
   <div class="row"><div class="col-xs-12">
     {{ with .Title }}<h1 class="taxonomy-term">{{ . }}</h1>{{ end }}
-    {{ partial "posts-list.html" (dict "Pages" (where .Pages "Type" "in" site.Params.mainSections) "DateFormat" "2006.01.02" "Nested" true) }}
+    {{ partial "posts-list.html" (dict "Pages" (where .Pages "Type" "in" site.Params.mainSections) "DateFormat" "2006.01.02") }}
   </div></div>
 </article>
 {{ end }}

@@ -1,7 +1,7 @@
 {{ define "main" }}
 <article class="posts">
   <div class="row"><div class="col-xs-12">
-    {{ partial "posts-list.html" (dict "Pages" (where site.RegularPages "Type" "in" site.Params.mainSections) "DateFormat" "01.02" "Nested" false) }}
+    {{ partial "posts-list.html" (dict "Pages" (where site.RegularPages "Type" "in" site.Params.mainSections) "DateFormat" "01.02") }}
   </div></div>
 </article>
 {{ end }}
