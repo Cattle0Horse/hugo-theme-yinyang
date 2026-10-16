@@ -244,7 +244,8 @@ a.note-tag:is(:hover, :focus-visible) {
   max-width: 100%;
   margin: 1em auto;
   border-collapse: collapse;
-  border-top: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+  border-top: 1px solid var(--color-table-border);
 }
 
 .table-scroll {
@@ -268,9 +269,14 @@ a.note-tag:is(:hover, :focus-visible) {
   overscroll-behavior-x: contain;
 }
 
-.markdown-body thead,
-.markdown-body tbody {
-  border-bottom: 1px solid var(--color-border);
+.markdown-body thead {
+  color: var(--color-table-header-text);
+  background-color: var(--color-table-header-bg);
+  border-bottom: 1px solid var(--color-table-border);
+}
+
+.markdown-body tbody tr {
+  border-bottom: 1px solid var(--color-table-border);
 }
 
 .markdown-body th,
@@ -278,13 +284,12 @@ a.note-tag:is(:hover, :focus-visible) {
   padding: 0.4em;
 }
 
-.markdown-body thead,
 .markdown-body tbody tr:nth-child(2n) {
   background-color: var(--color-table-bg);
 }
 
-/* 斑马纹行内的行内代码使用次级底色，避免与灰底撞色 */
-.markdown-body :is(thead, tbody tr:nth-child(2n)) code:not([class]) {
+/* 各行的行内代码共用稍深底色，保持表头和斑马纹上的可辨识度。 */
+.markdown-body table code:not([class]) {
   background-color: var(--color-table-code-bg);
 }
 

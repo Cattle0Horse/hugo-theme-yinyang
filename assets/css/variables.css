@@ -28,8 +28,11 @@
   --color-scrollbar: rgba(128, 128, 128, 0.28);
   --color-scrollbar-hover: rgba(128, 128, 128, 0.46);
   --color-code-bg: #fafafa;
-  --color-table-bg: #fafafa;
-  --color-table-code-bg: #f4f4f5;
+  --color-table-bg: color-mix(in srgb, var(--color-prose) 3%, var(--color-bg));
+  --color-table-header-bg: color-mix(in srgb, var(--color-accent) 7%, var(--color-bg));
+  --color-table-header-text: color-mix(in srgb, var(--color-accent) 25%, var(--color-prose));
+  --color-table-border: color-mix(in srgb, var(--color-prose) 15%, var(--color-bg));
+  --color-table-code-bg: color-mix(in srgb, var(--color-prose) 8%, var(--color-bg));
   --color-header-line: var(--color-border);
   --color-surface: #fff;
   --color-surface-hover: #f4f4f5;
@@ -108,8 +111,6 @@
   --color-border-medium: #525a66;
   --color-image-border: rgba(255, 255, 255, 0.26);
   --color-code-bg: #22252a;
-  --color-table-bg: #22252a;
-  --color-table-code-bg: #2c3036;
   --color-header-line: var(--color-border);
   --color-surface: #22252a;
   --color-surface-hover: #2c3036;
