@@ -65,7 +65,7 @@
 .note-entry-title { font-weight: 400; }
 
 .note-sources {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .note-sources::before {
@@ -101,19 +101,11 @@
   white-space: nowrap;
 }
 
-.note-content > :first-child {
-  margin-top: 0;
-}
-
-.note-content > :last-child {
-  margin-bottom: 0;
-}
-
 .note-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .note-tag {
@@ -168,7 +160,7 @@
 }
 
 .note-single-header {
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 
 .note-single-meta {
@@ -189,14 +181,14 @@
 }
 
 .note-single-content {
-  margin-top: 8px;
-  margin-bottom: 28px;
+  margin-top: 0;
+  margin-bottom: 24px;
 }
 
 @media screen and (max-width: 600px) {
   .note-entry {
     grid-template-columns: 1fr;
-    gap: 6px;
+    gap: 8px;
   }
 
   .notes-page-link {

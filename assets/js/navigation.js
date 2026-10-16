@@ -298,6 +298,9 @@
   function captureArticle() {
     var article = document.querySelector('.app-scroll > article')
     if (!article) return null
+    var header = document.querySelector('.app-header')
+    var headerBounds = header && header.getBoundingClientRect()
+    var viewport = headerBounds && lifecycle.page.scroll.viewport()
     var cover = document.createElement('div')
     cover.className = 'navigation-outgoing'
     cover.setAttribute('aria-hidden', 'true')
@@ -322,6 +325,7 @@
     }
     return {
       element: cover,
+      headerVisible: !headerBounds || (headerBounds.bottom > viewport.top && headerBounds.top < viewport.bottom),
       restoreScroll: function () {
         // Detached clones cannot retain scroll offsets; restore after insertion.
         scrolls.forEach(function (saved) {
@@ -330,20 +334,21 @@
       }
     }
   }
-  function fadeArticle(cover, article, page, removeCover) {
+  function fadeArticle(cover, entering, page, removeCover) {
     var finished = false
     function finish() {
       if (finished) return
       finished = true
       removeCover()
-      article.classList.remove('page-entering')
       stopCleanup()
       if (pageTransition === finish) pageTransition = null
     }
     var stopCleanup = page.addCleanup(finish)
     pageTransition = finish
-    article.classList.remove('page-preparing')
-    article.classList.add('page-entering')
+    entering.forEach(function (node) {
+      node.classList.remove('page-preparing')
+      node.classList.add('page-entering')
+    })
     cover.classList.add('is-leaving')
     page.onMotionEnd(cover, { type: 'animationend', animation: 'page-fade-out', timeout: 340 }, finish)
   }
@@ -360,13 +365,18 @@
     var article = next.body.querySelector('.app-scroll > article')
     var snapshot = article && !state && !destination.hash ? captureArticle() : null
     var cover = snapshot && snapshot.element
+    var entering = [article]
+    var header = next.body.querySelector('.app-header')
+    // Resetting the new scroll container must not reveal an offscreen header
+    // before the article is ready. Keep an already-visible header steady.
+    if (snapshot && !snapshot.headerVisible && header) entering.push(header)
     var stopCoverCleanup
     function removeCover() {
       if (!cover) return
       cover.remove()
       cover = null
       removeOldStyles()
-      article.classList.remove('page-preparing')
+      entering.forEach(function (node) { node.classList.remove('page-preparing', 'page-entering') })
     }
     document.dispatchEvent(new CustomEvent('yinyang:before-navigate', { detail: { url: destination.href } }))
     rememberPage()
@@ -380,7 +390,7 @@
     if (saved && saved.folds) next.body.querySelectorAll('.code-block-body').forEach(function (body, index) {
       if (typeof saved.folds[index] === 'boolean') body.classList.toggle('is-folded', saved.folds[index])
     })
-    if (cover) article.classList.add('page-preparing')
+    if (cover) entering.forEach(function (node) { node.classList.add('page-preparing') })
     document.body.replaceWith(next.body)
     if (loading) document.body.appendChild(loading)
     document.querySelector('.app-shell').setAttribute('aria-busy', 'true')
@@ -420,7 +430,7 @@
     }
     if (stopCoverCleanup) stopCoverCleanup()
     controller.reveal = null
-    if (cover) fadeArticle(cover, article, page, removeCover)
+    if (cover) fadeArticle(cover, entering, page, removeCover)
   }
   async function navigate(url, state) {
     if (initializing || requiresDocumentNavigation(document.body) || document.body.hasAttribute('data-no-pjax')) {

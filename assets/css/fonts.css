@@ -3,7 +3,7 @@
   src: url("https://unpkg.com/@zf-web-font/opposans@0.2.0/OPPOSans-Regular.woff2") format("woff2");
   font-style: normal;
   font-weight: 400;
-  font-display: swap;
+  font-display: optional;
 }
 
 @font-face {
@@ -11,7 +11,7 @@
   src: url("https://unpkg.com/@zf-web-font/opposans@0.2.0/OPPOSans-Medium.woff2") format("woff2");
   font-style: normal;
   font-weight: 500;
-  font-display: swap;
+  font-display: optional;
 }
 
 @font-face {
@@ -19,7 +19,7 @@
   src: url("https://unpkg.com/@zf-web-font/opposans@0.2.0/OPPOSans-Bold.woff2") format("woff2");
   font-style: normal;
   font-weight: 700;
-  font-display: swap;
+  font-display: optional;
 }
 
 @font-face {
@@ -27,5 +27,5 @@
   src: url("https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/woff2/FiraCode-VF.woff2") format("woff2");
   font-style: normal;
   font-weight: 300 700;
-  font-display: swap;
+  font-display: optional;
 }
