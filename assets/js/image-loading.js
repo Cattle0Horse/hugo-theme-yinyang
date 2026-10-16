@@ -37,9 +37,11 @@ window.yinyangRuntime.register('image-loading', function (runtime) {
     if (!frame) return
     setFrameState(frame, 'is-failed')
     var imageWidth = parseInt(img.getAttribute('width'), 10) || 0
-    if (imageWidth > 0 && imageWidth <= 260) frame.classList.add('is-narrow')
     var failed = frame.querySelector('.loading-failed')
     if (failed) failed.hidden = false
+    if ((imageWidth > 0 && imageWidth <= 260) || (failed && failed.scrollHeight > frame.clientHeight)) {
+      frame.classList.add('is-narrow')
+    }
     setRetryLabel(frame, '点击重试')
   }
 

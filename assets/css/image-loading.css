@@ -67,6 +67,11 @@
   min-height: 7rem;
 }
 
+.loading-image-frame:not(.size-unknown) {
+  width: min(100%, var(--image-width));
+  min-height: 0;
+}
+
 .loading-image-frame.is-failed {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -93,7 +98,7 @@
   gap: 6px;
   align-items: center;
   justify-content: center;
-  min-height: 7rem;
+  min-height: 0;
   padding: 16px;
   background: var(--color-code-bg);
   color: var(--color-text-muted);
@@ -107,6 +112,7 @@
 .loading-failed-icon {
   width: 22px;
   height: 22px;
+  max-height: 100%;
   opacity: .72;
 }
 
@@ -123,7 +129,7 @@
 .loading-image-frame.is-narrow .loading-failed {
   flex-direction: row;
   gap: 8px;
-  padding: 12px;
+  padding: 0 8px;
 }
 
 /* 构建期解析不到尺寸的图片（远程 URL / 缺失的本地文件）：

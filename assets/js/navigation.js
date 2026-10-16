@@ -302,17 +302,33 @@
     cover.className = 'navigation-outgoing'
     cover.setAttribute('aria-hidden', 'true')
     cover.inert = true
+    var scrolls = []
     // Trailing page content, including the correction/footer area, fades with the article.
     for (var node = article; node; node = node.nextElementSibling) {
       if (node.tagName === 'SCRIPT') continue
       var bounds = node.getBoundingClientRect()
       var clone = cloneWithoutIds(node)
+      var originals = [node].concat(Array.from(node.querySelectorAll('*')))
+      var copies = [clone].concat(Array.from(clone.querySelectorAll('*')))
+      originals.forEach(function (original, index) {
+        if (original.scrollLeft || original.scrollTop) {
+          scrolls.push({ node: copies[index], left: original.scrollLeft, top: original.scrollTop })
+        }
+      })
       clone.querySelectorAll('script').forEach(function (script) { script.remove() })
       clone.style.cssText = 'position:absolute;margin:0;box-sizing:border-box;left:' + bounds.left +
         'px;top:' + bounds.top + 'px;width:' + bounds.width + 'px;padding:' + getComputedStyle(node).padding
       cover.appendChild(clone)
     }
-    return cover
+    return {
+      element: cover,
+      restoreScroll: function () {
+        // Detached clones cannot retain scroll offsets; restore after insertion.
+        scrolls.forEach(function (saved) {
+          saved.node.scrollTo({ left: saved.left, top: saved.top, behavior: 'instant' })
+        })
+      }
+    }
   }
   function fadeArticle(cover, article, page, removeCover) {
     var finished = false
@@ -342,7 +358,8 @@
     var scripts = Array.from(next.body.querySelectorAll('script[data-page-runtime]'))
     var analytics = next.head.querySelector('script[data-page-analytics]')
     var article = next.body.querySelector('.app-scroll > article')
-    var cover = article && !state && !destination.hash ? captureArticle() : null
+    var snapshot = article && !state && !destination.hash ? captureArticle() : null
+    var cover = snapshot && snapshot.element
     var stopCoverCleanup
     function removeCover() {
       if (!cover) return
@@ -373,6 +390,7 @@
     if (cover) {
       // Keep the visual copy out of feature initialization and its DOM queries.
       document.body.appendChild(cover)
+      snapshot.restoreScroll()
       controller.reveal = removeCover
       stopCoverCleanup = page.addCleanup(removeCover)
     }

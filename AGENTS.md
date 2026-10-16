@@ -68,7 +68,7 @@ CSS 由 `head.html` 将 15 个文件按 variables → global → site-header →
 
 `_markup/render-codeblock.html` 使用 `transform.HighlightCodeBlock` 保留 fence Options / Attributes 与站点高亮配置，构建语言标签、复制按钮和按 `codeMaxLines`（默认 15）预判的折叠结构。`code-toolbar.js` 绑定交互、按真实高度校正折叠，并包装缩进代码块。复制使用 Clipboard API → execCommand 降级，反馈带状态播报与关闭动画。
 
-`image-tag.html` 解析页面资源尺寸（跳过 SVG），输出原生懒加载、可选骨架与失败占位；`image-loading.js` 管理缓存图、解码、淡入与破缓存重试。`image.border` / `galleryBorder` 独立控制正文 / Gallery 内描边，默认关闭、不影响布局且跳过 SVG。
+`image-tag.html` 解析页面资源尺寸（跳过 SVG），输出原生懒加载、可选骨架与失败占位；`image-loading.js` 管理缓存图、解码、淡入与破缓存重试。已知尺寸的图片在加载、失败、重试与成功时保持同一宽高占位，矮图的失败反馈使用横排，避免最小高度撑开正文。`image.border` / `galleryBorder` 独立控制正文 / Gallery 内描边，默认关闭、不影响布局且跳过 SVG。
 
 `toc.html` 仅渲染目录结构，`toc.js` 管理宽屏侧栏、窄屏浮层、焦点与滚动监听；`toc: false` 禁用目录。`footnotes.js` 按脚注链接语义识别跳转，兼容 Hugo 和 Notes 添加的 ID 前缀。
 
@@ -110,7 +110,7 @@ KaTeX CDN 固定为 0.19.0，不使用浮动 latest URL；升级须验证 Hugo �
 - 模态使用 dialog / aria-modal，打开移入焦点、Esc 关闭、Tab 陷阱、关闭归还焦点；锁定背景须同时覆盖宽屏 html/body 与窄屏 appScroll，保存并恢复位置。
 - 动态交互采用页面生命周期管理的 document 委托和打开态 guard；浮层按需创建、关闭后销毁，动态文本使用 textContent。
 - TOC backdrop / 面板 / 按钮层级为 998 / 1000 / 1001，全屏模态使用 2000；模态控件用 aria-label，不挂 data-tooltip。
-- 宽表格仅溢出时提供焦点和滑动提示；代码、表格与块级公式限制横向 overscroll。全局链接 hover 保持字重稳定。
+- 宽表格仅溢出时提供焦点和滑动提示；代码、表格与块级公式限制横向 overscroll。链接 hover / focus 与目录激活状态保持字号、字重和字距稳定，通过颜色、背景和指示条反馈，避免文字变宽或重新换行。
 - Markdown 表格使用不透明页面底色、淡主题色表头、轻斑马纹和柔和水平分隔线；表格颜色统一由 `variables.css` 的 `--color-table-*` 变量派生，随明暗与配色切换，行内代码在所有行中使用稍深底色。
 - Header 导航、Posts 标题和 Notes 标题 / 时间 / 来源 / 标签链接共用 `global.css` 的动态下划线：hover 或键盘聚焦时从左展开，离开时向右收起；使用逐行背景兼容长标题换行。
 

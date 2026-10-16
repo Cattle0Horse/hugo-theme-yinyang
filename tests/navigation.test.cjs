@@ -32,6 +32,8 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
       this.attributes = new Map(Object.entries(attributes))
       this.style = {}
       this.children = []
+      this.scrollLeft = 0
+      this.scrollTop = 0
       const classes = new Set((attributes.class || '').split(/\s+/))
       this.classList = {
         add: (...names) => names.forEach(name => classes.add(name)),
@@ -46,6 +48,7 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
       return siblings[siblings.indexOf(this) + 1] || null
     }
     getAttribute(name) { return this.attributes.get(name) ?? null }
+    scrollTo(options) { this.scrollLeft = options.left; this.scrollTop = options.top }
     setAttribute(name, value) { this.attributes.set(name, value) }
     hasAttribute(name) { return this.attributes.has(name) }
     removeAttribute(name) { this.attributes.delete(name) }
@@ -53,7 +56,8 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
       if (selector === '.katex-html') return this.children
       return this.children.flatMap(node => {
         let matches
-        if (selector.startsWith('#')) matches = node.getAttribute('id') === selector.slice(1)
+        if (selector === '*') matches = true
+        else if (selector.startsWith('#')) matches = node.getAttribute('id') === selector.slice(1)
         else if (selector.startsWith('.')) matches = node.classList.contains(selector.slice(1))
         else if (/^\[[\w-]+\]$/.test(selector)) matches = node.hasAttribute(selector.slice(1, -1))
         else matches = node.tagName.toLowerCase() === selector
@@ -339,6 +343,26 @@ test('the outgoing view retains its footer through the statistics wait and fade'
   fixture.finishTransition()
   assert.equal(cover.removed, true)
   assert.equal(fixture.document.body.querySelector('footer').textContent, 'New footer')
+})
+
+test('the outgoing view retains nested horizontal and vertical scroll positions', async () => {
+  const fixture = navigationFixture({ math: false, analytics: true })
+  const original = fixture.originalBody.querySelector('.app-scroll > article')
+  original.scrollLeft = 17
+  const region = new original.constructor({ class: 'table-scroll' })
+  region.scrollLeft = 180
+  region.scrollTop = 32
+  original.appendChild(region)
+  await fixture.navigate('/post/')
+  const cover = fixture.document.body.children.find(node => node.className === 'navigation-outgoing')
+  const copy = cover.querySelector('.table-scroll')
+  assert.equal(cover.children[0].scrollLeft, 17)
+  assert.equal(copy.scrollLeft, 180)
+  assert.equal(copy.scrollTop, 32)
+  fixture.expire()
+  await flush()
+  fixture.finishTransition()
+  assert.equal(cover.removed, true)
 })
 
 test('an anchor action reveals the new footer and removes its outgoing copy immediately', async () => {
