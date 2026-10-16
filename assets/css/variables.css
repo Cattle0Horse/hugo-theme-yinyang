@@ -8,7 +8,10 @@
   --font-body: "OPPO Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   --font-code: "Fira Code", "SF Mono", "Fira Mono", "Roboto Mono", Menlo, Monaco, "Liberation Mono", "Courier New", "OPPO Sans", "PingFang SC", "Microsoft YaHei", monospace;
 
-  --code-fold-max: 360px;
+  --code-font-size: 14px;
+  --code-line-height: 1.6;
+  --code-padding: 16px;
+  --code-fold-lines: 15;
   --action-button-size: 32px;
   --action-icon-size: 16px;
   --color-bg: oklch(98% 0.012 85);

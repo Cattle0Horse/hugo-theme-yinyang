@@ -147,6 +147,18 @@
   .appearance-controls .action-button { width: 44px; height: 44px; }
   .header-nav-toggle { max-width: 100px; padding: 0 10px; }
   .header-links { gap: 14px; }
+  /* Match the JS mobile layout from the first paint. */
+  :root.yinyang-js .header-links {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  :root.yinyang-js .header-nav-toggle[hidden] { display: inline-flex; }
+  :root:not(.yinyang-js) .site-header-content { grid-template-columns: minmax(0, 1fr); }
+  :root:not(.yinyang-js) .header-links { flex-shrink: 1; flex-wrap: wrap; width: auto; white-space: normal; }
 }
 
 

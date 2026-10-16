@@ -2,9 +2,9 @@
   DOM 结构由构建期生成（零运行时构建），交互保留运行时（code-toolbar.js 绑定 is-folded toggle、
   高度测量与展开动画）。使用 transform.HighlightCodeBlock 以保留 fence 的 .Options/.Attributes
   （linenos/hl_lines 等）并尊重站点 [markup.highlight] 配置。 */ -}}
-{{- $maxLines := $.Page.Site.Params.codeMaxLines | default 15 -}}
+{{- $maxLines := int (math.Max 1 ($.Page.Site.Params.codeMaxLines | default 15)) -}}
 {{- $lang := .Type -}}
-{{- $lines := len (split .Inner "\n") -}}
+{{- $lines := len (split (strings.TrimSuffix "\n" .Inner) "\n") -}}
 {{- $folded := gt $lines $maxLines -}}
 {{- /* 语言标签映射 */ -}}
 {{- $langMap := dict
@@ -26,7 +26,7 @@
 {{- $highlighted := $r.Wrapped -}}
 {{- if $lang -}}
 {{- /* 带语言围栏块：工具栏 + 折叠结构 */ -}}
-<div class="code-block-wrapper">
+<div class="code-block-wrapper" style="--code-fold-lines: {{ $maxLines }}">
   <div class="code-toolbar">
     <span class="code-lang">{{ $label }}</span>
     <button class="code-copy-btn action-button state-button" type="button" aria-label="复制代码" data-tooltip="复制代码" data-copy-block>

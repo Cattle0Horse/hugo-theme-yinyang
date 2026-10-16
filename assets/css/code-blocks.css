@@ -3,6 +3,7 @@
    ======================================================================== */
 
 .code-block-wrapper {
+  --code-fold-max: calc(var(--code-font-size) * var(--code-line-height) * var(--code-fold-lines) + var(--code-padding) * 2);
   margin: 16px 0;
   border: 1px solid var(--color-border-light);
   border-radius: 10px;
@@ -98,6 +99,13 @@
   -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 72px), rgba(0, 0, 0, .35) 100%);
 }
 
+:root:not(.yinyang-js) .code-block-body.is-folded .code-scroll-viewport {
+  max-height: none;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+:root:not(.yinyang-js) :is(.code-expand-bar, .code-copy-btn) { display: none; }
+
 .code-scroll-viewport::-webkit-scrollbar { width: 6px; height: 6px; }
 .code-scroll-viewport::-webkit-scrollbar-track { background: transparent; }
 .code-scroll-viewport::-webkit-scrollbar-thumb { background: var(--color-scrollbar); border-radius: 3px; }
@@ -109,7 +117,8 @@
   overflow: visible;
 }
 
-.code-expand-bar {
+.code-expand-bar.action-button {
+  display: flex;
   position: relative;
   z-index: 3;
   gap: 6px;

@@ -1,5 +1,5 @@
 {{ define "main" }}
-<article class="post not-found {{ .Site.Language.Locale }}" id="article" data-not-found>
+<article class="post not-found {{ .Site.Language.Locale }}" id="article" data-not-found data-nf-pending>
   <div class="nf-fallback"><h1>404</h1><p>页面未找到</p><a href="{{ site.Home.RelPermalink }}">← 返回首页</a></div>
   <div class="nf-scene" hidden></div>
   {{ partial "not-found-assets.html" . }}

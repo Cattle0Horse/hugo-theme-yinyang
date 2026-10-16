@@ -11,6 +11,11 @@
   {{- $paletteState := partialCached "palette-state.html" . .Site.Language.Lang -}}
   <script>
     ;(function () {
+      document.documentElement.classList.add('yinyang-js')
+      // A failed deferred bundle must leave native navigation and images usable.
+      setTimeout(function () {
+        if (!window.yinyangRuntime.mounted) document.documentElement.classList.remove('yinyang-js')
+      }, 8000)
       var t = null
       var p = null
       var palettes = {{ $paletteState.available | jsonify | safeJS }}

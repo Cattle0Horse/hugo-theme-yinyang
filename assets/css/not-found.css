@@ -6,6 +6,13 @@
   --nf-soft: var(--color-accent-soft);
 }
 .not-found [hidden] { display: none !important; }
+/* Hide the fallback before the deferred bundle runs, even with a cold cache. */
+.not-found[data-nf-pending] .nf-fallback {
+  visibility: hidden;
+  animation: nf-fallback-reveal 0s 8s forwards;
+}
+/* The theme bundle itself may fail to load, so this deadline needs no JS. */
+@keyframes nf-fallback-reveal { to { visibility: visible; } }
 .nf-scene { margin: 12px auto 0; }
 .nf-art { position: relative; display: block; width: 100%; max-width: 640px; margin: auto; }
 .nf-play { border: 0; background: transparent; padding: 0; color: var(--color-text); cursor: default; -webkit-tap-highlight-color: transparent; }

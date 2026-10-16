@@ -2,10 +2,8 @@ window.yinyangRuntime.register('code-toolbar', function (runtime) {
   // 围栏代码块的工具栏/折叠结构已由构建期 render-codeblock.html 输出。
   // 这里只做运行时部分：
   //   1) 给构建期 [data-copy-block] 按钮绑定复制
-  //   2) 折叠交互（toggle is-folded）+ 实际渲染高度校验（行数多但高度矮则不折叠）
+  //   2) 折叠交互（toggle is-folded）与展开高度测量
   //   3) 缩进式代码块（裸 <pre>，非 .highlight）运行时包装浮动复制按钮
-  // 折叠阈值：单一事实源在 CSS 变量 --code-fold-max（variables.css）
-  var FOLD_MAX = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--code-fold-max')) || 360
   var COPY_ICONS = runtime.config.copyIcons
 
   function bindCopy(button, codeEl) {
@@ -26,7 +24,7 @@ window.yinyangRuntime.register('code-toolbar', function (runtime) {
     bindCopy(prebuilt[i], sourceCode(prebuilt[i]))
   }
 
-  // 2) 折叠交互：构建期已按行数决定 is-folded，这里做运行时高度校验 + toggle
+  // 2) 折叠交互：构建期按 codeMaxLines 决定折叠，CSS 使用相同的行数。
   var foldInstances = []
 
   function updateExpandedHeight(instance) {
@@ -45,14 +43,6 @@ window.yinyangRuntime.register('code-toolbar', function (runtime) {
     if (!hl) return
     var lineCount = parseInt(expandBar.getAttribute('data-lines'), 10) || 0
     var expandText = expandBar.querySelector('.expand-text')
-
-    // 高度校验：实际渲染高度 <= 阈值时不需要折叠（与旧行为一致）
-    var renderedHeight = hl.scrollHeight
-    if (renderedHeight <= FOLD_MAX) {
-      body.classList.remove('is-folded')
-      expandBar.remove()
-      return
-    }
 
     var instance = { body: body, viewport: viewport, hl: hl, update: updateExpand }
     foldInstances.push(instance)

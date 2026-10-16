@@ -27,13 +27,13 @@
   border-radius: 6px;
 }
 
-.loading-image-frame.is-loading {
+:where(.yinyang-js) .loading-image-frame.is-loading {
   min-height: 5rem;
   background: var(--color-shimmer-from);
   box-shadow: inset 0 0 0 1px var(--color-border-light);
 }
 
-.loading-image-frame.is-loading::before {
+:where(.yinyang-js) .loading-image-frame.is-loading::before {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
@@ -44,7 +44,7 @@
   animation: img-shimmer 2.6s linear infinite;
 }
 
-.loading-image-frame.is-loading::after {
+:where(.yinyang-js) .loading-image-frame.is-loading::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -82,9 +82,14 @@
   max-width: 100%;
   height: auto;
   margin: 0;
+  opacity: 1;
+  transform: none;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.yinyang-js .loading-image-frame:not(.size-unknown) img.loading-img:not(.loading-done) {
   opacity: 0;
   transform: scale(1.02);
-  transition: opacity 200ms ease, transform 200ms ease;
 }
 
 .loading-image-frame img.loading-img.loading-done { opacity: 1; transform: scale(1); }

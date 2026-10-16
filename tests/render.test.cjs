@@ -52,6 +52,8 @@ name = "GitHub"
 link = "https://github.com/example"
 [markup.goldmark.renderer]
 unsafe = true
+[markup.goldmark.parser.attribute]
+block = true
 [markup.goldmark.extensions.footnote]
 enableAutoIDPrefix = true
 [markup.goldmark.extensions.passthrough]
@@ -68,6 +70,7 @@ inline = [["$", "$"]]
   }
   write('content/posts/old.md', '---\ntitle: old\ndate: 2026-08-01\nlastmod: 2026-08-02\ntoc: false\ntags: [topic]\nai: assisted\nalbum: ["/a.png", "https://cdn.example.org/b.png"]\n---\n\n## Heading\n\nBody\n')
   write('content/posts/new.md', '---\ntitle: new\ndate: 2026-08-01\ntoc: true\n---\n\n## Heading\n\nBody\n')
+  write('content/posts/table.md', '---\ntitle: Table\n---\n\n| Left | Center | Right |\n| :--- | :---: | ---: |\n| [A & B](https://example.org/?a=1&b=2) | `<tag>` | **bold** |\n{#data-table .reference data-kind="audit"}\n')
   execFileSync('hugo', ['-s', fixture, '--themesDir', path.dirname(theme), '--theme', path.basename(theme), '--destination', output, '--cacheDir', path.join(fixture, 'cache'), '--noBuildLock'], { stdio: 'pipe' })
 })
 
@@ -147,6 +150,20 @@ test('metadata and links support subdirectory deployment and custom taxonomy URL
   assert.ok(schema.dateModified.startsWith('2026-08-02'))
   const collection = JSON.parse(html('notes/index.html').match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/)[1])
   assert.equal(collection['@type'], 'CollectionPage')
+})
+
+test('table rendering preserves author attributes, column alignment and inline content', () => {
+  const table = html('posts/table/index.html').match(/<table\b[\s\S]*?<\/table>/)[0]
+  assert.match(table, /\bid="data-table"/)
+  assert.match(table, /\bdata-kind="audit"/)
+  const rows = [...table.matchAll(/<tr>([\s\S]*?)<\/tr>/g)].map(match => match[1])
+  for (const row of rows) {
+    const alignments = [...row.matchAll(/<(?:th|td)\b[^>]*style="text-align: ([^"]+)"/g)].map(match => match[1])
+    assert.deepEqual(alignments, ['left', 'center', 'right'])
+  }
+  assert.match(table, /href="https:\/\/example\.org\/\?a=1(?:&amp;|&)b=2"/)
+  assert.match(table, /<code>&lt;tag&gt;<\/code>/)
+  assert.match(table, /<strong>bold<\/strong>/)
 })
 
 test('404 available restricts rendered experiences and preserves each scene home URL', () => {

@@ -106,6 +106,7 @@
       runtime.page.config = config ? JSON.parse(config.textContent) : {}
       runtime.page.scroll = runtime.createScroll(runtime.page)
       initializers.forEach(function (feature) { feature.initialize(runtime.page) })
+      runtime.mounted = true
       return runtime.page
     }
   }

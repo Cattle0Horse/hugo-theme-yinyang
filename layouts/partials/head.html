@@ -70,6 +70,7 @@
     {{ with resources.Get "css/not-found.css" | minify }}
   <style data-page-head>{{ .Content | safeCSS }}</style>
     {{ end }}
+  <noscript><style>.not-found[data-nf-pending] .nf-fallback { visibility: visible; animation: none; }</style></noscript>
   {{ end }}
   {{ range .Site.Params.extraCSSFiles -}}
   <link data-page-head

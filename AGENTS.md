@@ -66,13 +66,13 @@ CSS 由 `head.html` 将 15 个文件按 variables → global → site-header →
 
 ### 代码、图片与目录
 
-`_markup/render-codeblock.html` 使用 `transform.HighlightCodeBlock` 保留 fence Options / Attributes 与站点高亮配置，构建语言标签、复制按钮和按 `codeMaxLines`（默认 15）预判的折叠结构。`code-toolbar.js` 绑定交互、按真实高度校正折叠，并包装缩进代码块。复制使用 Clipboard API → execCommand 降级，反馈带状态播报与关闭动画。
+`_markup/render-codeblock.html` 使用 `transform.HighlightCodeBlock` 保留 fence Options / Attributes 与站点高亮配置，构建语言标签、复制按钮和按 `codeMaxLines`（默认 15）预判的折叠结构。折叠行数与 CSS 高度统一使用 `codeMaxLines`，运行时不再因固定像素阈值移除展开按钮。`code-toolbar.js` 绑定交互、测量展开高度，并包装缩进代码块；缩进代码的间距与复制按钮空间在 CSS 中提前保留。复制使用 Clipboard API → execCommand 降级，反馈带状态播报与关闭动画。
 
-`image-tag.html` 解析页面资源尺寸（跳过 SVG），输出原生懒加载、可选骨架与失败占位；`image-loading.js` 管理缓存图、解码、淡入与破缓存重试。已知尺寸的图片在加载、失败、重试与成功时保持同一宽高占位，矮图的失败反馈使用横排，避免最小高度撑开正文。`image.border` / `galleryBorder` 独立控制正文 / Gallery 内描边，默认关闭、不影响布局且跳过 SVG。
+`image-tag.html` 解析页面资源尺寸（跳过 SVG），输出原生懒加载、可选骨架与失败占位；`image-loading.js` 管理缓存图、解码、淡入与破缓存重试。图片默认可见，Head 同步设置 `yinyang-js` 后才启用骨架隐藏；禁用 JS 时保留原生图片，主题 bundle 未完成 mount 时在 8 秒后移除增强标记，恢复图片与原生导航。已知尺寸的图片在加载、失败、重试与成功时保持同一宽高占位，矮图的失败反馈使用横排，避免最小高度撑开正文。`image.border` / `galleryBorder` 独立控制正文 / Gallery 内描边，默认关闭、不影响布局且跳过 SVG。
 
 `toc.html` 仅渲染目录结构，`toc.js` 管理宽屏侧栏、窄屏浮层、焦点与滚动监听；`toc: false` 禁用目录。`footnotes.js` 按脚注链接语义识别跳转，兼容 Hugo 和 Notes 添加的 ID 前缀。
 
-手机（≤ 600px）使用吸顶紧凑页头，当前栏目按钮展开单列导航，长名称允许换行。`socials.icon` 指向 `assets/icons/<name>.svg`，可由站点资源提供或覆盖，缺省或资源不存在时保留纯文字。桌面空间不足时也使用单列菜单。窄屏 TOC 使用右下角 44px 纯图标圆形入口和悬浮卡片，卡片内部滚动、突出当前章节；打开时隔离背景，关闭恢复阅读位置，跳转避让吸顶页头。宽屏保留侧栏与可见章节范围指示。
+手机（≤ 600px）使用吸顶紧凑页头，当前栏目按钮展开单列导航，长名称允许换行；启用 JS 时由 CSS 在首次绘制前确定折叠态，禁用 JS 或 bundle 加载失败时回退可换行的原生链接。`socials.icon` 指向 `assets/icons/<name>.svg`，可由站点资源提供或覆盖，缺省或资源不存在时保留纯文字。桌面空间不足时也使用单列菜单。窄屏 TOC 使用右下角 44px 纯图标圆形入口和悬浮卡片，卡片内部滚动、突出当前章节；打开时隔离背景，关闭恢复阅读位置，跳转避让吸顶页头。宽屏保留侧栏与可见章节范围指示。
 
 ### 数学公式
 
@@ -92,7 +92,7 @@ KaTeX CDN 固定为 0.19.0，不使用浮动 latest URL；升级须验证 Hugo �
 
 ## 跨功能约定
 
-404 的 `params.notFound.available` 指定启用列表，支持 `sleep` / `black-hole` / `flashlight` / `receipt` / `constellation` / `puzzle` / `terminal` / `channel` / `cat` / `draw-home`。各场景模板根元素通过 `data-nf-devices` 声明适用的 `mobile` / `desktop`；`flashlight`、`constellation`、`terminal` 仅桌面，其余两端均适用。浏览器每次 mount 按视口 ≤ 600px 为移动端、其余为桌面端筛选已启用模板，再从适配项中随机选择；单项固定，无匹配时保留普通 404 与首页链接，不越过 available。调整窗口大小保留当前互动，下次 mount 重新筛选。场景资源成功后才显示互动；失败或 8 秒超时保留普通 404。`page.notFoundReady` 在完成或兜底后结束，导航等待它再恢复滚动并发出 page-ready；离页会结束该页等待，脚本按资源指纹 URL 缓存场景定义，不保留旧 page；新版本加载失败时不会误用旧版本。`not-found-state.html` 统一过滤、去重；未配置、空数组或无有效项时启用全部。`layouts/404.html` 通过 `not-found-assets.html` 输出已启用场景的设备标记和资源地址，Head 仅内联公共 404 CSS。选中后请求该场景的一份 CSS 和一份 JS；JS 在构建期封装公共场景工具、独立 initialize 函数和插画 HTML，只有终端 / 电台附带文章列表。场景 JS 不进入全站 bundle。每款分别放在 `layouts/partials/not-found/`、`assets/css/not-found/`、`assets/js/not-found/`，独立拥有标题、状态区、布局和返回入口；公共文件只提供选择、绘图基础样式及生命周期工具，不装配共同可见组件。无 JS 时保留普通 404 与首页链接。终端 / 电台使用构建期输出的站内文章 URL，画路仅在实际轨迹终点靠近小屋时完成，不自动补齐路线。
+404 的 `params.notFound.available` 指定启用列表，支持 `sleep` / `black-hole` / `flashlight` / `receipt` / `constellation` / `puzzle` / `terminal` / `channel` / `cat` / `draw-home`。各场景模板根元素通过 `data-nf-devices` 声明适用的 `mobile` / `desktop`；`flashlight`、`constellation`、`terminal` 仅桌面，其余两端均适用。浏览器每次 mount 按视口 ≤ 600px 为移动端、其余为桌面端筛选已启用模板，再从适配项中随机选择；单项固定，无匹配时保留普通 404 与首页链接，不越过 available。调整窗口大小保留当前互动，下次 mount 重新筛选。首次绘制及场景资源加载期间隐藏普通 404，资源成功后直接显示互动；失败、8 秒超时或无适配场景时显示普通 404。禁用 JS 时立即显示普通 404；主题 bundle 加载失败时由 CSS 在 8 秒后恢复兜底。`page.notFoundReady` 在完成或兜底后结束，导航等待它再恢复滚动并发出 page-ready；离页会结束该页等待，脚本按资源指纹 URL 缓存场景定义，不保留旧 page；新版本加载失败时不会误用旧版本。`not-found-state.html` 统一过滤、去重；未配置、空数组或无有效项时启用全部。`layouts/404.html` 通过 `not-found-assets.html` 输出已启用场景的设备标记和资源地址，Head 仅内联公共 404 CSS。选中后请求该场景的一份 CSS 和一份 JS；JS 在构建期封装公共场景工具、独立 initialize 函数和插画 HTML，只有终端 / 电台附带文章列表。场景 JS 不进入全站 bundle。每款分别放在 `layouts/partials/not-found/`、`assets/css/not-found/`、`assets/js/not-found/`，独立拥有标题、状态区、布局和返回入口；公共文件只提供选择、绘图基础样式及生命周期工具，不装配共同可见组件。无 JS 时保留普通 404 与首页链接。终端 / 电台使用构建期输出的站内文章 URL，画路仅在实际轨迹终点靠近小屋时完成，不自动补齐路线。
 
 共有七款以参考稿的 400×245 SVG 构图为准，使用粗无衬线数字；`cat` 展示名为“是猫干的”，只移动独立圆环零。标题使用 `.nf-sr-only`；操作反馈分别融入气泡、票据盖章、定位标记、拼图结果标签和设备屏显，不共用一行说明。状态保留 role=status 与 aria-live。Web Animations、粒子和弹性跟随通过 page 托管并在 dispose 时取消 / 删除；拖动保留速度和当前动画位置，松手后接续惯性或回弹。`sleep` 初始保持睡着，监听整个 document 的光标，仅在约 700ms 内位移达到 36 CSS 像素时唤醒；点击 / 键盘聚焦直接唤醒，回家入睡阶段锁定唤醒，关闭整体视差；日常只移动眼球，点击时人脸局部弹起并出现星点，重复点击从当前动画位置接续，整体画面和两侧数字保持稳定。星图划过点亮、点击 / 回车揭晓。画路区域禁用文本选择，任意位置下笔后 document 接收拖动，SVG 捕获指针；路径不截断在插画 viewBox，允许绘制到整个可视区域，松手自动出发。实际终点进入小屋范围后跳转首页，否则显示可见提示；点击 / 键盘激活小屋沿预设虚线回家；重新下笔、重画按钮和小球均可重置并中断旧运动，重置与 dispose 会取消待执行的跳转。
 
@@ -111,7 +111,7 @@ KaTeX CDN 固定为 0.19.0，不使用浮动 latest URL；升级须验证 Hugo �
 - 动态交互采用页面生命周期管理的 document 委托和打开态 guard；浮层按需创建、关闭后销毁，动态文本使用 textContent。
 - TOC backdrop / 面板 / 按钮层级为 998 / 1000 / 1001，全屏模态使用 2000；模态控件用 aria-label，不挂 data-tooltip。
 - 宽表格仅溢出时提供焦点和滑动提示；代码、表格与块级公式限制横向 overscroll。链接 hover / focus 与目录激活状态保持字号、字重和字距稳定，通过颜色、背景和指示条反馈，避免文字变宽或重新换行。
-- Markdown 表格使用不透明页面底色、淡主题色表头、轻斑马纹和柔和水平分隔线；表格颜色统一由 `variables.css` 的 `--color-table-*` 变量派生，随明暗与配色切换，行内代码在所有行中使用稍深底色。
+- Markdown 表格由 `_markup/render-table.html` 在构建期输出滚动容器，保留作者属性、列对齐与单元格内容；滑动提示使用预留区域，不在运行时撑开正文，手写 HTML 表格也预留相同空间。表格使用不透明页面底色、淡主题色表头、轻斑马纹和柔和水平分隔线；表格颜色统一由 `variables.css` 的 `--color-table-*` 变量派生，随明暗与配色切换，行内代码在所有行中使用稍深底色。
 - Header 导航、Posts 标题和 Notes 标题 / 时间 / 来源 / 标签链接共用 `global.css` 的动态下划线：hover 或键盘聚焦时从左展开，离开时向右收起；使用逐行背景兼容长标题换行。
 
 ## 配置参数（全部位于 `[params]` 下）
