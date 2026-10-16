@@ -1,6 +1,6 @@
 window.yinyangRuntime.register('image-loading', function (runtime) {
   if (!runtime.config.imageLoading) return
-function frameFor(img) { return img.closest('.loading-image-frame') }
+  function frameFor(img) { return img.closest('.loading-image-frame') }
 
   function setFrameState(frame, state) {
     frame.classList.remove('is-loading', 'is-loaded', 'is-failed', 'is-narrow', 'is-retrying')
@@ -8,9 +8,7 @@ function frameFor(img) { return img.closest('.loading-image-frame') }
   }
 
   function setRetryLabel(frame, label) {
-    var retry = frame.querySelector('.loading-retry')
-    if (!retry) return
-    runtime.label(retry, label)
+    runtime.label(frame.querySelector('.loading-retry'), label)
   }
 
   function finishLoad(img, frame) {
@@ -26,8 +24,8 @@ function frameFor(img) { return img.closest('.loading-image-frame') }
     // load 事件（decoding="async"）在字节到位即触发，不一定已解码。
     // 用 img.decode() 保证可绘制后再上屏，避免骨架消失 → 空白 → 闪现。
     if (img.decode) {
-      img.decode().then(runtime.guard(function () { finishLoad(img, frame) }))
-              .catch(runtime.guard(function () { finishLoad(img, frame) }))
+      var complete = runtime.guard(function () { finishLoad(img, frame) })
+      img.decode().then(complete).catch(complete)
     } else {
       finishLoad(img, frame)
     }

@@ -15,9 +15,7 @@
   {{ end }}
   {{ if $s.hasMarkdown }}
   <button id="copy-markdown-btn" class="markdown-action-btn action-button state-button" type="button" aria-label="复制 Markdown" data-tooltip="复制 Markdown">
-    {{ partial "icon.html" (dict "name" "copy" "wrap" "action-icon" "wrapClass" "state-icon state-icon-default") }}
-    {{ partial "icon.html" (dict "name" "check" "wrap" "action-icon" "wrapClass" "state-icon state-icon-success") }}
-    {{ partial "icon.html" (dict "name" "error" "wrap" "action-icon" "wrapClass" "state-icon state-icon-error") }}
+    {{ partial "copy-icons.html" . }}
   </button>
   {{ end }}
 </span>

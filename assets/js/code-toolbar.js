@@ -37,47 +37,45 @@ window.yinyangRuntime.register('code-toolbar', function (runtime) {
   }
 
   var codeBodies = document.querySelectorAll('.code-block-body')
-  for (var f = 0; f < codeBodies.length; f++) {
-    ;(function (body) {
-      var viewport = body.querySelector('.code-scroll-viewport')
-      var expandBar = body.querySelector('.code-expand-bar')
-      if (!viewport || !expandBar) return
-      var hl = viewport.querySelector('.highlight')
-      if (!hl) return
-      var lineCount = parseInt(expandBar.getAttribute('data-lines'), 10) || 0
-      var expandText = expandBar.querySelector('.expand-text')
+  codeBodies.forEach(function (body) {
+    var viewport = body.querySelector('.code-scroll-viewport')
+    var expandBar = body.querySelector('.code-expand-bar')
+    if (!viewport || !expandBar) return
+    var hl = viewport.querySelector('.highlight')
+    if (!hl) return
+    var lineCount = parseInt(expandBar.getAttribute('data-lines'), 10) || 0
+    var expandText = expandBar.querySelector('.expand-text')
 
-      // 高度校验：实际渲染高度 <= 阈值时不需要折叠（与旧行为一致）
-      var renderedHeight = hl.scrollHeight
-      if (renderedHeight <= FOLD_MAX) {
-        body.classList.remove('is-folded')
-        expandBar.remove()
-        return
-      }
+    // 高度校验：实际渲染高度 <= 阈值时不需要折叠（与旧行为一致）
+    var renderedHeight = hl.scrollHeight
+    if (renderedHeight <= FOLD_MAX) {
+      body.classList.remove('is-folded')
+      expandBar.remove()
+      return
+    }
 
-      var instance = { body: body, viewport: viewport, hl: hl, update: updateExpand }
-      foldInstances.push(instance)
-      updateExpandedHeight(instance)
+    var instance = { body: body, viewport: viewport, hl: hl, update: updateExpand }
+    foldInstances.push(instance)
+    updateExpandedHeight(instance)
 
-      function updateExpand() {
-        var folded = body.classList.contains('is-folded')
-        expandBar.setAttribute('aria-expanded', String(!folded))
-        runtime.label(expandBar, folded ? '展开全部代码' : '收起代码')
-        if (expandText) expandText.textContent = folded ? '展开全部 (' + lineCount + ' 行)' : '收起'
-      }
-      runtime.listen(expandBar, 'click', function () {
-        if (!body.classList.contains('is-folded')) {
-          var wrapper = body.closest('.code-block-wrapper')
-          if (wrapper.getBoundingClientRect().top < runtime.scroll.viewport().top) {
-            runtime.scroll.scrollToElement(wrapper, { offset: 24, behavior: 'instant' })
-          }
+    function updateExpand() {
+      var folded = body.classList.contains('is-folded')
+      expandBar.setAttribute('aria-expanded', String(!folded))
+      runtime.label(expandBar, folded ? '展开全部代码' : '收起代码')
+      if (expandText) expandText.textContent = folded ? '展开全部 (' + lineCount + ' 行)' : '收起'
+    }
+    runtime.listen(expandBar, 'click', function () {
+      if (!body.classList.contains('is-folded')) {
+        var wrapper = body.closest('.code-block-wrapper')
+        if (wrapper.getBoundingClientRect().top < runtime.scroll.viewport().top) {
+          runtime.scroll.scrollToElement(wrapper, { offset: 24, behavior: 'instant' })
         }
-        body.classList.toggle('is-folded')
-        updateExpand()
-      })
+      }
+      body.classList.toggle('is-folded')
       updateExpand()
-    })(codeBodies[f])
-  }
+    })
+    updateExpand()
+  })
 
   var foldableBodies = new Set(foldInstances.map(function (instance) { return instance.body }))
   runtime.code = {
@@ -97,7 +95,7 @@ window.yinyangRuntime.register('code-toolbar', function (runtime) {
       if (heightUpdateFrame) return
       heightUpdateFrame = runtime.requestAnimationFrame(function () {
         heightUpdateFrame = 0
-        for (var i = 0; i < foldInstances.length; i++) updateExpandedHeight(foldInstances[i])
+        foldInstances.forEach(updateExpandedHeight)
       })
     }
 
@@ -124,9 +122,5 @@ window.yinyangRuntime.register('code-toolbar', function (runtime) {
     bindCopy(copyBtn, code)
   }
 
-  var blocks = document.querySelectorAll('.markdown-body pre')
-  for (var j = 0; j < blocks.length; j++) {
-    var el = blocks[j]
-    if (!el.classList.contains('highlight')) enhancePlainPre(el)
-  }
+  document.querySelectorAll('.markdown-body pre').forEach(enhancePlainPre)
 })

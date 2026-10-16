@@ -1,12 +1,8 @@
-{{- $icons := "" -}}
-{{- range slice (dict "name" "copy" "state" "default") (dict "name" "check" "state" "success") (dict "name" "error" "state" "error") -}}
-  {{- $icons = printf "%s%s" $icons (partial "icon.html" (dict "name" .name "wrap" "action-icon" "wrapClass" (printf "state-icon state-icon-%s" .state))) -}}
-{{- end -}}
 {{- $config := dict
   "palette" (partialCached "palette-state.html" . .Site.Language.Lang)
   "imageLoading" (and .Site.Params.image.enabled .Site.Params.image.loading (not .IsHome))
   "footnotes" (not .IsHome)
-  "copyIcons" $icons
+  "copyIcons" (partial "copy-icons.html" .)
 -}}
 <script id="yinyang-page-config" type="application/json">{{ $config | jsonify | safeJS }}</script>
 <div class="ui-tooltip" id="uiTooltip" role="tooltip" aria-hidden="true"></div>

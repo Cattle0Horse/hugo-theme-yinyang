@@ -249,4 +249,8 @@ html.toc-open .toc-float-btn { visibility: hidden; }
   .app-main:has(.post-toc-sidebar) .app-scroll > article { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
 }
 
+@media screen and (max-width: 600px) {
+  .toc-nav a { min-height: 40px; }
+}
+
 

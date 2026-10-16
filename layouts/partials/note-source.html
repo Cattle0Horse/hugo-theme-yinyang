@@ -14,15 +14,11 @@
           {{- $hasMarkdownLabel = true -}}
         {{- end -}}
         {{- $isURL := false -}}
-        {{- with try (urls.Parse $url) -}}
-          {{- with .Value -}}
-            {{- if or .Host .Scheme -}}
-              {{- $isURL = true -}}
-              {{- if not $hasMarkdownLabel -}}
-                {{- with .Host -}}
-                  {{- $label = . -}}
-                {{- end -}}
-              {{- end -}}
+        {{- with (try (urls.Parse $url)).Value -}}
+          {{- if or .Host .Scheme -}}
+            {{- $isURL = true -}}
+            {{- if and (not $hasMarkdownLabel) .Host -}}
+              {{- $label = .Host -}}
             {{- end -}}
           {{- end -}}
         {{- end -}}

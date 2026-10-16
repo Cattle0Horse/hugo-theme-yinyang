@@ -23,11 +23,6 @@ window.yinyangRuntime.register('appearance', function (runtime) {
     return html.getAttribute("data-palette") || paletteState.default
   }
 
-  function updateLabel(button, label) {
-    if (!button) return
-    runtime.label(button, label)
-  }
-
   function nextThemeMode(mode) {
     return themeModes[(themeModes.indexOf(mode) + 1) % themeModes.length]
   }
@@ -35,8 +30,8 @@ window.yinyangRuntime.register('appearance', function (runtime) {
   function updateLabels() {
     var mode = currentValue("theme")
     var nextMode = nextThemeMode(mode)
-    updateLabel(themeBtn, "当前：" + themeNames[mode] + "；点击切换为" + themeNames[nextMode])
-    updateLabel(paletteBtn, "选择配色，当前：" + paletteState.names[currentValue("palette")])
+    runtime.label(themeBtn, "当前：" + themeNames[mode] + "；点击切换为" + themeNames[nextMode])
+    runtime.label(paletteBtn, "选择配色，当前：" + paletteState.names[currentValue("palette")])
   }
 
   function applyAppearanceChange(callback, event) {
@@ -80,16 +75,19 @@ window.yinyangRuntime.register('appearance', function (runtime) {
     transition.finished.then(runtime.guard(finishTransition), runtime.guard(finishTransition))
   }
 
+  function resolveTheme(mode) {
+    if (mode === "system") return browserTheme.matches ? "dark" : "light"
+    return mode
+  }
+
   function applyTheme() {
-    var theme = currentValue("theme")
-    if (theme === "system") theme = browserTheme.matches ? "dark" : "light"
-    html.setAttribute("data-theme", theme)
+    html.setAttribute("data-theme", resolveTheme(currentValue("theme")))
   }
 
   function setValue(kind, value, event) {
     var available = kind === "theme" ? themeModes : paletteState.available
     if (available.indexOf(value) === -1) return
-    var resolvedTheme = value === "system" ? (browserTheme.matches ? "dark" : "light") : value
+    var resolvedTheme = resolveTheme(value)
     if (kind !== "theme" || resolvedTheme === html.getAttribute("data-theme")) event = null
     applyAppearanceChange(function () {
       if (kind === "theme") {
@@ -203,9 +201,7 @@ window.yinyangRuntime.register('appearance', function (runtime) {
       event.preventDefault()
       options[event.key === "Home" ? 0 : options.length - 1].focus()
     } else if (event.key === "Tab") {
-      var controls = Array.prototype.slice.call(document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
-        .filter(function (control) { return control.tabIndex >= 0 && !control.disabled && control.getClientRects().length && !control.closest('[hidden], [inert]') && !menu.contains(control) })
-      var target = controls[controls.indexOf(paletteBtn) + (event.shiftKey ? -1 : 1)]
+      var target = runtime.adjacentControl(paletteBtn, event.shiftKey, menu)
       closeMenu(!target)
       if (target) {
         event.preventDefault()

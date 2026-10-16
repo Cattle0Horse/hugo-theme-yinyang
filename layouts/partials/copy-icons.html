@@ -1,0 +1,5 @@
+{{- $icons := "" -}}
+{{- range slice (dict "name" "copy" "state" "default") (dict "name" "check" "state" "success") (dict "name" "error" "state" "error") -}}
+  {{- $icons = printf "%s%s" $icons (partial "icon.html" (dict "name" .name "wrap" "action-icon" "wrapClass" (printf "state-icon state-icon-%s" .state))) -}}
+{{- end -}}
+{{- return ($icons | safeHTML) -}}

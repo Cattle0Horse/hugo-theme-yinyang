@@ -1,16 +1,11 @@
 {{- /* Hugo v0.165 embedded RSS template, with separate Blog and Notes feeds. */ -}}
 {{- $authorEmail := "" }}
+{{- $authorName := "" }}
 {{- with site.Params.author }}
 	{{- if reflect.IsMap . }}
 		{{- with .email }}
 			{{- $authorEmail = . }}
 		{{- end }}
-	{{- end }}
-{{- end }}
-
-{{- $authorName := "" }}
-{{- with site.Params.author }}
-	{{- if reflect.IsMap . }}
 		{{- with .name }}
 			{{- $authorName = . }}
 		{{- end }}

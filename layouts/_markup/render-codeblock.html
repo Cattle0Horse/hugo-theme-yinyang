@@ -1,5 +1,5 @@
 {{- /* 构建期渲染代码块：复刻 Chroma 输出并预构建工具栏（语言标签/复制按钮/折叠结构）。
-  DOM 结构由构建期生成（零运行时构建），交互保留运行时（code-toolbar.html 绑定 is-folded toggle、
+  DOM 结构由构建期生成（零运行时构建），交互保留运行时（code-toolbar.js 绑定 is-folded toggle、
   高度测量与展开动画）。使用 transform.HighlightCodeBlock 以保留 fence 的 .Options/.Attributes
   （linenos/hl_lines 等）并尊重站点 [markup.highlight] 配置。 */ -}}
 {{- $maxLines := $.Page.Site.Params.codeMaxLines | default 15 -}}
@@ -20,9 +20,7 @@
   "nginx" "Nginx" "apache" "Apache" -}}
 {{- $label := or (index $langMap (lower $lang)) $lang -}}
 {{- /* 复制按钮三态图标（构建期生成，来自 assets/icons/ 文件） */ -}}
-{{- $iconDefault := partial "icon.html" (dict "name" "copy" "wrap" "action-icon" "wrapClass" "state-icon state-icon-default") -}}
-{{- $iconSuccess := partial "icon.html" (dict "name" "check" "wrap" "action-icon" "wrapClass" "state-icon state-icon-success") -}}
-{{- $iconError := partial "icon.html" (dict "name" "error" "wrap" "action-icon" "wrapClass" "state-icon state-icon-error") -}}
+{{- $copyIcons := partial "copy-icons.html" . -}}
 {{- /* Chroma 高亮（保留 fence options，尊重站点 highlight 配置） */ -}}
 {{- $r := transform.HighlightCodeBlock . (dict "noClasses" false) -}}
 {{- $highlighted := $r.Wrapped -}}
@@ -32,7 +30,7 @@
   <div class="code-toolbar">
     <span class="code-lang">{{ $label }}</span>
     <button class="code-copy-btn action-button state-button" type="button" aria-label="复制代码" data-tooltip="复制代码" data-copy-block>
-      {{ $iconDefault }}{{ $iconSuccess }}{{ $iconError }}
+      {{ $copyIcons }}
     </button>
   </div>
   <div class="code-block-body{{ if $folded }} is-folded{{ end }}">
@@ -50,7 +48,7 @@
 <div class="code-block-wrapper no-toolbar">
   <div class="code-scroll-viewport">{{ $highlighted }}</div>
   <button class="floating-code-copy code-copy-btn action-button state-button" type="button" aria-label="复制代码" data-tooltip="复制代码" data-copy-block>
-    {{ $iconDefault }}{{ $iconSuccess }}{{ $iconError }}
+    {{ $copyIcons }}
   </button>
 </div>
 {{- end -}}

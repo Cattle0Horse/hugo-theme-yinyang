@@ -1,4 +1,3 @@
-{{- $supported := slice "indigo" "violet" "teal" "amber" "rose" "graphite" -}}
 {{- $names := dict "indigo" "靛蓝" "violet" "紫罗兰" "teal" "青绿" "amber" "琥珀" "rose" "玫瑰" "graphite" "石墨" -}}
 {{- $available := slice "indigo" -}}
 {{- $default := "indigo" -}}
@@ -9,7 +8,7 @@
     {{- $configured := slice -}}
     {{- range . -}}
       {{- $name := lower (printf "%v" .) -}}
-      {{- if and (in $supported $name) (not (in $configured $name)) -}}
+      {{- if and (isset $names $name) (not (in $configured $name)) -}}
         {{- $configured = $configured | append $name -}}
       {{- end -}}
     {{- end -}}

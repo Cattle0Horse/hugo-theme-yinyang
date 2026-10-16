@@ -24,4 +24,12 @@ window.yinyangRuntime.register('ui-helpers', function (runtime) {
     var removeCleanup = runtime.addCleanup(function () { node.remove() })
     runtime.onMotionEnd(node, { property: 'opacity', timeout: 220 }, function () { removeCleanup(); node.remove() })
   }
+  runtime.adjacentControl = function (trigger, backward, excluded) {
+    var controls = Array.prototype.slice.call(document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
+      .filter(function (control) {
+        return control.tabIndex >= 0 && !control.disabled && control.getClientRects().length &&
+          !control.closest('[hidden], [inert]') && (!excluded || !excluded.contains(control))
+      })
+    return controls[controls.indexOf(trigger) + (backward ? -1 : 1)]
+  }
 })

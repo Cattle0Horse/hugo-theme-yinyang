@@ -125,9 +125,7 @@ window.yinyangRuntime.register('header-nav', function (runtime) {
       event.preventDefault()
       document.activeElement.click()
     } else if (event.key === 'Tab') {
-      var controls = Array.prototype.slice.call(document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
-        .filter(function (control) { return control.tabIndex >= 0 && !control.disabled && control.getClientRects().length && !control.closest('[hidden], [inert]') })
-      var target = controls[controls.indexOf(button) + (event.shiftKey ? -1 : 1)]
+      var target = runtime.adjacentControl(button, event.shiftKey)
       closeMenu(!target)
       if (target) {
         event.preventDefault()
