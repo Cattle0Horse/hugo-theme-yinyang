@@ -21,11 +21,11 @@ node --expose-gc --test
 所有 HTML 页面继承 `layouts/_default/baseof.html`，包括首页、列表、Blog / Notes / Gallery 详情、taxonomy / term 和 404。页面模板只定义 `main` 和可选 `toc` block；公共 Head、Header、应用外壳与 Body 扩展入口统一在 baseof 装配，不再逐页复制。
 
 - `head.html`：调用 `runtime-head.html`，装配页面元信息、feed、CSS、数学样式与 `extraHead`。`page-metadata.html` 共用标题、描述、分享图片和 JSON-LD 页面类型；`page-title.html` 提供 Notes 无标题回退；`site-url.html` 处理站点子目录 URL。
-- `runtime-head.html`：内联页面生命周期内核，通过 Hugo 合并、压缩、指纹化并 defer 加载主题 JS；同步解析明暗和配色偏好，避免首次加载外观闪烁。
+- `runtime-head.html`：内联页面生命周期内核，通过 Hugo 合并、压缩、指纹化并 defer 加载公共主题 JS；同步解析明暗和配色偏好，避免首次加载外观闪烁。
 - `runtime-body.html`：输出 `#yinyang-page-config` JSON（palette、imageLoading、footnotes、copyIcons）和 tooltip 容器；随后 baseof 注入 `extraBody`。
 - 内容 partial 保留构建期职责：文章列表与标签、Notes 来源 / 标签、操作区与编辑 URL、图片结构、代码工具栏与公式 HTML。功能脚本位于 `assets/js/`，不再通过逐页脚本 partial 装配。
 
-CSS 由 `head.html` 将 16 个文件按 variables → global → site-header → theme-toggle → posts-list → notes → post-page → taxonomy → gallery → footnotes → app-shell → code-blocks → actions → toc → image-loading → mobile 合并、压缩后内联。`fonts.css` 独立压缩、指纹化并以样式链接加载，`syntax.css` 独立压缩内联，KaTeX CSS 按实际渲染内容加载；`extraCSSFiles` 生成独立样式链接。
+CSS 由 `head.html` 将 15 个文件按 variables → global → site-header → theme-toggle → posts-list → notes → post-page → taxonomy → gallery → footnotes → app-shell → code-blocks → actions → toc → image-loading 合并、压缩后内联。`fonts.css` 独立压缩、指纹化并以样式链接加载，`syntax.css` 独立压缩内联，KaTeX CSS 按实际渲染内容加载；`extraCSSFiles` 生成独立样式链接。
 
 ### 页面生命周期与功能层
 
@@ -41,7 +41,7 @@ CSS 由 `head.html` 将 16 个文件按 variables → global → site-header →
 | 通用交互 | `ui-helpers.js`、`tooltip.js`、`copy.js` 提供标签更新、浮层定位、动画结束清理与复制反馈 |
 | 阅读增强 | `tables.js`、`scrollbar.js`、`code-toolbar.js`、`image-loading.js` 管理局部滚动、代码和图片状态 |
 | 页面功能 | `header-nav.js`、`appearance.js`、`toc.js`、`footnotes.js`、`markdown-actions.js` 按 DOM / 配置初始化 |
-| 缺页互动 | `not-found.js` 仅在 404 DOM 存在时选择已启用场景，提供托管的指针 / 动画工具；`js/not-found/*.js` 各自初始化交互 |
+| 缺页互动 | `not-found.js` 按设备选择场景，`not-found-resources.js` 管理资源请求与脚本缓存；`not-found-scene.js` 提供托管的指针 / 动画工具，随选中的 `js/not-found/*.js` 一起加载 |
 | 导航 | `navigation.js` 管理获取、校验、提交、脚本重放与历史恢复 |
 
 自定义脚本通过当前 `window.yinyangRuntime.page` 使用 `scroll.isWide()`、`bindCopyButton()`、`tooltip.update()` 和 `tooltip.hide()`。滚动订阅返回的取消函数应交给 `addCleanup`。
@@ -54,7 +54,7 @@ CSS 由 `head.html` 将 16 个文件按 variables → global → site-header →
 
 获取并校验目标 HTML 后，含公式的目标页先准备 `data-page-math` 样式与公式实际使用的字体；通过屏幕外的公式副本获取字库需求，当前页面和交互保持可用，仅显示加载提示。点击导航的地址与正文在准备结束后一起提交；新的导航或当前页锚点操作会取消准备、移除临时副本和新增样式。资源失败或总等待超过 8 秒时继续切换，避免导航被 CDN 永久阻塞。
 
-提交前发出 `yinyang:before-navigate`，销毁旧 page，更新 `data-page-head` 节点并替换 body；外观属性保留在 documentElement。普通链接切换对 article 进行 240ms CSS 交叉淡化；挂载前保留旧正文的不可交互视觉副本，清除副本 ID 和脚本，等待阅读次数时覆盖新正文。加载提示独立运行，不使用会暂停渲染的 View Transition 更新回调。统计完成或最多等待 800ms 后，在滚动恢复完成时交叉淡化并清理副本；Header 和背景不参与动画，无位移和中间空白。统计失败或超时会移除本页阅读次数，避免稍后突现；没有阅读次数的页面不等待统计。历史恢复和带 fragment 的导航直接切换；初始化期间的锚点操作立即移除副本、显示新正文，页面销毁时也清理副本。新页面 mount 后顺序重放 `data-page-runtime` 正文脚本，等待外部经典脚本和外部 module 的 load，再恢复焦点与阅读状态。内联 module 不进入无刷新导航，避免依赖不存在的 load 完成事件或改写模块导入语义。已插入脚本不能回滚，初始化期间的锚点操作保留最新目标，再次跨页使用完整导航。恢复代次防止旧异步定位覆盖新操作。首次加载、普通 fragment 和脚注入口由导航统一路由。`yinyang:page-ready` 在初始化和滚动恢复后由 document 发出，包含 `detail.url`；它不等待所有图片、全站字体或无可见阅读次数的后台统计；无刷新切换的可见阅读次数已完成等待或超时兜底，首次加载不额外等待公式或统计资源。
+提交前发出 `yinyang:before-navigate`，销毁旧 page，更新 `data-page-head` 节点并替换 body；外观属性保留在 documentElement。普通链接切换对 article 及其后的页尾内容进行 240ms CSS 交叉淡化，目录侧栏与悬浮入口同步淡入；挂载前保留旧正文和页尾的不可交互视觉副本，清除副本 ID 和脚本，等待阅读次数时覆盖新正文。加载提示独立运行，不使用会暂停渲染的 View Transition 更新回调。统计完成或最多等待 800ms 后，在滚动恢复完成时交叉淡化并清理副本；Header 和背景不参与动画，无位移和中间空白。统计失败或超时会移除本页阅读次数，避免稍后突现；没有阅读次数的页面不等待统计。历史恢复和带 fragment 的导航直接切换；初始化期间的锚点操作立即移除副本、显示新正文，页面销毁时也清理副本。新页面 mount 后顺序重放 `data-page-runtime` 正文脚本，等待外部经典脚本和外部 module 的 load，再恢复焦点与阅读状态。内联 module 不进入无刷新导航，避免依赖不存在的 load 完成事件或改写模块导入语义。已插入脚本不能回滚，初始化期间的锚点操作保留最新目标，再次跨页使用完整导航。恢复代次防止旧异步定位覆盖新操作。首次加载、普通 fragment 和脚注入口由导航统一路由。`yinyang:page-ready` 在初始化和滚动恢复后由 document 发出，包含 `detail.url`；它不等待所有图片、全站字体或无可见阅读次数的后台统计；无刷新切换的可见阅读次数已完成等待或超时兜底，首次加载不额外等待公式或统计资源。
 
 ### 自定义脚本
 
@@ -92,7 +92,7 @@ KaTeX CDN 固定为 0.19.0，不使用浮动 latest URL；升级须验证 Hugo �
 
 ## 跨功能约定
 
-404 的 `params.notFound.available` 指定启用列表，支持 `sleep` / `black-hole` / `flashlight` / `receipt` / `constellation` / `puzzle` / `terminal` / `channel` / `cat` / `draw-home`；多项在浏览器每次 mount 时随机选择，单项固定。`not-found-state.html` 统一过滤、去重；未配置、空数组或无有效项时启用全部。`layouts/404.html` 只输出已启用模板，Head 只合并已启用场景的 CSS。每款分别放在 `layouts/partials/not-found/`、`assets/css/not-found/`、`assets/js/not-found/`，独立拥有标题、状态区、布局和返回入口；公共文件只提供选择、绘图基础样式及生命周期工具，不装配共同可见组件。无 JS 时保留普通 404 与首页链接。终端 / 电台使用构建期输出的站内文章 URL，画路仅在实际轨迹终点靠近小屋时完成，不自动补齐路线。
+404 的 `params.notFound.available` 指定启用列表，支持 `sleep` / `black-hole` / `flashlight` / `receipt` / `constellation` / `puzzle` / `terminal` / `channel` / `cat` / `draw-home`。各场景模板根元素通过 `data-nf-devices` 声明适用的 `mobile` / `desktop`；`flashlight`、`constellation`、`terminal` 仅桌面，其余两端均适用。浏览器每次 mount 按视口 ≤ 600px 为移动端、其余为桌面端筛选已启用模板，再从适配项中随机选择；单项固定，无匹配时保留普通 404 与首页链接，不越过 available。调整窗口大小保留当前互动，下次 mount 重新筛选。场景资源成功后才显示互动；失败或 8 秒超时保留普通 404。`page.notFoundReady` 在完成或兜底后结束，导航等待它再恢复滚动并发出 page-ready；离页会结束该页等待，脚本按资源指纹 URL 缓存场景定义，不保留旧 page；新版本加载失败时不会误用旧版本。`not-found-state.html` 统一过滤、去重；未配置、空数组或无有效项时启用全部。`layouts/404.html` 通过 `not-found-assets.html` 输出已启用场景的设备标记和资源地址，Head 仅内联公共 404 CSS。选中后请求该场景的一份 CSS 和一份 JS；JS 在构建期封装公共场景工具、独立 initialize 函数和插画 HTML，只有终端 / 电台附带文章列表。场景 JS 不进入全站 bundle。每款分别放在 `layouts/partials/not-found/`、`assets/css/not-found/`、`assets/js/not-found/`，独立拥有标题、状态区、布局和返回入口；公共文件只提供选择、绘图基础样式及生命周期工具，不装配共同可见组件。无 JS 时保留普通 404 与首页链接。终端 / 电台使用构建期输出的站内文章 URL，画路仅在实际轨迹终点靠近小屋时完成，不自动补齐路线。
 
 共有七款以参考稿的 400×245 SVG 构图为准，使用粗无衬线数字；`cat` 展示名为“是猫干的”，只移动独立圆环零。标题使用 `.nf-sr-only`；操作反馈分别融入气泡、票据盖章、定位标记、拼图结果标签和设备屏显，不共用一行说明。状态保留 role=status 与 aria-live。Web Animations、粒子和弹性跟随通过 page 托管并在 dispose 时取消 / 删除；拖动保留速度和当前动画位置，松手后接续惯性或回弹。`sleep` 初始保持睡着，监听整个 document 的光标，仅在约 700ms 内位移达到 36 CSS 像素时唤醒；点击 / 键盘聚焦直接唤醒，回家入睡阶段锁定唤醒，关闭整体视差；日常只移动眼球，点击时人脸局部弹起并出现星点，重复点击从当前动画位置接续，整体画面和两侧数字保持稳定。星图划过点亮、点击 / 回车揭晓。画路区域禁用文本选择，任意位置下笔后 document 接收拖动，SVG 捕获指针；路径不截断在插画 viewBox，允许绘制到整个可视区域，松手自动出发。实际终点进入小屋范围后跳转首页，否则显示可见提示；点击 / 键盘激活小屋沿预设虚线回家；重新下笔、重画按钮和小球均可重置并中断旧运动，重置与 dispose 会取消待执行的跳转。
 
@@ -105,12 +105,13 @@ KaTeX CDN 固定为 0.19.0，不使用浮动 latest URL；升级须验证 Hugo �
 - 可见颜色使用 `variables.css` 的亮 / 暗 CSS 变量。明暗与配色独立，`theme-changing` 短暂禁用全局过渡；主动明暗切换在支持的浏览器使用圆形 View Transition。
 - 字体使用 `--font-body` / `--font-heading` / `--font-code` 区分正文、标题和代码，标题默认继承所在页面字体；`fonts.css` 通过 UNPKG 加载固定版本 `@zf-web-font/opposans@0.2.0` 的 400 / 500 / 700 字重，通过 jsDelivr 加载 Fira Code 6.2.0 可变字库。正文在桌面和手机上均使用 14px、Regular 400、0.025em 字距和中西文自动间距；段落行高 1.8、下间距 32px；粗体和正文链接使用 600 字重及柔化的主题色。`--color-prose` 管理亮 / 暗正文颜色；代码和公式重置字距与自动间距。使用 `font-display: swap` 并保留系统字体回退，字体文件不随主题分发，示例站无需额外注入字体。正文标题、段落和列表的间距统一在 `global.css` 管理。
 - 页头顶部留白由 `.site-header-content` 的 padding 提供，避免标题 margin 沿父级折叠后叠加 `.app-shell` 的整屏最小高度；列表不另设固定最小高度，短页由应用外壳撑满视口。
-- 图标源位于 `assets/icons/*.svg`，`icon.html` 构建期内联并移除 xmlns，通过 currentColor 着色；运行时复制图标由页面 JSON 配置提供。
+- 图标源位于 `assets/icons/*.svg`，`icon.html` 构建期内联并移除 xmlns，通过 currentColor 着色；复制按钮三态图标由 `copy-icons.html` 共用，运行时通过页面 JSON 配置提供。
 - 动画结束监听使用生命周期工具，并带计时器兜底；销毁 DOM 前等待关闭动画，页面 dispose 时直接清理。
 - 模态使用 dialog / aria-modal，打开移入焦点、Esc 关闭、Tab 陷阱、关闭归还焦点；锁定背景须同时覆盖宽屏 html/body 与窄屏 appScroll，保存并恢复位置。
 - 动态交互采用页面生命周期管理的 document 委托和打开态 guard；浮层按需创建、关闭后销毁，动态文本使用 textContent。
 - TOC backdrop / 面板 / 按钮层级为 998 / 1000 / 1001，全屏模态使用 2000；模态控件用 aria-label，不挂 data-tooltip。
 - 宽表格仅溢出时提供焦点和滑动提示；代码、表格与块级公式限制横向 overscroll。全局链接 hover 保持字重稳定。
+- Markdown 表格使用不透明页面底色、淡主题色表头、轻斑马纹和柔和水平分隔线；表格颜色统一由 `variables.css` 的 `--color-table-*` 变量派生，随明暗与配色切换，行内代码在所有行中使用稍深底色。
 - Header 导航、Posts 标题和 Notes 标题 / 时间 / 来源 / 标签链接共用 `global.css` 的动态下划线：hover 或键盘聚焦时从左展开，离开时向右收起；使用逐行背景兼容长标题换行。
 
 ## 配置参数（全部位于 `[params]` 下）
