@@ -73,14 +73,14 @@ function initialize(page) {
   activate(ball, resetRoute)
   activate(find('.nf-draw-home-reset'), resetRoute)
   function run() {
-    if (route.length < 2) { notify('先画一条路，小球才知道怎么走。'); return }
+    if (route.length < 2) { notify('先画一条路，小球才知道怎么走'); return }
     field.classList.add('nf-running')
     house.setAttribute('aria-busy', 'true')
     field.classList.remove('nf-complete')
     var length = path.getTotalLength()
     var duration = Math.max(900, Math.min(3500, length * 3))
     var began = null
-    notify('沿着你画的路，出发啦。')
+    notify('沿着你画的路，出发啦')
     function tick(time) {
       if (began === null) began = time
       var progress = Math.min(1, (time - began) / duration)
@@ -91,12 +91,12 @@ function initialize(page) {
         var arrived = p.x >= 495 && p.x <= 559 && p.y >= 223 && p.y <= 290
         field.classList.toggle('nf-complete', arrived)
         if (arrived) {
-          notify('到家了，正在返回首页。')
+          notify('到家了，正在返回首页')
           homeTimer = page.setTimeout(function () { tools.openArticle({ url: house.getAttribute('href') }) }, 220)
         } else {
           field.classList.remove('nf-running')
           house.removeAttribute('aria-busy')
-          notify('还没到家，再画近一些吧。')
+          notify('还没到家，再画近一些吧')
         }
       }
     }

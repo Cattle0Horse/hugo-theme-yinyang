@@ -7,6 +7,6 @@ function initialize(page) {
     var swallowed = play.classList.toggle('nf-swallowed')
     play.setAttribute('aria-pressed', String(swallowed))
     if (swallowed) tools.emit(200, 128, 22)
-    tools.say(swallowed ? '连 404，也被吸进去了。' : '把数字捞回来了。')
+    tools.say(swallowed ? '连 404，也被吸进去了' : '把数字捞回来了')
   })
 }

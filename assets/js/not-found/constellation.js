@@ -18,7 +18,7 @@ function initialize(page) {
     play.classList.add('nf-complete')
     play.setAttribute('aria-pressed', 'true')
     tools.emit(200, 120, 18)
-    tools.say('找到啦，是一座 404 星座。')
+    tools.say('找到啦，是一座 404 星座')
   }
   tools.listen(play, 'pointermove', function (event) {
     if (complete) return
@@ -40,7 +40,7 @@ function initialize(page) {
       stars.forEach(function (star) { star.classList.remove('nf-visited') })
       play.classList.remove('nf-complete')
       play.setAttribute('aria-pressed', 'false')
-      tools.say('星星散开了，沿星光再找一次。')
+      tools.say('星星散开了，沿星光再找一次')
     }
   })
   tools.drag(play, function () {}, function () {}, function () {})

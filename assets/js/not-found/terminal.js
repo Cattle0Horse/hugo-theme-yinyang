@@ -5,7 +5,7 @@ function initialize(page) {
   var listen = tools.listen
   var openArticle = tools.openArticle
   var articles = tools.articles
-  var hint = "路径不存在，好奇心仍可执行。"
+  var hint = "路径不存在，好奇心仍可执行"
   tools.say(hint)
   var input = find('input')
   var output = find('.nf-terminal-output')
@@ -34,13 +34,13 @@ function initialize(page) {
     } else if (command === 'pwd') line(new URL(find('.nf-terminal-home').href, location.href).pathname)
     else if (command === 'help') line('cd / cd ~ 回家 · pwd 当前目录\nls 文章列表 · clear 清屏\nhome 回家 · random 随机文章')
     else if (command === 'ls') {
-      if (!articles.length) line('这里还没有文章，试试 home。')
+      if (!articles.length) line('这里还没有文章，试试 home')
       articles.slice(0, 4).forEach(function (article) { line('↗ ' + article.title, article) })
     } else if (command === 'random') {
       if (articles.length) openArticle(articles[Math.floor(Math.random() * articles.length)])
-      else line('还没有文章可以探索，试试 home。')
-    } else if (command === 'sudo') line('好奇心不需要管理员权限。')
-    else if (command === '404') line('你找到了：没找到。')
-    else line('command not found，试试 help。')
+      else line('还没有文章可以探索，试试 home')
+    } else if (command === 'sudo') line('好奇心不需要管理员权限')
+    else if (command === '404') line('你找到了：没找到')
+    else line('command not found，试试 help')
   })
 }

@@ -45,7 +45,7 @@ function initialize(page) {
     pinned = !pinned
     play.setAttribute('aria-pressed', String(pinned))
     if (pinned) { targetX = 206; targetY = 105; tools.emit(206, 103, 9) }
-    tools.say(pinned ? '找到一只幽灵，页面还没找到。' : '放开它，继续找一找。')
+    tools.say(pinned ? '找到一只幽灵，页面还没找到' : '放开它，继续找一找')
     request()
   }
   tools.activate(play, function (event) { event.stopPropagation(); toggleGhost() })

@@ -26,7 +26,7 @@ function initialize(page) {
       tools.emit(200, 102, 18)
       tools.animate(play, [{ scale: '1' }, { scale: '1.035 .965', offset: .25 }, { scale: '.985 1.02', offset: .6 }, { scale: '1' }], { duration: 650, easing: 'ease-out' })
     }
-    tools.say(on ? '拼好了，还是 404。' : '就差这最后一块。')
+    tools.say(on ? '拼好了，还是 404' : '就差这最后一块')
   }
   tools.drag(piece, function () {
     base = pose()

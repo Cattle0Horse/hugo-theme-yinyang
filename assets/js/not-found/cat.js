@@ -28,7 +28,7 @@ function initialize(page) {
     ], { duration: 900, easing: 'cubic-bezier(.2,.7,.25,1)', fill: 'both' })
     tools.animate(paw, [{ translate: '0 0' }, { translate: '-14px 13px', offset: .35 }, { translate: '0 0' }], { duration: 520, easing: 'ease-out' })
     if (on) tools.emit(259, 148, 8)
-    tools.say(on ? '它推了，还装作没看见。' : '把零悄悄放回来了。')
+    tools.say(on ? '它推了，还装作没看见' : '把零悄悄放回来了')
   }
   tools.activate(play, function () { roll(!moved, 0) })
   tools.drag(zero, function () {
