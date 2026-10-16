@@ -328,7 +328,31 @@ test('the new view becomes ready with its reading count', async () => {
   assert.equal(fixture.document.getElementById('busuanzi_value_page_pv').textContent, '42')
 })
 
+test('the outgoing view retains its footer through the statistics wait and fade', async () => {
+  const fixture = navigationFixture({ math: false, analytics: true, withFooter: true })
+  await fixture.navigate('/post/')
+  const cover = fixture.document.body.children.find(node => node.className === 'navigation-outgoing')
+  assert.equal(cover.querySelector('footer').textContent, 'Previous footer')
+  fixture.publishCount('42')
+  await flush()
+  assert.equal(cover.removed, undefined)
+  fixture.finishTransition()
+  assert.equal(cover.removed, true)
+  assert.equal(fixture.document.body.querySelector('footer').textContent, 'New footer')
+})
 
+test('an anchor action reveals the new footer and removes its outgoing copy immediately', async () => {
+  const fixture = navigationFixture({ math: false, analytics: true, withFooter: true })
+  await fixture.navigate('/post/')
+  const cover = fixture.document.body.children.find(node => node.className === 'navigation-outgoing')
+  fixture.window.yinyangNavigation.pushHash('#section')
+  assert.equal(cover.removed, true)
+  assert.equal(fixture.article.classList.contains('page-preparing'), false)
+  assert.equal(fixture.document.body.querySelector('footer').textContent, 'New footer')
+  fixture.publishCount('42')
+  await flush()
+  assert.deepEqual(fixture.ready, ['https://example.test/post/#section'])
+})
 
 test('unavailable statistics do not block the new view or pop into it after the timeout', async () => {
   const fixture = navigationFixture({ math: false, analytics: true })

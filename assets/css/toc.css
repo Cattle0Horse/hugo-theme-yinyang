@@ -3,6 +3,14 @@
    ======================================================================== */
 
 /* narrow: floating contents card */
+.app-main:has(.app-scroll > article.page-preparing) > :is(.post-toc-sidebar, .toc-float-btn) {
+  opacity: 0;
+}
+
+.app-main:has(.app-scroll > article.page-entering) > :is(.post-toc-sidebar, .toc-float-btn) {
+  animation: page-fade-in 240ms ease-in-out both;
+}
+
 .post-toc-sidebar {
   position: fixed;
   top: auto;

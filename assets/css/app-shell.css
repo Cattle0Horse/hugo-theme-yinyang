@@ -10,8 +10,10 @@
   z-index: 1400;
 }
 
-.app-scroll > article.page-preparing { opacity: 0; }
-.app-scroll > article.page-entering { animation: page-fade-in 240ms ease-in-out both; }
+.app-scroll > article.page-preparing,
+.app-scroll > article.page-preparing ~ * { opacity: 0; }
+.app-scroll > article.page-entering,
+.app-scroll > article.page-entering ~ * { animation: page-fade-in 240ms ease-in-out both; }
 .navigation-outgoing.is-leaving { animation: page-fade-out 240ms ease-in-out both; }
 
 @keyframes page-fade-out { to { opacity: 0; } }

@@ -298,16 +298,20 @@
   function captureArticle() {
     var article = document.querySelector('.app-scroll > article')
     if (!article) return null
-    var bounds = article.getBoundingClientRect()
-    var clone = cloneWithoutIds(article)
-    clone.querySelectorAll('script').forEach(function (node) { node.remove() })
-    clone.style.cssText = 'position:absolute;margin:0;box-sizing:border-box;left:' + bounds.left +
-      'px;top:' + bounds.top + 'px;width:' + bounds.width + 'px;padding:' + getComputedStyle(article).padding
     var cover = document.createElement('div')
     cover.className = 'navigation-outgoing'
     cover.setAttribute('aria-hidden', 'true')
     cover.inert = true
-    cover.appendChild(clone)
+    // Trailing page content, including the correction/footer area, fades with the article.
+    for (var node = article; node; node = node.nextElementSibling) {
+      if (node.tagName === 'SCRIPT') continue
+      var bounds = node.getBoundingClientRect()
+      var clone = cloneWithoutIds(node)
+      clone.querySelectorAll('script').forEach(function (script) { script.remove() })
+      clone.style.cssText = 'position:absolute;margin:0;box-sizing:border-box;left:' + bounds.left +
+        'px;top:' + bounds.top + 'px;width:' + bounds.width + 'px;padding:' + getComputedStyle(node).padding
+      cover.appendChild(clone)
+    }
     return cover
   }
   function fadeArticle(cover, article, page, removeCover) {
