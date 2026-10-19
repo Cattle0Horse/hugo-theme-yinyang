@@ -1,4 +1,11 @@
-{{- with $sources := .Params.source -}}
+{{- $sources := slice -}}
+{{- range .Params.source -}}
+  {{- $source := strings.TrimSpace (printf "%v" .) -}}
+  {{- if $source -}}
+    {{- $sources = $sources | append $source -}}
+  {{- end -}}
+{{- end -}}
+{{- with $sources -}}
   <div class="note-sources">
     {{- range $index, $sourceValue := $sources -}}
       {{- if gt $index 0 -}}<span class="note-source-separator" aria-hidden="true">·</span>{{- end -}}

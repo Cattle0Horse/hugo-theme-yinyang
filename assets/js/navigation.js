@@ -12,6 +12,11 @@
   var requestedPosition = null
   var needsReady = true
   var loading = null
+  var loadingExit = null
+  var loadingLabel = null
+  var loadingText = null
+  var loadingWidth = 0
+  var loadingAnimations = []
   var pageTransition = null
 
   function ready(url) {
@@ -90,24 +95,108 @@
     saved.folds = Array.from(document.querySelectorAll('.code-block-body')).map(function (body) { return body.classList.contains('is-folded') })
     saved.horizontal = Array.from(document.querySelectorAll(horizontalSelector)).map(function (scroll) { return scroll.scrollLeft })
   }
+  function cancelLoadingAnimations() {
+    loadingAnimations.forEach(function (animation) { animation.cancel() })
+    loadingAnimations = []
+  }
+  function animateLoading(visible) {
+    var width = visible ? loadingWidth + 'px' : '40px'
+    var opacity = visible ? 1 : 0
+    var transform = visible ? 'scale(1)' : 'scale(0.88)'
+    var padding = visible ? '16px' : '10px'
+    if (!loadingLabel.animate) {
+      loadingLabel.style.width = width
+      loadingLabel.style.opacity = opacity
+      loadingLabel.style.transform = transform
+      loadingLabel.style.paddingInline = padding
+      loadingText.style.opacity = opacity
+      return null
+    }
+    // Script animations retain their playback position when the body is replaced.
+    // Capture before canceling so an interrupted entrance or exit stays continuous.
+    var style = getComputedStyle(loadingLabel)
+    var from = { width: style.width, opacity: style.opacity, transform: style.transform, paddingInline: style.paddingInline }
+    var textOpacity = getComputedStyle(loadingText).opacity
+    cancelLoadingAnimations()
+    var frames = visible ? [
+      Object.assign({ offset: 0, easing: 'ease-out' }, from),
+      { width: from.width, opacity: 1, transform: 'scale(1)', paddingInline: from.paddingInline, offset: 0.3, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+      { width: width, opacity: 1, transform: 'scale(1)', paddingInline: padding, offset: 1 }
+    ] : [
+      Object.assign({ offset: 0, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' }, from),
+      { width: width, opacity: from.opacity, transform: from.transform, paddingInline: padding, offset: 0.64, easing: 'ease-in' },
+      { width: width, opacity: 0, transform: transform, paddingInline: padding, offset: 1 }
+    ]
+    var duration = visible ? 460 : 500
+    var motion = loadingLabel.animate(frames, { duration: duration, fill: 'forwards' })
+    var textFrames = visible ? [
+      { opacity: textOpacity, offset: 0 }, { opacity: textOpacity, offset: 0.55 }, { opacity: 1, offset: 1 }
+    ] : [
+      { opacity: textOpacity, offset: 0 }, { opacity: 0, offset: 0.2 }, { opacity: 0, offset: 1 }
+    ]
+    loadingAnimations = [motion, loadingText.animate(textFrames, { duration: duration, fill: 'forwards' })]
+    return motion
+  }
   function hideLoading() {
-    if (loading) loading.remove()
-    loading = null
+    if (!loading || loadingExit) return
+    var node = loading
+    node.classList.remove('is-visible')
+    node.setAttribute('aria-hidden', 'true')
+    var motion = animateLoading(false)
+    var page = lifecycle.page
+    function remove() {
+      stopCleanup()
+      node.remove()
+      if (loading === node) {
+        cancelLoadingAnimations()
+        loading = null
+        loadingExit = null
+        loadingLabel = null
+        loadingText = null
+      }
+    }
+    var stopCleanup = page.addCleanup(remove)
+    var stopMotion = page.onMotionEnd(motion || loadingLabel, { type: motion ? 'finish' : 'transitionend', timeout: 560 }, remove)
+    loadingExit = function () { stopMotion(); stopCleanup(); loadingExit = null }
   }
   function showLoading(controller) {
     if (pending !== controller) return
-    loading = document.createElement('div')
-    loading.className = 'navigation-loading'
-    loading.setAttribute('role', 'status')
-    loading.setAttribute('aria-live', 'polite')
-    var progress = document.createElement('span')
-    progress.className = 'navigation-progress'
-    progress.setAttribute('aria-hidden', 'true')
-    var label = document.createElement('span')
-    label.className = 'navigation-loading-label'
-    label.textContent = '正在加载…'
-    loading.append(progress, label)
-    document.body.appendChild(loading)
+    if (loadingExit) loadingExit()
+    if (!loading) {
+      loading = document.createElement('div')
+      loading.className = 'navigation-loading'
+      loading.setAttribute('role', 'status')
+      loading.setAttribute('aria-live', 'polite')
+      var progress = document.createElement('span')
+      progress.className = 'navigation-progress'
+      progress.setAttribute('aria-hidden', 'true')
+      var label = document.createElement('span')
+      label.className = 'navigation-loading-label'
+      var text = document.createElement('span')
+      text.className = 'navigation-loading-text'
+      text.textContent = '正在加载…'
+      label.appendChild(text)
+      loadingLabel = label
+      loadingText = text
+      loading.append(progress, label)
+      document.body.appendChild(loading)
+      // Measure the actual font before starting at the compact circle size.
+      label.style.width = 'max-content'
+      label.style.paddingInline = '16px'
+      loadingWidth = label.offsetWidth
+      label.style.removeProperty('width')
+      label.style.removeProperty('padding-inline')
+    }
+    loading.removeAttribute('aria-hidden')
+    var node = loading
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        if (loading === node && pending === controller && !loadingExit) {
+          node.classList.add('is-visible')
+          animateLoading(true)
+        }
+      })
+    })
   }
   function cancelPending(invalidate) {
     if (invalidate !== false) {
