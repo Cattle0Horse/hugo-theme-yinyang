@@ -20,6 +20,12 @@ before(() => {
   write('config.toml', `baseURL = "https://example.org/sub/"
 locale = "zh-cn"
 title = "Fixture"
+[outputs]
+home = ["HTML", "RSS"]
+page = ["HTML", "Markdown"]
+section = ["HTML"]
+taxonomy = ["HTML"]
+term = ["HTML"]
 [taxonomies]
 tag = "tags"
 note_tag = "note_tags"
@@ -71,12 +77,38 @@ inline = [["$", "$"]]
   write('content/posts/old.md', '---\ntitle: old\ndate: 2026-08-01\nlastmod: 2026-08-02\ntoc: false\ntags: [topic]\nai: assisted\nalbum: ["/a.png", "https://cdn.example.org/b.png"]\n---\n\n## Heading\n\nBody\n')
   write('content/posts/new.md', '---\ntitle: new\ndate: 2026-08-01\ntoc: true\n---\n\n## Heading\n\nBody\n')
   write('content/posts/table.md', '---\ntitle: Table\n---\n\n| Left | Center | Right |\n| :--- | :---: | ---: |\n| [A & B](https://example.org/?a=1&b=2) | `<tag>` | **bold** |\n{#data-table .reference data-kind="audit"}\n')
+  write('layouts/shortcodes/source.html', '<span>Rendered shortcode</span>')
+  write('content/posts/bundle/index.md', '---\r\ntitle: 原文\r\nurl: /custom/source/\r\n---\r\n\r\n$x^2$ & <tag>\r\n\r\n{{< source >}}\r\n')
+  write('content/gallery/source/index.md', '+++\ntitle = "Gallery source"\ngallery = [{url = "/a.png", name = "A"}]\n+++\n')
+  write('content/posts/html-only.md', '---\ntitle: HTML only\noutputs: [HTML]\n---\n\nBody\n')
   execFileSync('hugo', ['-s', fixture, '--themesDir', path.dirname(theme), '--theme', path.basename(theme), '--destination', output, '--cacheDir', path.join(fixture, 'cache'), '--noBuildLock'], { stdio: 'pipe' })
 })
 
 after(() => {
   assert.equal(path.dirname(fixture), path.resolve(os.tmpdir()))
   fs.rmSync(fixture, { recursive: true, force: true })
+})
+
+test('detail pages publish the complete Markdown source and open its local URL without GitHub configuration', () => {
+  for (const [route, source] of [
+    ['posts/old', 'posts/old.md'],
+    ['notes/2026-08/001', 'notes/2026-08/001.md'],
+    ['custom/source', 'posts/bundle/index.md'],
+    ['gallery/source', 'gallery/source/index.md'],
+  ]) {
+    const page = html(`${route}/index.html`)
+    const rawURL = page.match(/<script\b[^>]*id="raw-page-url"[^>]*>([^<]+)<\/script>/)?.[1]
+    assert.equal(rawURL, `/sub/${route}/index.md`)
+    const published = path.join(output, rawURL.replace(/^\/sub\//, ''))
+    assert.deepEqual(fs.readFileSync(published), fs.readFileSync(path.join(fixture, 'content', source)))
+    assert.ok(page.includes('id="view-raw-btn"'))
+    assert.equal(page.includes('id="edit-page-btn"'), false)
+  }
+})
+
+test('a page that disables Markdown output has no raw link', () => {
+  assert.equal(fs.existsSync(path.join(output, 'posts/html-only/index.md')), false)
+  assert.equal(html('posts/html-only/index.html').includes('id="view-raw-btn"'), false)
 })
 
 test('Notes and tag pagination load math styles for the displayed notes', () => {

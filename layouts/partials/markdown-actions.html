@@ -2,24 +2,25 @@
 {{ if $s.hasAny }}
 
 <span class="markdown-actions">
-  {{ if $s.hasGitHub }}
-  {{ $urls := $s.urls }}
+  {{ with $s.editURL }}
   <button id="edit-page-btn" class="markdown-action-btn action-button" type="button" aria-label="编辑原文" data-tooltip="编辑原文">
     <span class="action-icon">{{ partial "icon.html" (dict "name" "edit") }}</span>
   </button>
+  {{ printf "<script id=\"edit-page-url\" type=\"text/plain\">%s</script>" . | safeHTML }}
+  {{ end }}
+  {{ with $s.rawURL }}
   <button id="view-raw-btn" class="markdown-action-btn action-button" type="button" aria-label="查看原始 Markdown" data-tooltip="查看原始 Markdown">
     <span class="action-icon">{{ partial "icon.html" (dict "name" "file") }}</span>
   </button>
-  {{ printf "<script id=\"edit-page-url\" type=\"text/plain\">%s</script>" ($urls.edit) | safeHTML }}
-  {{ printf "<script id=\"raw-page-url\" type=\"text/plain\">%s</script>" ($urls.raw) | safeHTML }}
+  {{ printf "<script id=\"raw-page-url\" type=\"text/plain\">%s</script>" . | safeHTML }}
   {{ end }}
-  {{ if $s.hasMarkdown }}
+  {{ if $s.canCopyMarkdown }}
   <button id="copy-markdown-btn" class="markdown-action-btn action-button state-button" type="button" aria-label="复制 Markdown" data-tooltip="复制 Markdown">
     {{ partial "copy-icons.html" . }}
   </button>
   {{ end }}
 </span>
-{{ if $s.hasMarkdown }}
+{{ if $s.canCopyMarkdown }}
 {{ printf "<script id=\"raw-markdown-content\" type=\"application/json\">%s</script>" (.RawContent | jsonify) | safeHTML }}
 {{ end }}
 {{ end }}

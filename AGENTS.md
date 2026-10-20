@@ -25,6 +25,8 @@ node --expose-gc --test
 - `runtime-body.html`：输出 `#yinyang-page-config` JSON（palette、imageLoading、footnotes、copyIcons）和 tooltip 容器；随后 baseof 注入 `extraBody`。
 - 内容 partial 保留构建期职责：文章列表与标签、Notes 来源 / 标签、操作区与编辑 URL、图片结构、代码工具栏与公式 HTML。功能脚本位于 `assets/js/`，不再通过逐页脚本 partial 装配。
 
+站点在 `[outputs]` 配置 `page = ["HTML", "Markdown"]` 后，详情页通过 `layouts/_default/single.md` 直接读取 `.File.Filename`，在 `index.html` 旁输出完整 `index.md`（包含 front matter，不渲染短代码或公式）。`actions-state.html` 从页面的 Markdown OutputFormat 获取站内原文 URL；查看按钮仅需 `actions.enabled` 和该输出格式，不依赖 GitHub 编辑配置。复制 Markdown 继续使用 `.RawContent`，仅复制正文。操作区开关不控制原文文件生成；禁用 Markdown 输出时隐藏查看按钮。
+
 CSS 由 `head.html` 将 15 个文件按 variables → global → site-header → theme-toggle → posts-list → notes → post-page → taxonomy → gallery → footnotes → app-shell → code-blocks → actions → toc → image-loading 合并、压缩后内联。`fonts.css` 独立压缩、指纹化并以样式链接加载，`syntax.css` 独立压缩内联，KaTeX CSS 按实际渲染内容加载；`extraCSSFiles` 生成独立样式链接。
 
 ### 页面生命周期与功能层
@@ -130,7 +132,7 @@ KaTeX CDN 固定为 0.19.0，不使用浮动 latest URL；升级须验证 Hugo �
 - `colorScheme` — 站点配置（映射），配色方案：`default`（默认 `indigo`）、`available`（允许 `indigo` / `violet` / `teal` / `amber` / `rose` / `graphite`）、`allowUserChoice`（多于一套有效配色时显示选择器）
 - `staticPrefix` — CDN 前缀，同时生成 `dns-prefetch`
 - `image` — 站点配置（映射），图片增强：`enabled`（布尔值，总闸）、`lazy`（布尔值，为 `<img>` 添加 `loading="lazy"`）、`loading`（布尔值，启用骨架屏 + 加载失败重试，首页不生效）、`border` / `galleryBorder`（布尔值，分别启用正文 / Gallery 图片的柔和内描边，默认关闭，跳过 SVG）
-- `actions` — 站点配置（映射），文章操作区总开关与子功能：`enabled`（布尔值，总闸，`false` 或未配时编辑/复制按钮全部不渲染）、`copyMarkdown`（布尔值，启用"复制 Markdown"按钮）、嵌套 `editPage`（`enabled` 布尔值 + `repo` GitHub 仓库 URL + `branch` 分支名默认 `main` + `text` 纠错链接文字）。编辑按钮需 `actions.enabled` + `editPage.enabled` + `editPage.repo` 同时满足
+- `actions` — 站点配置（映射），文章操作区总开关与子功能：`enabled`（布尔值，总闸，`false` 或未配时编辑/查看/复制按钮全部不渲染；开启后有 Markdown 输出的详情页显示站内原文查看按钮）、`copyMarkdown`（布尔值，启用"复制 Markdown"按钮）、嵌套 `editPage`（`enabled` 布尔值 + `repo` GitHub 仓库 URL + `branch` 分支名默认 `main` + `text` 纠错链接文字）。编辑按钮需 `actions.enabled` + `editPage.enabled` + `editPage.repo` 同时满足
 - `tableOfContents` — 布尔值，启用 TOC 侧边栏
 - `codeMaxLines` — 代码块折叠阈值，默认 15
 - `album` — 单页 Open Graph 图片覆盖（字符串数组）

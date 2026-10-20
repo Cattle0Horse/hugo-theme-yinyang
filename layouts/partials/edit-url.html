@@ -10,8 +10,4 @@
   {{- $pathParts = $pathParts | append (urls.PathEscape .) -}}
 {{- end -}}
 {{- $path := delimit $pathParts "/" -}}
-{{- $parsed := urls.Parse $repo -}}
-{{- return dict
-  "edit" (printf "%s/edit/%s/content/%s" $repo $branch $path)
-  "raw" (printf "https://raw.githubusercontent.com%s/%s/content/%s" $parsed.Path $branch $path)
--}}
+{{- return (printf "%s/edit/%s/content/%s" $repo $branch $path) -}}

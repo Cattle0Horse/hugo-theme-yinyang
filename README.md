@@ -26,7 +26,7 @@
 | 🗂 Gallery 图库 | 独立内容类型，响应式图片网格与说明文字，复用图片增强和文章操作 |
 | 📝 Notes 短记录 | 可选标题、完整正文时间线、按月分组与分页、独立链接、多种来源格式，以及与 Blog 隔离的标签体系 |
 | 🏷 Blog 标签 | 文章标签、标签总览与按标签浏览，与 Notes 标签分别组织 |
-| ⚡ 文章操作区 | 复制原始 Markdown、查看 GitHub Raw、编辑原文与底部纠错入口，支持 Blog / Gallery / Note 详情页 |
+| ⚡ 文章操作区 | 复制 Markdown、查看本站 Markdown 原文、编辑原文与底部纠错入口，支持 Blog / Gallery / Note 详情页 |
 | 🤖 AI 创作标注 | 文章 front matter 声明辅助或生成方式，可关闭标注或自定义文案 |
 | 📡 RSS 订阅 | Blog 与 Notes 独立 feed，可分别启用 |
 | 🔎 SEO | 页面标题与描述、Open Graph 和 JSON-LD 结构化数据，支持自定义分享图片 |
@@ -226,7 +226,7 @@ draft: false
 - `source` 是来源列表，每项可以是普通文字、URL 或 `[标题](URL)`。Markdown 链接显示指定标题，裸 URL 只显示域名，普通文字直接显示；列表和详情页会在正文前显示来源。
 - `/notes/` 每页显示 30 条，完整正文直接在时间线中展开；每条记录仍有独立固定链接。
 - `/notes/tags/<tag>/` 只显示拥有对应 `note_tags` 的 Note，并复用 `/notes/` 的时间线、按月分组和分页样式。
-- Note 详情页使用独立的 Notes 标签，并复用复制 Markdown、编辑原文、查看 Raw 和底部纠错入口。
+- Note 详情页使用独立的 Notes 标签，并复用复制 Markdown、编辑原文、查看本站 Markdown 原文和底部纠错入口。
 - Notes 不进入 Blog RSS；启用 Notes RSS 时，只进入独立的 `/notes/index.xml`。
 
 主题的 `archetypes/notes.md` 提供上述 front matter。示例站根目录还包含无参数创建脚本；在示例站中使用：
@@ -377,7 +377,7 @@ galleryBorder = false
 
 `tableOfContents` 启用文章目录。文章 frontmatter 使用 `toc: false` 可单篇禁用目录。
 
-文章操作区（标题下方按钮）由 `[params.actions]` 控制：`enabled` 为总开关，`copyMarkdown` 启用"复制 Markdown"按钮，嵌套 `editPage` 启用编辑原文 / 查看 Raw 按钮和底部纠错链接，`branch` 默认值为 `main`，`text` 可覆盖链接文案：
+文章操作区（标题下方按钮）由 `[params.actions]` 控制：`enabled` 为总开关，`copyMarkdown` 启用"复制 Markdown"按钮，嵌套 `editPage` 启用编辑原文按钮和底部纠错链接，`branch` 默认值为 `main`，`text` 可覆盖链接文案：
 
 ```toml
 [params.actions]
@@ -390,6 +390,15 @@ repo = "https://github.com/Cattle0Horse/Cattle0Horse.github.io"
 branch = "main"
 text = "有错误？欢迎提交 Pull Request"
 ```
+
+要生成本站 Markdown 原文，在站点配置现有的 `[outputs]` 中加入 `page`：
+
+```toml
+[outputs]
+page = ["HTML", "Markdown"]
+```
+
+Blog、Notes、Gallery 等详情页会在 `index.html` 旁生成 `index.md`，内容与源文件一致，包含 front matter，保留公式与短代码源码。启用 `actions.enabled` 后，“查看原始 Markdown”直接打开此站内地址，不依赖 GitHub 配置；“复制 Markdown”仍只复制正文。关闭操作区不影响原文文件生成；站点或单篇文章将 `outputs` 设为 `["HTML"]` 时，不生成原文，也不显示查看按钮。
 
 `extraHead`、`extraBody` 和 `postContent.header`、`postContent.footer` 会按原样通过 `safeHTML` 注入，仅应填入可信内容。`extraCSSFiles` 则按路径生成样式链接。
 
@@ -472,6 +481,7 @@ note_tag = "note_tags"
 # ---------- RSS ----------
 [outputs]
 home = ["HTML", "RSS"]
+page = ["HTML", "Markdown"]
 section = ["HTML"]
 taxonomy = ["HTML"]
 term = ["HTML"]

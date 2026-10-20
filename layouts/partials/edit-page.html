@@ -1,9 +1,7 @@
-{{ $s := partialCached "actions-state.html" . .RelPermalink }}
-{{ if $s.hasGitHub }}
-{{- $urls := $s.urls -}}
-{{- $text := .Site.Params.actions.editPage.text | default "有错误？欢迎提交 Pull Request" -}}
+{{ with (partialCached "actions-state.html" . .RelPermalink).editURL }}
+{{- $text := $.Site.Params.actions.editPage.text | default "有错误？欢迎提交 Pull Request" -}}
 <div class="edit-page">
   <hr>
-  {{ printf "<a href=\"%s\">%s</a>" ($urls.edit) $text | safeHTML }}
+  {{ printf "<a href=\"%s\">%s</a>" . $text | safeHTML }}
 </div>
 {{ end }}
