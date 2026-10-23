@@ -191,6 +191,17 @@ a.note-tag:is(:hover, :focus-visible) {
   border-left: 0.25em solid var(--color-border);
 }
 
+@media screen and (max-width: 600px) {
+  /* Avoid stacking browser-default indents in narrow reading columns. */
+  .markdown-body blockquote {
+    margin-inline: 0;
+    padding-inline: 0.75em 0;
+  }
+
+  .markdown-body ul { padding-inline-start: 1.5em; }
+  .markdown-body ol { padding-inline-start: 2em; }
+}
+
 .markdown-body pre {
   margin: 16px 0;
   padding: var(--code-padding);

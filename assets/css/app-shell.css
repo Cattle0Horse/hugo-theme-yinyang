@@ -236,6 +236,10 @@ body {
   padding-bottom: 24px;
 }
 
+@media screen and (max-width: 600px) {
+  .app-scroll { padding-inline: 16px; }
+}
+
 /* ---- wide-screen (≥ 84em): body scroll ---- */
 
 @media (min-width: 84em) {
