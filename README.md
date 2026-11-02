@@ -356,7 +356,26 @@ $$
 ```toml
 [params]
 codeMaxLines = 15
+
+[params.codeBlock]
+lineNumbers = false # 默认不显示行号
+wrap = false        # 默认不自动换行
 ```
+
+每个代码块提供行号、自动换行与复制图标。有语言的围栏在工具栏中显示图标，无语言围栏和缩进代码使用右上角悬浮图标，不添加工具栏。前两个按钮只切换当前代码块，不保存为全站偏好。围栏中的 `linenos=true` / `inline` / `table` 开启行号，`linenos=false` 关闭，优先于全局 `lineNumbers`。为使换行后的行号和重点行始终对齐，主题统一采用同行布局（包括 `linenos=table`）。行号按源码行编号，复制时不包含行号；切换换行会重新测量折叠高度。未标注语言的围栏同样支持这些功能；缩进代码块在启用 JS 后增强，禁用 JS 时保留原生代码。
+
+代码块背景、边框、关键词、函数名和标签颜色随明暗模式及 `colorScheme` 配色切换；字符串、数字、注释与 Diff 增删保留独立语义色。语法高亮由 Hugo / Chroma 在构建期生成，无需浏览器高亮脚本。建议在围栏后明确标注语言，例如 `python`、`go`、`javascript`。
+
+主题固定使用 Chroma class 输出，实际颜色由 `assets/css/syntax.css` 和 `assets/css/variables.css` 中的 `--syntax-*` / `--color-code-*` 变量管理；`markup.highlight.style` 不用于切换主题的语法配色。站点可通过 `extraCSSFiles` 加载 CSS，在 `:root` / `:root[data-theme="dark"]` 中覆盖这些变量。
+
+围栏支持 Hugo 的高亮选项，例如行号与重点行：
+
+````markdown
+```go {linenos=inline hl_lines=[2]}
+package main
+func main() {}
+```
+````
 
 ### 图片、文章操作与目录
 
@@ -501,7 +520,7 @@ unsafe = true
 [markup.highlight]
 guessSyntax = true
 noClasses = false
-style = "tango"
+# 语法颜色由主题 CSS 管理
 tabWidth = 2
 
 # ---------- 主题参数 ----------

@@ -5,7 +5,7 @@
 .code-block-wrapper {
   --code-fold-max: calc(var(--code-font-size) * var(--code-line-height) * var(--code-fold-lines) + var(--code-padding) * 2);
   margin: 16px 0;
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-code-border);
   border-radius: 10px;
   overflow: hidden;
   transition: background-color 0.3s ease, border-color 0.3s ease;
@@ -17,7 +17,7 @@
   align-items: center;
   padding: 6px 12px 6px 16px;
   background: var(--color-code-bg);
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-code-border);
   font-size: 12px;
   line-height: 1.4;
   transition: background-color 0.3s ease, border-color 0.3s ease;
@@ -33,22 +33,6 @@
 }
 
 .code-lang:empty { display: none; }
-
-.code-block-wrapper.no-toolbar {
-  position: relative;
-}
-
-.floating-code-copy {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 3;
-  background: var(--color-code-bg);
-}
-
-.code-block-wrapper.no-toolbar .code-scroll-viewport pre {
-  padding-right: 52px;
-}
 
 .code-copy-btn {
   font-size: 12px;
@@ -73,6 +57,7 @@
 .code-block-wrapper pre {
   border-radius: 0;
   margin: 0;
+  padding-right: var(--code-padding);
 }
 
 /* folding */
@@ -148,54 +133,63 @@
 .code-expand-bar .expand-icon { transition: transform 180ms ease, filter 180ms ease; }
 .code-block-body:not(.is-folded) .expand-icon { transform: rotate(180deg); }
 
-/* plain pre / code */
-
-.plain-code-wrapper {
-  position: relative;
-  margin: 16px 0;
-}
-
-.plain-code-wrapper > pre {
-  margin: 0;
-  padding-right: 52px;
-}
-
-.plain-code-copy {
+.code-controls { display: flex; gap: 2px; margin-left: auto; }
+.code-block-wrapper.no-toolbar { position: relative; }
+.code-block-wrapper.no-toolbar > .code-controls {
   position: absolute;
   top: 8px;
   right: 8px;
-  z-index: 2;
-  background: var(--color-code-bg);
+  z-index: 4;
 }
-
-.code-block-wrapper.no-toolbar > .floating-code-copy,
-.plain-code-wrapper > .plain-code-copy {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  left: auto;
-  z-index: 3;
-}
-
 @media (hover: hover) and (pointer: fine) {
-  .code-block-wrapper.no-toolbar > .floating-code-copy,
-  .plain-code-wrapper > .plain-code-copy {
+  .code-block-wrapper.no-toolbar > .code-controls {
     opacity: 0;
     pointer-events: none;
     transform: translateY(-2px);
-    transition: opacity 160ms ease, transform 160ms ease, scale var(--action-scale-duration) cubic-bezier(.2, .8, .2, 1), color 150ms ease, background-color 150ms ease;
+    transition: opacity 160ms ease, transform 160ms ease;
   }
-
-  .code-block-wrapper.no-toolbar:hover > .floating-code-copy,
-  .code-block-wrapper.no-toolbar:focus-within > .floating-code-copy,
-  .plain-code-wrapper:hover > .plain-code-copy,
-  .plain-code-wrapper:focus-within > .plain-code-copy {
+  .code-block-wrapper.no-toolbar:hover > .code-controls,
+  .code-block-wrapper.no-toolbar:focus-within > .code-controls {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
   }
 }
-
-.code-toolbar > .code-copy-btn {
-  margin-left: auto;
+.code-toggle {
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 4px;
+  color: var(--color-text-muted);
+  background: transparent;
 }
+.code-toggle[aria-pressed="true"] {
+  color: var(--color-accent);
+}
+:root:not(.yinyang-js) .code-toggle { display: none; }
+.code-block-wrapper[data-line-numbers="false"] .ln {
+  width: 0;
+  margin-right: 0;
+  padding-inline: 0;
+  opacity: 0;
+}
+.code-block-wrapper .ln {
+  width: var(--code-number-width, 5ch);
+  margin-right: 0;
+  box-sizing: border-box;
+  text-align: right;
+  align-self: stretch;
+  overflow: hidden;
+  opacity: 1;
+  transition: width 220ms cubic-bezier(.22, 1, .36, 1), padding 220ms cubic-bezier(.22, 1, .36, 1), opacity 160ms ease;
+}
+.code-layout-changing .code-scroll-viewport { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .code-block-wrapper .ln,
+  .code-block-wrapper .code-scroll-viewport { transition: none; }
+}
+.code-block-wrapper .cl { min-width: 0; }
+.code-block-wrapper[data-wrap="true"] .highlight,
+.code-block-wrapper[data-wrap="true"] pre { min-width: 0; }
+.code-block-wrapper[data-wrap="true"] pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.code-block-wrapper[data-wrap="true"] .cl { white-space: pre-wrap; overflow-wrap: anywhere; }
+.code-block-wrapper[data-wrap="true"] .line { min-height: calc(var(--code-font-size) * var(--code-line-height)); }

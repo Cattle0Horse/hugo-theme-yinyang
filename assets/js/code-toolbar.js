@@ -1,29 +1,17 @@
 window.yinyangRuntime.register('code-toolbar', function (runtime) {
-  // 围栏代码块的工具栏/折叠结构已由构建期 render-codeblock.html 输出。
-  // 这里只做运行时部分：
-  //   1) 给构建期 [data-copy-block] 按钮绑定复制
-  //   2) 折叠交互（toggle is-folded）与展开高度测量
-  //   3) 缩进式代码块（裸 <pre>，非 .highlight）运行时包装浮动复制按钮
-  var COPY_ICONS = runtime.config.copyIcons
+  // 围栏的工具栏和源码行在构建期生成；缩进代码在此增强。
+  // 显示开关只作用于当前代码块，复制始终读取不含行号的源码。
 
   function bindCopy(button, codeEl) {
     if (!button || !codeEl || !runtime.bindCopyButton) return
-    var text = codeEl.textContent || ''
+    var source = codeEl.cloneNode(true)
+    source.querySelectorAll('.ln, .lnt').forEach(function (number) { number.remove() })
+    var text = source.textContent || ''
     if (text.endsWith('\n')) text = text.slice(0, -1)
     runtime.bindCopyButton(button, text, { defaultLabel: '复制代码' })
   }
 
-  function sourceCode(button) {
-    var wrapper = button.closest('.code-block-wrapper')
-    return wrapper ? wrapper.querySelector('.code-scroll-viewport code') : null
-  }
-
-  // 1) 构建期按钮：绑定复制
-  document.querySelectorAll('button[data-copy-block]').forEach(function (button) {
-    bindCopy(button, sourceCode(button))
-  })
-
-  // 2) 折叠交互：构建期按 codeMaxLines 决定折叠，CSS 使用相同的行数。
+  // 构建期按 codeMaxLines 决定折叠，CSS 使用相同的行数。
   var foldInstances = []
 
   function updateExpandedHeight(instance) {
@@ -89,27 +77,106 @@ window.yinyangRuntime.register('code-toolbar', function (runtime) {
     }
 
     runtime.listen(window, 'resize', scheduleHeightUpdate)
+    if (window.ResizeObserver) {
+      var observer = new window.ResizeObserver(scheduleHeightUpdate)
+      foldInstances.forEach(function (instance) { observer.observe(instance.hl) })
+      runtime.addCleanup(function () { observer.disconnect() })
+    }
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(runtime.guard(scheduleHeightUpdate))
   }
 
-  // 3) 缩进代码块（裸 pre，非 .highlight）：构建期无法介入，运行时包装浮动复制按钮
+  // 缩进代码块：使用 textContent 保留原文，逐行添加非源码行号。
   function enhancePlainPre(pre) {
-    if (pre.closest('.highlight')) return
+    if (pre.closest('.highlight, .code-block-wrapper')) return
     var code = pre.querySelector(':scope > code')
     if (!code) return
     var wrapper = document.createElement('div')
-    wrapper.className = 'plain-code-wrapper'
-    var copyBtn = document.createElement('button')
-    copyBtn.className = 'plain-code-copy code-copy-btn action-button state-button'
-    copyBtn.type = 'button'
-    copyBtn.setAttribute('aria-label', '复制代码')
-    copyBtn.setAttribute('data-tooltip', '复制代码')
-    copyBtn.innerHTML = COPY_ICONS
+    wrapper.className = 'code-block-wrapper no-toolbar'
+    var defaults = runtime.config.codeBlock || {}
+    wrapper.dataset.lineNumbers = String(!!defaults.lineNumbers)
+    wrapper.dataset.wrap = String(!!defaults.wrap)
+    var controls = document.createElement('template')
+    controls.innerHTML = runtime.config.codeControls
+    var viewport = document.createElement('div')
+    viewport.className = 'code-scroll-viewport'
+    var text = code.textContent.replace(/\n$/, '')
+    code.textContent = ''
+    text.split('\n').forEach(function (text, index) {
+      var line = document.createElement('span')
+      line.className = 'line'
+      var number = document.createElement('span')
+      number.className = 'ln'
+      number.textContent = String(index + 1)
+      var content = document.createElement('span')
+      content.className = 'cl'
+      content.textContent = text + '\n'
+      line.appendChild(number)
+      line.appendChild(content)
+      code.appendChild(line)
+    })
+    pre.classList.add('chroma')
     pre.parentNode.insertBefore(wrapper, pre)
-    wrapper.appendChild(pre)
-    wrapper.appendChild(copyBtn)
-    bindCopy(copyBtn, code)
+    wrapper.appendChild(controls.content)
+    wrapper.appendChild(viewport)
+    viewport.appendChild(pre)
   }
 
   document.querySelectorAll('.markdown-body pre').forEach(enhancePlainPre)
+
+  document.querySelectorAll('.code-block-wrapper').forEach(function (wrapper) {
+    var viewport = wrapper.querySelector('.code-scroll-viewport')
+    var motion = null
+    var motionTimer = 0
+    function clearMotion() {
+      runtime.clearTimeout(motionTimer)
+      if (motion) motion.cancel()
+      motion = null
+      wrapper.classList.remove('code-layout-changing')
+    }
+    runtime.addCleanup(clearMotion)
+    var numbers = wrapper.querySelectorAll('.ln')
+    var digits = 1
+    numbers.forEach(function (number) {
+      digits = Math.max(digits, number.textContent.trim().length)
+      number.setAttribute('aria-hidden', 'true')
+    })
+    wrapper.style.setProperty('--code-number-width', (digits + 2) + 'ch')
+    wrapper.querySelectorAll('[data-code-toggle]').forEach(function (button) {
+      var key = button.dataset.codeToggle === 'numbers' ? 'lineNumbers' : 'wrap'
+      function sync() {
+        var enabled = wrapper.dataset[key] === 'true'
+        button.setAttribute('aria-pressed', String(enabled))
+        var label
+        if (key === 'lineNumbers') label = enabled ? '隐藏行号' : '显示行号'
+        else label = enabled ? '关闭自动换行' : '开启自动换行'
+        runtime.label(button, label)
+      }
+      sync()
+      runtime.listen(button, 'click', function () {
+        var previousHeight = viewport.getBoundingClientRect().height
+        clearMotion()
+        var animate = key === 'wrap' && viewport.animate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        if (animate) wrapper.classList.add('code-layout-changing')
+        wrapper.dataset[key] = String(wrapper.dataset[key] !== 'true')
+        if (key === 'wrap' && wrapper.dataset.wrap === 'true') viewport.scrollLeft = 0
+        foldInstances.forEach(updateExpandedHeight)
+        sync()
+        if (animate) {
+          var nextHeight = viewport.getBoundingClientRect().height
+          var options = { duration: 220, easing: 'cubic-bezier(.22, 1, .36, 1)' }
+          try {
+            motion = viewport.animate([
+              { height: previousHeight + 'px', maxHeight: previousHeight + 'px' },
+              { height: nextHeight + 'px', maxHeight: nextHeight + 'px' }
+            ], options)
+            motion.onfinish = runtime.guard(clearMotion)
+            motionTimer = runtime.setTimeout(clearMotion, 280)
+          } catch (error) { clearMotion() }
+        }
+      })
+    })
+    wrapper.querySelectorAll('button[data-copy-block]').forEach(function (button) {
+      bindCopy(button, viewport.querySelector('code'))
+    })
+  })
 })

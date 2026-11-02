@@ -19,22 +19,28 @@
   "scala" "Scala" "elixir" "Elixir" "erlang" "Erlang" "powershell" "PowerShell"
   "nginx" "Nginx" "apache" "Apache" -}}
 {{- $label := or (index $langMap (lower $lang)) $lang -}}
-{{- /* 复制按钮三态图标（构建期生成，来自 assets/icons/ 文件） */ -}}
-{{- $copyIcons := partial "copy-icons.html" . -}}
+{{- $state := partial "code-state.html" . -}}
+{{- $numbers := $state.lineNumbers -}}
+{{- if isset .Options "linenos" -}}
+  {{- $numbers = not (in (slice "false" "0") (printf "%v" .Options.linenos)) -}}
+{{- end -}}
 {{- /* Chroma 高亮（保留 fence options，尊重站点 highlight 配置） */ -}}
-{{- $r := transform.HighlightCodeBlock . (dict "noClasses" false) -}}
-{{- $highlighted := $r.Wrapped -}}
-{{- if $lang -}}
-{{- /* 带语言围栏块：工具栏 + 折叠结构 */ -}}
-<div class="code-block-wrapper" style="--code-fold-lines: {{ $maxLines }}">
+{{- /* Keep source lines in one column so wrapping cannot desynchronize numbers. */ -}}
+{{- $highlight := transform.HighlightCodeBlock . (dict "noClasses" false "linenos" "inline" "lineNumbersInTable" false) -}}
+{{- $start := 1 -}}
+{{- if isset .Options "linenostart" }}{{ $start = int .Options.linenostart }}{{ end -}}
+{{- $digits := math.Max (len (printf "%d" $start)) (len (printf "%d" (add $start (sub $lines 1)))) -}}
+<div class="code-block-wrapper{{ if not $lang }} no-toolbar{{ end }}" data-line-numbers="{{ $numbers }}" data-wrap="{{ $state.wrap }}" style="--code-fold-lines: {{ $maxLines }}; --code-number-width: {{ add $digits 2 }}ch">
+{{ if $lang }}
   <div class="code-toolbar">
     <span class="code-lang">{{ $label }}</span>
-    <button class="code-copy-btn action-button state-button" type="button" aria-label="复制代码" data-tooltip="复制代码" data-copy-block>
-      {{ $copyIcons }}
-    </button>
+{{ end }}
+  {{ partial "code-controls.html" (dict "lineNumbers" $numbers "wrap" $state.wrap) }}
+{{ if $lang }}
   </div>
+{{ end }}
   <div class="code-block-body{{ if $folded }} is-folded{{ end }}">
-    <div class="code-scroll-viewport">{{ $highlighted }}</div>
+    <div class="code-scroll-viewport">{{ $highlight.Wrapped }}</div>
 {{ if $folded }}
     <button class="code-expand-bar action-button" type="button" aria-expanded="false" data-lines="{{ $lines }}">
       <span class="expand-icon action-icon">{{ partial "icon.html" (dict "name" "chevron") }}</span>
@@ -43,12 +49,3 @@
 {{ end }}
   </div>
 </div>
-{{- else -}}
-{{- /* 无语言围栏块：浮动复制，无工具栏 */ -}}
-<div class="code-block-wrapper no-toolbar">
-  <div class="code-scroll-viewport">{{ $highlighted }}</div>
-  <button class="floating-code-copy code-copy-btn action-button state-button" type="button" aria-label="复制代码" data-tooltip="复制代码" data-copy-block>
-    {{ $copyIcons }}
-  </button>
-</div>
-{{- end -}}

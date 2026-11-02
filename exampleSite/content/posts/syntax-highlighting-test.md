@@ -197,3 +197,29 @@ logging:
 +    return fmt.Sprintf("Hello %s!", g.Name)
  }
 ```
+
+## 行号与重点行
+
+```go {linenos=inline hl_lines=[4]}
+package main
+
+func main() {
+    println("Hello, YinYang!")
+}
+```
+
+```python {linenos=table hl_lines=[2]}
+def greet(name):
+    return f"Hello, {name}!"
+```
+
+## 无语言与缩进代码
+
+```
+<plain> & text
+This is a long plain text line that can be wrapped without changing the original content copied to the clipboard.
+```
+
+    first line
+
+    <plain> & text

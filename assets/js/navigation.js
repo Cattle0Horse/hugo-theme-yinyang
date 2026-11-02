@@ -1,6 +1,6 @@
 ;(function () {
   var lifecycle = window.yinyangRuntime
-  var horizontalSelector = '.code-scroll-viewport, .table-scroll, .plain-code-wrapper > pre, .katex-display'
+  var horizontalSelector = '.code-scroll-viewport, .table-scroll, .katex-display'
   var positions = new Map()
   var sequence = 0
   var prefix = Date.now().toString(36) + '-'

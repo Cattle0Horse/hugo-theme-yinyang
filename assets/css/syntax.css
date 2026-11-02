@@ -3,13 +3,56 @@
 .chroma {
   color: var(--syntax-text);
   background-color: inherit;
+  -webkit-text-size-adjust: none;
 }
+
+/* Chroma line wrappers also cover inline line numbers and highlighted lines. */
+.chroma .line { display: flex; }
+.chroma .cl { flex: 1; }
+.chroma .hl { background-color: var(--color-code-highlight); }
+.chroma .ln,
+.chroma .lnt {
+  flex: none;
+  white-space: pre;
+  user-select: none;
+  -webkit-user-select: none;
+  margin-right: 0.4em;
+  padding: 0 0.4em;
+  color: var(--syntax-line-number);
+}
+.chroma .lnlinks { color: inherit; text-decoration: none; }
+
+/* Numbered tables are code layout, independent of Markdown table decoration. */
+.markdown-body .chroma .lntable {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  border-spacing: 0;
+  background: transparent;
+}
+.markdown-body .chroma .lntable tr { border: 0; background: transparent; }
+.markdown-body .chroma .lntd {
+  vertical-align: top;
+  padding: 0;
+  border: 0;
+}
+.chroma .lntd:first-child { width: 1%; }
+.chroma .lntd:first-child pre { padding-right: 0; }
+.chroma .lntd:last-child pre { padding-left: 0; }
+/* Both columns need full line boxes, including the number's highlight wrapper. */
+.chroma .lntd pre > code,
+.chroma .lnt,
+.chroma .lntd:first-child .hl { display: block; }
 
 /* Comments */
 .chroma .c,
 .chroma .ch,
 .chroma .cm,
 .chroma .c1,
+.chroma .cp,
+.chroma .cpf,
 .chroma .cs {
   color: var(--syntax-comment);
   font-style: italic;
@@ -39,6 +82,8 @@
 .chroma .se,
 .chroma .sh,
 .chroma .si,
+.chroma .sr,
+.chroma .ss,
 .chroma .sx { color: var(--syntax-string); }
 
 .chroma .m,
@@ -55,7 +100,8 @@
 .chroma .nx,
 .chroma .py { color: var(--syntax-text); }
 .chroma .na { color: var(--syntax-attribute); }
-.chroma .nb { color: var(--syntax-builtin); }
+.chroma .nb,
+.chroma .bp { color: var(--syntax-builtin); }
 .chroma .nc { color: var(--syntax-class); }
 .chroma .no { color: var(--syntax-constant); }
 .chroma .nd { color: var(--syntax-decorator); }
@@ -63,7 +109,8 @@
   color: var(--syntax-exception);
   font-weight: bold;
 }
-.chroma .nf { color: var(--syntax-function); }
+.chroma .nf,
+.chroma .fm { color: var(--syntax-function); }
 .chroma .ni { color: var(--syntax-entity); }
 .chroma .nl { color: var(--syntax-label); }
 .chroma .nt {
@@ -78,6 +125,7 @@
 
 /* Operators and punctuation */
 .chroma .o,
+.chroma .or,
 .chroma .ow {
   color: var(--syntax-operator);
   font-weight: bold;

@@ -1,8 +1,11 @@
+{{- $codeState := partial "code-state.html" . -}}
 {{- $config := dict
   "palette" (partialCached "palette-state.html" . .Site.Language.Lang)
   "imageLoading" (and .Site.Params.image.enabled .Site.Params.image.loading (not .IsHome))
   "footnotes" (not .IsHome)
   "copyIcons" (partial "copy-icons.html" .)
+  "codeBlock" $codeState
+  "codeControls" (partial "code-controls.html" $codeState)
 -}}
 <script id="yinyang-page-config" type="application/json">{{ $config | jsonify | safeJS }}</script>
 <div class="ui-tooltip" id="uiTooltip" role="tooltip" aria-hidden="true"></div>

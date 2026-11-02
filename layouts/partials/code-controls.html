@@ -1,0 +1,13 @@
+<div class="code-controls">
+  {{ $numbersLabel := cond .lineNumbers "隐藏行号" "显示行号" }}
+  {{ $wrapLabel := cond .wrap "关闭自动换行" "开启自动换行" }}
+  <button class="code-toggle action-button" type="button" data-code-toggle="numbers" aria-label="{{ $numbersLabel }}" data-tooltip="{{ $numbersLabel }}" aria-pressed="{{ .lineNumbers }}">
+    {{ partial "icon.html" (dict "name" "line-numbers" "wrap" "action-icon") }}
+  </button>
+  <button class="code-toggle action-button" type="button" data-code-toggle="wrap" aria-label="{{ $wrapLabel }}" data-tooltip="{{ $wrapLabel }}" aria-pressed="{{ .wrap }}">
+    {{ partial "icon.html" (dict "name" "wrap" "wrap" "action-icon") }}
+  </button>
+  <button class="code-copy-btn action-button state-button" type="button" aria-label="复制代码" data-tooltip="复制代码" data-copy-block>
+    {{ partial "copy-icons.html" . }}
+  </button>
+</div>
