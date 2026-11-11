@@ -17,7 +17,7 @@
 | 🌓 外观切换 | 靛蓝 / 紫罗兰 / 青绿 / 琥珀 / 玫瑰 / 石墨配色与明暗模式独立选择，支持亮色 / 暗色 / 跟随浏览器、偏好保存与首次加载无闪屏；支持的浏览器中提供明暗切换圆形扩散动画 |
 | 🧭 站内导航 | 无刷新切换页面、内容交错滑入与加载进度提示；前进后退恢复阅读位置、代码展开状态和内容横向滚动位置 |
 | 📱 自适应布局 | 宽窄屏切换保持阅读位置，页头链接空间不足时自动收进菜单，Gallery 手机单列展示 |
-| 📖 阅读排版 | OPPO Sans 正文与 Fira Code 代码字体、长标题换行、宽表格局部横向滚动与滑动提示，代码和公式独立横向滚动 |
+| 📖 阅读排版 | 霞鹜文楷 GB 阅读字体、OPPO Sans 界面与 Fira Code 代码字体，长标题换行、宽表格局部横向滚动与滑动提示，代码和公式独立横向滚动 |
 | 📐 数学公式 | 构建期 KaTeX 渲染行内与块级公式，输出 HTML 与 MathML，按需从 CDN 加载样式与字体，页面加载无需公式渲染 JS |
 | 💻 代码块工具栏 | 语法高亮、语言标签、一键复制、长代码折叠与展开，缩进式代码块也支持复制 |
 | 🖼 图片增强 | 原生懒加载、异步解码、骨架屏占位、加载淡入与失败重试；正文和 Gallery 可独立启用柔和内描边 |
@@ -267,14 +267,21 @@ draft: true
 
 ### 字体
 
-标题、正文和导航默认使用 **OPPO Sans**，代码块与行内代码默认使用 **Fira Code**，代码中的中文回退 OPPO Sans，无需在 `extraHead` 中注入字体。OPPO Sans 通过 UNPKG 加载固定版本 `@zf-web-font/opposans@0.2.0` 的 Regular 400 / Medium 500 / Bold 700 WOFF2；Fira Code 通过 jsDelivr 加载 6.2.0 可变字库。正文在桌面和手机上均使用 14px、Regular 400、0.025em 字距和中西文自动间距，正文使用 1.8 倍行高，段落间距 16px，列表和引用内部段落间距 8px；粗体和正文链接使用 600 字重及柔化的主题色。正文颜色和页面背景区分明暗模式，代码与公式保持独立的字距。字体按实际使用请求，文件不随主题分发；OPPO Sans 完整字库的首访下载量较大。`font-display: optional` 避免字体延迟下载完成后替换已显示的文字：字体及时就绪时使用自定义字体，否则本次页面保持系统字体；Head 提前连接字体 CDN，减少连接等待；字库未覆盖的字符或字体加载失败时回退系统字体。
+Blog / Notes 的标题和正文默认使用 **霞鹜文楷 GB**，导航、目录、日期和文章列表继续使用 **OPPO Sans**；Gallery 保留 OPPO Sans。代码块与行内代码使用 **Fira Code**，代码中的中文回退 OPPO Sans，无需在 `extraHead` 中注入字体。
+
+霞鹜文楷 GB 使用固定版本 `lxgw-wenkai-gb-web@1.530.0` 的 Regular / Medium WOFF2 分包，通过 jsDelivr 按字符范围加载；Medium 用于标题和强调字重。Hugo 构建时获取这两个字重的上游 CSS，自动保留字符范围、修正字体 URL 并设置 `font-display: optional`，再合并、压缩和指纹化。首次构建或缓存缺失时需要联网获取 CSS；后续复用 Hugo 的 `getresource` 文件缓存，请求超时或失败会使构建报错。字体文件由浏览器按需下载，不在构建时下载，也不随主题分发。
+
+OPPO Sans 和 Fira Code 沿用主题内的少量 `@font-face` 声明，无需远程获取 CSS。OPPO Sans 通过 UNPKG 加载固定版本 `@zf-web-font/opposans@0.2.0` 的 Regular 400 / Medium 500 / Bold 700 WOFF2；Fira Code 通过 jsDelivr 加载 6.2.0 可变字库。
+
+Blog / Notes 正文在桌面和手机上均使用 15px、Regular 400、0.025em 字距和中西文自动间距，行高 1.8，段落间距 16px，列表和引用内部段落间距 8px；粗体和正文链接使用 600 字重及柔化的主题色。正文颜色随明暗模式切换，代码与公式保持独立的字体与字距。所有字体声明使用 `font-display: optional`：字体及时就绪时使用自定义字体，否则本次页面保留回退字体，避免阅读中途换字形和重新换行。Head 提前连接字体 CDN；OPPO Sans 完整字库的首访下载量较大。
 
 | 用途 | 字体栈 |
 |---|---|
-| 标题、正文与导航 | `"OPPO Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", ...` |
+| Blog / Notes 标题与正文 | `"LXGW WenKai GB", var(--font-body)` |
+| 导航、目录、日期与 Gallery | `"OPPO Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", ...` |
 | 代码 | `"Fira Code", "SF Mono", Menlo, Monaco, "Courier New", ...` |
 
-标题默认继承正文字体；可通过 `--font-body` / `--font-heading` / `--font-code` 分别调整正文、标题与代码字体。使用 `extraCSSFiles` 加载自己的字体样式表：
+可通过 `--font-body` / `--font-prose` / `--font-heading` / `--font-code` 分别调整界面、阅读区、标题与代码字体；标题缺省继承所在区域的字体。使用 `extraCSSFiles` 加载自己的字体样式表：
 
 ```toml
 [params]

@@ -1,0 +1,20 @@
+{{- $files := slice (resources.Get "css/fonts.css") -}}
+{{- $baseURL := "https://cdn.jsdelivr.net/npm/lxgw-wenkai-gb-web@1.530.0/" -}}
+{{- range slice "regular" "medium" -}}
+  {{- $weight := . -}}
+  {{- $directory := printf "%slxgwwenkaigb-%s/" $baseURL $weight -}}
+  {{- $url := print $directory "result.css" -}}
+  {{- with resources.GetRemote $url (dict "timeout" "10s") -}}
+    {{- $css := replace .Content `url("./` (printf `url("%s` $directory) -}}
+    {{- $css = replace $css "font-display: swap" "font-display: optional" -}}
+    {{- if eq $weight "medium" -}}
+      {{/* Use Medium for titles and emphasis without synthetic bold. */}}
+      {{- $css = replace $css `font-family:"LXGW WenKai GB Medium"` `font-family:"LXGW WenKai GB"` -}}
+      {{- $css = replace $css "font-weight: 500;" "font-weight: 500 900;" -}}
+    {{- end -}}
+    {{- $files = $files | append (resources.FromString (printf "css/wenkai-%s.css" $weight) $css) -}}
+  {{- else -}}
+    {{- errorf "Unable to fetch WenKai font stylesheet: %s" $url -}}
+  {{- end -}}
+{{- end -}}
+{{- return ($files | resources.Concat "css/theme-fonts.css" | minify | fingerprint) -}}

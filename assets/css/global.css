@@ -100,6 +100,18 @@ a.note-tag:is(:hover, :focus-visible) {
   overflow-wrap: break-word;
 }
 
+.blog .markdown-body,
+.note-content {
+  font-family: var(--font-prose);
+  font-size: 15px;
+}
+
+.blog .post-title,
+.note-single-title,
+.note-entry-title {
+  font-family: var(--font-heading, var(--font-prose));
+}
+
 .markdown-body :is(h1, h2, h3, h4, h5, h6) {
   margin: 24px 0 8px;
   font-weight: 600;

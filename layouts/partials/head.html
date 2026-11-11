@@ -37,7 +37,7 @@
   {{ range $meta.images }}<meta data-page-head property="og:image" content="{{ . }}" />{{ end }}
   <link data-page-head rel="preconnect" href="https://unpkg.com" crossorigin />
   <link data-page-head rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-  {{ with resources.Get "css/fonts.css" | minify | fingerprint }}
+  {{ with partialCached "fonts.html" . }}
   <link data-page-head rel="stylesheet" href="{{ .RelPermalink }}" />
   {{ end }}
   {{ $files := slice }}

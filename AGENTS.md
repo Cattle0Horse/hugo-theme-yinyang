@@ -27,7 +27,7 @@ node --expose-gc --test
 
 站点在 `[outputs]` 配置 `page = ["HTML", "Markdown"]` 后，详情页通过 `layouts/_default/single.md` 直接读取 `.File.Filename`，在 `index.html` 旁输出完整 `index.md`（包含 front matter，不渲染短代码或公式）。`actions-state.html` 从页面的 Markdown OutputFormat 获取站内原文 URL；查看按钮仅需 `actions.enabled` 和该输出格式，不依赖 GitHub 编辑配置。复制 Markdown 继续使用 `.RawContent`，仅复制正文。操作区开关不控制原文文件生成；禁用 Markdown 输出时隐藏查看按钮。
 
-CSS 由 `head.html` 将 15 个文件按 variables → global → site-header → theme-toggle → posts-list → notes → post-page → taxonomy → gallery → footnotes → app-shell → code-blocks → actions → toc → image-loading 合并、压缩后内联。`fonts.css` 独立压缩、指纹化并以样式链接加载，`syntax.css` 独立压缩内联，KaTeX CSS 按实际渲染内容加载；`extraCSSFiles` 生成独立样式链接。
+CSS 由 `head.html` 将 15 个文件按 variables → global → site-header → theme-toggle → posts-list → notes → post-page → taxonomy → gallery → footnotes → app-shell → code-blocks → actions → toc → image-loading 合并、压缩后内联。`fonts.html` 获取和处理固定版本的文楷分包 CSS，与本地 `fonts.css` 合并、压缩、指纹化后以独立样式链接加载；Head 缓存调用该 partial。`syntax.css` 独立压缩内联，KaTeX CSS 按实际渲染内容加载；`extraCSSFiles` 生成独立样式链接。
 
 ### 页面生命周期与功能层
 
@@ -106,7 +106,7 @@ KaTeX CDN 固定为 0.19.0，不使用浮动 latest URL；升级须验证 Hugo �
 404 图形与反馈颜色使用主题变量，实时跟随 indigo / violet / graphite 及明暗模式；黑洞深色内核也从 `variables.css` 取色。暗色模式中的幽灵使用浅色轮廓与深色眼睛，保持主体可辨识。
 
 - 可见颜色使用 `variables.css` 的亮 / 暗 CSS 变量。明暗与配色独立，`theme-changing` 短暂禁用全局过渡；主动明暗切换在支持的浏览器使用圆形 View Transition。
-- 字体使用 `--font-body` / `--font-heading` / `--font-code` 区分正文、标题和代码，标题默认继承所在页面字体；`fonts.css` 通过 UNPKG 加载固定版本 `@zf-web-font/opposans@0.2.0` 的 400 / 500 / 700 字重，通过 jsDelivr 加载 Fira Code 6.2.0 可变字库。正文在桌面和手机上均使用 14px、Regular 400、0.025em 字距和中西文自动间距；正文行高 1.8、段落间距 16px，列表和引用内部段落间距 8px；粗体和正文链接使用 600 字重及柔化的主题色。`--color-prose` 管理亮 / 暗正文颜色；代码和公式重置字距与自动间距。使用 `font-display: optional`：字体及时就绪时使用自定义字体，否则本次页面保持系统字体，避免阅读中途换字形和重新换行；Head 提前连接字体 CDN，并保留系统字体回退，字体文件不随主题分发，示例站无需额外注入字体。正文标题、段落和列表的间距统一在 `global.css` 管理。
+- 字体使用 `--font-body` / `--font-prose` / `--font-heading` / `--font-code` 区分界面、阅读区、标题和代码。Blog 详情由 `.blog` 限定阅读区，Notes 使用 `.note-content` 和既有标题类；标题支持 `--font-heading` 覆盖。Blog / Notes 标题与正文用霞鹜文楷 GB，正文在桌面和手机均为 15px、Regular 400、0.025em 字距、中西文自动间距、行高 1.8；段落间距 16px，列表和引用内部段落间距 8px。粗体和正文链接使用 600 字重及柔化的主题色。文楷分包声明在构建时通过 `resources.GetRemote` 获取、改写和缓存，固定版本与路径见 `fonts.html`；升级时检查上游 CSS 的 URL / display / Medium 描述符格式，并验证实际输出。保留 unicode-range，Medium 映射到共享家族的 500–900 字重。首次构建或缓存缺失需联网获取 CSS，超时或失败时构建报错；后续复用 Hugo 文件缓存。导航、目录、日期、文章列表和 Gallery 沿用 OPPO Sans，代码用 Fira Code；这两种字体沿用本地声明，版本和 CDN 见 `fonts.css`。全部字体声明使用 `font-display: optional`；字库由浏览器按需加载，构建不下载字库。`--color-prose` 管理亮 / 暗正文颜色；代码和公式重置字距与自动间距。正文间距统一在 `global.css` 管理。
 - 页头顶部留白由 `.site-header-content` 的 padding 提供，避免标题 margin 沿父级折叠后叠加 `.app-shell` 的整屏最小高度；列表不另设固定最小高度，短页由应用外壳撑满视口。
 - 图标源位于 `assets/icons/*.svg`，`icon.html` 构建期内联并移除 xmlns，通过 currentColor 着色；复制按钮三态图标由 `copy-icons.html` 共用，运行时通过页面 JSON 配置提供。
 - 动画结束监听使用生命周期工具，并带计时器兜底；销毁 DOM 前等待关闭动画，页面 dispose 时直接清理。
