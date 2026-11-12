@@ -16,6 +16,20 @@
 .navigation-enter-item { animation: page-slide-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 .navigation-outgoing.is-leaving { animation: page-slide-out 140ms ease-in both; }
 
+/* Elastic edge feedback moves content without changing scroll coordinates. */
+html.scroll-boundary-feedback,
+html.scroll-boundary-feedback .app-scroll { overscroll-behavior-y: none; }
+
+.app-main.scroll-boundary-active .app-scroll > :not(.app-header, script) {
+  translate: 0 var(--scroll-boundary-offset, 0px);
+}
+
+@media (min-width: 601px) {
+  .app-main.scroll-boundary-active .app-scroll > .app-header {
+    translate: 0 var(--scroll-boundary-offset, 0px);
+  }
+}
+
 @keyframes page-slide-out { to { opacity: 0; translate: 0 -8px; } }
 @keyframes page-slide-in {
   from { opacity: 0; translate: 0 24px; }

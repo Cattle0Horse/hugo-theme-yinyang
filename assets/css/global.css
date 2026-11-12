@@ -141,9 +141,43 @@ a.note-tag:is(:hover, :focus-visible) {
   margin-bottom: 16px;
 }
 
+.markdown-body :is(ul, ol) {
+  padding-inline-start: var(--list-inset);
+}
+
+.markdown-body ul { --list-inset: 1em; }
+.markdown-body ol { --list-inset: 1.5em; --list-counter-style: decimal; }
+
+.markdown-body .prose-list {
+  padding-inline-start: 0;
+  list-style: none;
+}
+
+.markdown-body .prose-list > li {
+  position: relative;
+  padding-inline-start: var(--list-inset);
+}
+
+/* Keep markers inside the reading column; continuation lines share a text edge. */
+.markdown-body .prose-list > li::before {
+  position: absolute;
+  inset-inline-start: 0;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.markdown-body ul.prose-list > li::before { content: "•"; }
+/* The native list-item counter preserves start, reversed, and explicit li values. */
+.markdown-body ol.prose-list > li::before { content: counter(list-item, var(--list-counter-style)) "."; }
+
+.markdown-body :is(ul, ol) :is(ul, ol) {
+  margin-top: 8px;
+  margin-bottom: 0;
+  margin-inline-start: 0;
+}
+
 .markdown-body li + li { margin-top: 4px; }
 .markdown-body :is(li, dd, blockquote) p { margin-bottom: 8px; }
-.markdown-body :is(ul, ol) :is(ul, ol) { margin-top: 8px; margin-bottom: 0; }
 
 /* Keep block spacing inside the content and its nested groups. */
 .markdown-body > :first-child,
@@ -210,8 +244,6 @@ a.note-tag:is(:hover, :focus-visible) {
     padding-inline: 0.75em 0;
   }
 
-  .markdown-body ul { padding-inline-start: 1.5em; }
-  .markdown-body ol { padding-inline-start: 2em; }
 }
 
 .markdown-body pre {

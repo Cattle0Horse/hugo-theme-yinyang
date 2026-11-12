@@ -33,6 +33,12 @@
       return path.reduce(function (node, index) { return node && node.children[index] }, app)
     }
     function capture() {
+      // Elastic edge feedback is visual only; snapshots retain the last real
+      // reading anchor until the content has returned to its scroll position.
+      if (runtime.scrollEffect && runtime.scrollEffect.offset) {
+        if (reading && position().top === reading.top) return reading
+        runtime.scrollEffect.reset()
+      }
       // CSS changes the container before its queued mode event and frame run.
       // Keep the last reading anchor until that transfer has actually completed.
       if ((transferring || mode !== wide.matches) && reading) return reading
@@ -53,6 +59,7 @@
     }
     function restore(saved) {
       if (!saved) return
+      if (runtime.scrollEffect) runtime.scrollEffect.reset()
       var top = saved.top
       var anchor = nodeFor(saved.anchor)
       if (anchor) top = position().top + anchor.getBoundingClientRect().top - viewport().top - saved.anchorTop
@@ -60,6 +67,7 @@
       capture()
     }
     function scrollToElement(target, options) {
+      if (runtime.scrollEffect) runtime.scrollEffect.reset()
       options = options || {}
       var view = viewport()
       var rect = target.getBoundingClientRect()
@@ -84,6 +92,7 @@
     runtime.listen(window, 'scroll', schedule, { passive: true })
     runtime.listen(window, 'resize', schedule)
     runtime.listen(wide, 'change', function () {
+      if (runtime.scrollEffect) runtime.scrollEffect.reset()
       var saved = reading
       mode = wide.matches
       transferring = true

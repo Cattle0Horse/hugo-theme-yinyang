@@ -12,7 +12,7 @@
   position: relative;
 }
 
-.footnotes li.footnote-highlight::before {
+.footnotes li.footnote-highlight::after {
   content: '';
   position: absolute;
   z-index: -1;

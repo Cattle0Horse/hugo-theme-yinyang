@@ -38,6 +38,11 @@ function drawing() {
     notFound: {
       scene: { querySelector: () => ({}) }, svg, find: selector => nodes[selector], say: text => { status.textContent = text },
       listen: (node, type, handler) => node.addEventListener(type, handler), activate: (node, handler) => node.addEventListener('click', handler),
+      springTo(read, write, target, options, complete) {
+        write(target)
+        if (complete) complete()
+        return () => {}
+      },
       drag(target, start, move, end) { gesture = { start, move, end } }, openArticle(article) { destination = article.url }
     }
   })

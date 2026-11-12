@@ -352,36 +352,18 @@
       if (!waits) resolve()
     })
   }
-  function loadAnalytics(source, url, page) {
+  function loadAnalytics(source, url) {
     var previous = document.head.querySelector('script[data-page-analytics]')
     if (!source) {
       if (previous) previous.remove()
-      return Promise.resolve()
+      return
     }
     var container = document.getElementById('busuanzi_container_page_pv')
     var value = document.getElementById('busuanzi_value_page_pv')
-    if (!container || !value) {
-      runScript(source, url, previous).catch(function () {})
-      return Promise.resolve()
-    }
-    // Script load only starts the JSONP request. Wait for its actual DOM result
-    // so the count is included in the new article's transition snapshot.
-    return new Promise(function (resolve) {
-      var finished = false
-      var observer = new MutationObserver(function () { if (value.textContent.trim()) finish() })
-      function finish() {
-        if (finished) return
-        finished = true
-        observer.disconnect()
-        clearTimeout(timer)
-        stopCleanup()
-        if (!value.textContent.trim()) container.remove()
-        resolve()
-      }
-      var timer = setTimeout(finish, 800)
-      var stopCleanup = page.addCleanup(finish)
-      observer.observe(container, { childList: true, characterData: true, subtree: true })
-      runScript(source, url, previous).catch(finish)
+    // The statistics request stays in the background. The reading-count
+    // initializer reveals a successful result with its own entrance fade.
+    runScript(source, url, previous).catch(function () {
+      if (container && value) container.remove()
     })
   }
   function captureArticle(next) {
@@ -632,10 +614,9 @@
     }
     page.scroll.onChange(rememberPosition)
     page.requestAnimationFrame(function () { document.documentElement.classList.remove('theme-changing') })
-    // Keep a visual copy of the old article while statistics load. Unlike a
-    // View Transition update callback, this leaves the loading animation running.
+    // Scene readiness and page scripts settle before restoring and revealing content.
     if (page.notFoundReady) await page.notFoundReady
-    await loadAnalytics(analytics, destination.href, page)
+    loadAnalytics(analytics, destination.href)
     for (var script of scripts) {
       await runScript(script, destination.href, script)
     }

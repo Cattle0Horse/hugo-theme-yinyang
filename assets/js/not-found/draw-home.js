@@ -15,6 +15,7 @@ function initialize(page) {
   var route = []
   var frame = 0
   var homeTimer = 0
+  var cancelReset = null
   function positionStatus() {
     var point = svg.createSVGPoint()
     point.x = Number(ball.getAttribute('cx'))
@@ -29,13 +30,22 @@ function initialize(page) {
     positionStatus()
   }
   function moveBall(p) { ball.setAttribute('cx', p.x); ball.setAttribute('cy', p.y); positionStatus() }
-  function resetRoute() {
+  function resetRoute(options) {
     page.cancelAnimationFrame(frame)
     page.clearTimeout(homeTimer)
+    if (cancelReset) cancelReset()
     drawing = false
     route = []
     path.setAttribute('d', '')
-    moveBall({ x: 95, y: 85 })
+    var start = { x: 95, y: 85 }
+    var current = { x: Number(ball.getAttribute('cx')) || start.x, y: Number(ball.getAttribute('cy')) || start.y }
+    if (options && options.instant) moveBall(start)
+    else cancelReset = tools.springTo(function () { return current }, moveBall, start, {
+      stiffness: .22,
+      damping: .58,
+      threshold: .12,
+      speedThreshold: .02
+    }, function () { cancelReset = null })
     field.classList.remove('nf-complete', 'nf-running')
     house.removeAttribute('aria-busy')
     notify('')
@@ -47,7 +57,7 @@ function initialize(page) {
   }
   drag(document, function (p, event) {
     if (event.target.closest('a, button, input, textarea, select')) return false
-    resetRoute()
+    resetRoute({ instant: true })
     drawing = true
     route = [p]
     moveBall(p)
@@ -63,7 +73,7 @@ function initialize(page) {
   tools.listen(house, 'click', function (event) {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
     event.preventDefault()
-    resetRoute()
+    resetRoute({ instant: true })
     var line = find('.nf-guide')
     path.setAttribute('d', line.getAttribute('d'))
     var length = line.getTotalLength()

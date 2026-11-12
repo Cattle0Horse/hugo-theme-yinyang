@@ -7,6 +7,7 @@ const { test } = require('node:test')
 test('a navigation snapshot preserves reading while a breakpoint transfer is pending', () => {
   const frames = new Map()
   let sequence = 0
+  let visualOffset = 0
   const wide = Object.assign(new EventTarget(), { matches: true })
   const window = Object.assign(new EventTarget(), {
     innerHeight: 900, scrollY: 1000, scrollX: 0,
@@ -24,7 +25,7 @@ test('a navigation snapshot preserves reading while a breakpoint transfer is pen
     closest() { return this },
     getBoundingClientRect() {
       // Reflow adds 300px above the same heading in the narrower layout.
-      const top = wide.matches ? 1064 - window.scrollY : 1364 - app.scrollTop
+      const top = (wide.matches ? 1064 - window.scrollY : 1364 - app.scrollTop) + visualOffset
       return { top, height: 40 }
     }
   }
@@ -51,6 +52,12 @@ test('a navigation snapshot preserves reading while a breakpoint transfer is pen
   const scroll = window.yinyangRuntime.createScroll(page)
   const reading = scroll.capture()
   assert.equal(reading.anchorTop, 64)
+  page.scrollEffect = { get offset() { return visualOffset }, reset() { visualOffset = 0 } }
+  visualOffset = 18
+  assert.equal(scroll.capture().anchorTop, 64, 'elastic feedback must not change the saved reading anchor')
+  scroll.restore(reading)
+  assert.equal(visualOffset, 0, 'restoration releases the visual offset before measuring the target')
+  assert.equal(heading.getBoundingClientRect().top, 64)
   wide.matches = false
   assert.equal(scroll.capture().anchorTop, 64, 'CSS reflow before the mode event must not replace the anchor')
   wide.dispatchEvent(new Event('change'))

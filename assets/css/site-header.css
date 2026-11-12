@@ -63,6 +63,14 @@
 .header-links a:focus-visible { color: var(--color-accent); }
 
 .appearance-controls { flex-shrink: 0; }
+
+/* Align the visible icon with the article's text edge; keep the full button hit area. */
+@media screen and (min-width: 601px) {
+  .header-items > .appearance-controls {
+    margin-inline-start: calc((var(--action-icon-size) - var(--action-button-size)) / 2);
+  }
+}
+
 .header-nav { display: flex; align-items: center; min-width: 0; }
 .header-links {
   display: flex;
@@ -81,18 +89,25 @@
   pointer-events: none;
 }
 .header-nav-toggle {
-  gap: 7px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  width: 88px;
+  height: 44px;
+  gap: 6px;
   min-height: 44px;
-  max-width: 140px;
-  padding: 0 12px;
+  padding: 0 13px 0 14px;
   border: 0;
   border-radius: 24px;
   background: var(--color-accent-soft);
   color: var(--color-accent);
   font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
 }
-.header-nav-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.header-nav-toggle .action-icon { width: 14px; height: 14px; flex-shrink: 0; transition: transform 180ms ease; }
+.header-nav-toggle.action-button { min-height: 44px; }
+/* Center the visible glyphs rather than the font's extra descent space. */
+.header-nav-label { flex: 1; min-width: 0; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; translate: 0 -0.5px; }
+.header-nav-toggle .action-icon { width: 12px; height: 12px; flex-shrink: 0; transition: transform 180ms ease; }
 .header-nav-toggle[aria-expanded="true"] .action-icon { transform: rotate(180deg); }
 .appearance-menu.header-nav-menu {
   display: grid;
@@ -142,10 +157,11 @@
   .header-title { min-width: 0; margin: 0; font-size: 18px; }
   .header-title a { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .header-subtitle, .header-line { display: none; }
-  .header-items { margin: 0; gap: 4px; }
-  .appearance-controls { gap: 0; }
+  /* Balance visible icon/dot/pill edges while keeping their 44px touch targets. */
+  .header-items { margin: 0; gap: 14px; }
+  .header-items > .appearance-controls { gap: 0; margin-inline-start: 0; }
   .appearance-controls .action-button { width: 44px; height: 44px; }
-  .header-nav-toggle { max-width: 100px; padding: 0 10px; }
+  .header-nav-toggle { padding: 0 11px 0 12px; }
   .header-links { gap: 14px; }
   /* Match the JS mobile layout from the first paint. */
   :root.yinyang-js .header-links {

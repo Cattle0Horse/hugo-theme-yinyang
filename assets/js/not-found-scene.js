@@ -108,6 +108,58 @@ function mountScene(page, root, name, definition) {
     timer = page.setTimeout(finish, (options.duration || 0) + (options.delay || 0) + 100)
     return cancel
   }
+  // A small, page-managed spring for objects that are directly manipulated.
+  // Velocity is expressed in pixels (or degrees) per animation frame.
+  function springTo(read, write, target, options, complete) {
+    options = options || {}
+    var keys = Object.keys(target)
+    var state = Object.assign({}, read())
+    var velocity = Object.assign({}, options.velocity || {})
+    var stiffness = options.stiffness == null ? .18 : options.stiffness
+    var damping = options.damping == null ? .66 : options.damping
+    var threshold = options.threshold == null ? .15 : options.threshold
+    var speedThreshold = options.speedThreshold == null ? .02 : options.speedThreshold
+    var frame = 0
+    var last = 0
+    var active = true
+    function cancel() {
+      if (!active) return
+      active = false
+      if (frame) page.cancelAnimationFrame(frame)
+      frame = 0
+      animations.delete(cancel)
+    }
+    function finish() {
+      if (!active) return
+      keys.forEach(function (key) { state[key] = Number(target[key]) || 0 })
+      write(state)
+      cancel()
+      if (complete) complete()
+    }
+    function tick(time) {
+      if (!active) return
+      frame = 0
+      var delta = last ? Math.min(2, Math.max(.25, (time - last) / 16.67)) : 1
+      last = time
+      var settled = true
+      keys.forEach(function (key) {
+        var value = Number(state[key]) || 0
+        var destination = Number(target[key]) || 0
+        var speed = Number(velocity[key]) || 0
+        speed = (speed + (destination - value) * stiffness * delta) * Math.pow(damping, delta)
+        value += speed * delta
+        state[key] = value
+        velocity[key] = speed
+        if (Math.abs(destination - value) > threshold || Math.abs(speed) > speedThreshold) settled = false
+      })
+      write(state)
+      if (settled) finish()
+      else frame = page.requestAnimationFrame(tick)
+    }
+    animations.add(cancel)
+    frame = page.requestAnimationFrame(tick)
+    return cancel
+  }
   function emit(x, y, count) {
     for (var i = 0; i < count; i++) {
       var dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
@@ -168,7 +220,7 @@ function mountScene(page, root, name, definition) {
   })
   page.notFound = { scene: scene, svg: svg, articles: definition.articles,
     say: say, find: find, listen: listen, point: point, activate: activate, drag: drag, openArticle: openArticle,
-    animate: animate, emit: emit, follow: follow }
+    animate: animate, springTo: springTo, emit: emit, follow: follow }
   definition.initialize(page)
   root.setAttribute('data-nf-style', name)
   root.querySelector('.nf-fallback').hidden = true

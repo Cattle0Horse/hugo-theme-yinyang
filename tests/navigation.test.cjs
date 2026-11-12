@@ -363,17 +363,17 @@ test('an action on the current page cancels preparation and prevents a late navi
   assert.equal(fixture.fontRequested, false)
 })
 
-test('the new view becomes ready with its reading count', async () => {
+test('the new view becomes ready without waiting for its reading count', async () => {
   const fixture = navigationFixture({ math: false, analytics: true })
   await fixture.navigate()
-  assert.deepEqual(fixture.ready, [], 'Loading the statistics script is not the same as receiving the count')
+  assert.deepEqual(fixture.ready, ['https://example.test/math/'])
   fixture.publishCount('42')
   await flush()
   assert.deepEqual(fixture.ready, ['https://example.test/math/'])
   assert.equal(fixture.document.getElementById('busuanzi_value_page_pv').textContent, '42')
 })
 
-test('the outgoing view retains its footer through the statistics wait and fade', async () => {
+test('the outgoing view retains its footer through the fade while statistics load in the background', async () => {
   const fixture = navigationFixture({ math: false, analytics: true, withFooter: true })
   await fixture.navigate('/post/')
   const cover = fixture.document.body.children.find(node => node.className === 'navigation-outgoing')
@@ -422,15 +422,11 @@ test('reading input finishes the entrance immediately and releases the outgoing 
   }
 })
 
-test('shared element capture starts only after formula and visible reading count preparation', async () => {
-  const fixture = navigationFixture({ sharedTransition: true, analytics: true, oldStyles: true })
+test('shared element capture starts without waiting for the reading count', async () => {
+  const fixture = navigationFixture({ math: false, sharedTransition: true, analytics: true, oldStyles: true })
   await fixture.navigate('/post/')
-  assert.equal(fixture.sharedStarted, false)
-  assert.equal(fixture.document.body, fixture.originalBody)
-  fixture.stylesheet.dispatchEvent(new Event('load'))
-  fixture.font.resolve([])
-  await flush()
-  assert.equal(fixture.sharedStarted, false)
+  assert.equal(fixture.sharedStarted, true)
+  assert.notEqual(fixture.document.body, fixture.originalBody)
   fixture.publishCount('42')
   await flush()
   assert.equal(fixture.sharedStarted, true)
@@ -495,20 +491,20 @@ test('an anchor action reveals the new footer and removes its outgoing copy imme
   assert.equal(fixture.document.body.querySelector('footer').textContent, 'New footer')
   fixture.publishCount('42')
   await flush()
-  assert.deepEqual(fixture.ready, ['https://example.test/post/#section'])
+  assert.deepEqual(fixture.ready, ['https://example.test/post/'])
 })
 
-test('unavailable statistics do not block the new view or pop into it after the timeout', async () => {
+test('statistics stay in the background and can appear after the page is ready', async () => {
   const fixture = navigationFixture({ math: false, analytics: true })
   await fixture.navigate()
   fixture.expire()
   await flush()
   assert.deepEqual(fixture.ready, ['https://example.test/math/'])
   fixture.publishCount('42')
-  assert.equal(fixture.document.getElementById('busuanzi_container_page_pv'), null)
+  assert.equal(fixture.document.getElementById('busuanzi_value_page_pv').textContent, '42')
 })
 
-test('an anchor action during the statistics wait reveals the article and retains the requested destination', async () => {
+test('an anchor action after the page is ready retains the requested destination', async () => {
   const fixture = navigationFixture({ math: false, analytics: true })
   await fixture.navigate()
   fixture.window.yinyangNavigation.pushHash('#current-section')
@@ -516,8 +512,8 @@ test('an anchor action during the statistics wait reveals the article and retain
   assert.equal(fixture.article.classList.contains('page-preparing'), false)
   fixture.publishCount('42')
   await flush()
-  assert.equal(fixture.restoredHash, '#current-section')
-  assert.deepEqual(fixture.ready, ['https://example.test/math/#current-section'])
+  assert.equal(fixture.location.href, 'https://example.test/math/#current-section')
+  assert.deepEqual(fixture.ready, ['https://example.test/math/'])
 })
 
 test('leaving a 404 mounts the destination without reinitializing the outgoing scene', async () => {
@@ -547,7 +543,7 @@ test('an anchor selected while a 404 scene loads retains its destination', async
   assert.deepEqual(fixture.ready, ['https://example.test/missing/#section'])
 })
 
-test('outgoing styles survive the statistics wait and fade, while old metadata is removed immediately', async () => {
+test('outgoing styles survive the fade while old metadata is removed immediately', async () => {
   const fixture = navigationFixture({ math: false, analytics: true, oldStyles: true })
   await fixture.navigate('/plain/')
   assert.ok(fixture.document.head.children.includes(fixture.previousStyle))
@@ -571,7 +567,7 @@ test('revealing the destination during initialization also releases outgoing sty
   assert.equal(fixture.previousStylesheet.removed, true)
   fixture.publishCount('42')
   await flush()
-  assert.deepEqual(fixture.ready, ['https://example.test/plain/#section'])
+  assert.deepEqual(fixture.ready, ['https://example.test/plain/'])
 })
 
 test('disposing a destination during its fade releases outgoing styles', async () => {

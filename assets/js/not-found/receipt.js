@@ -19,6 +19,13 @@ function initialize(page) {
     tools.say('已重新开票')
     status.setAttribute('aria-label', '已重新开票，原因：' + reasons[count % reasons.length])
   }
+  function pose() {
+    var matrix = new DOMMatrix(getComputedStyle(ticket).transform)
+    return { x: matrix.e, y: matrix.f, angle: Math.atan2(matrix.b, matrix.a) * 180 / Math.PI }
+  }
+  function writePose(value) {
+    ticket.style.transform = 'translate(' + value.x + 'px,' + value.y + 'px) rotate(' + value.angle + 'deg)'
+  }
   function feedTicket() {
     reason.textContent = '原因：' + reasons[++count % reasons.length]
     ticket.style.transform = ''
@@ -48,14 +55,19 @@ function initialize(page) {
     play.classList.add('nf-dragging')
   }, function (p, origin) {
     ticket.style.transform = 'translate(' + (p.x - origin.x) + 'px,' + (p.y - origin.y) + 'px) rotate(' + Math.max(-12, Math.min(12, (p.x - origin.x) / 15)) + 'deg)'
-  }, function (p, origin, moved, cancelled) {
+  }, function (p, origin, moved, cancelled, releaseVelocity) {
     play.classList.remove('nf-dragging')
     if (!moved && !cancelled) return
     if (!cancelled && p.y - origin.y > 38) print()
     else {
-      var from = getComputedStyle(ticket).transform
-      ticket.style.transform = ''
-      cancelReturn = tools.animate(ticket, [{ transform: from }, { transform: 'translateY(-4px)', offset: .7 }, { transform: 'translateY(0)' }], { duration: 600, easing: 'ease-out' })
+      var speed = releaseVelocity || { x: 0, y: 0 }
+      cancelReturn = tools.springTo(pose, writePose, { x: 0, y: 0, angle: 0 }, {
+        stiffness: .2,
+        damping: .62,
+        velocity: { x: (speed.x || 0) * 16.67, y: (speed.y || 0) * 16.67, angle: 0 },
+        threshold: .12,
+        speedThreshold: .02
+      }, function () { cancelReturn = null })
     }
   })
   tools.activate(play, print)

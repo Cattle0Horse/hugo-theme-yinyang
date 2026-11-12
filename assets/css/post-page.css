@@ -126,6 +126,15 @@
   font-size: 14px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+:root:not(.yinyang-js) .busuanzi-page-count,
+.busuanzi-page-count.is-visible { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .busuanzi-page-count { transition: none; }
 }
 
 .busuanzi-page-count:not(:first-child)::before {

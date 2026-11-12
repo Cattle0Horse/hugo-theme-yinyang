@@ -5,20 +5,34 @@ window.yinyangRuntime.register('ui-helpers', function (runtime) {
     button.setAttribute('data-tooltip', label)
     if (runtime.tooltip) runtime.tooltip.update(button)
   }
-  runtime.positionFloating = function (node, anchor, alignment) {
+  runtime.positionFloating = function (node, anchor, alignment, arrowSize) {
     var rect = anchor.getBoundingClientRect()
-    var bounds = node.getBoundingClientRect()
-    var left = alignment === 'end' ? rect.right - bounds.width : rect.left
-    var top = rect.bottom + 8
+    // Buttons shrink around their center while pressed. Anchor to their rest
+    // bounds so a touch release cannot change the eventual menu gap.
+    var scale = parseFloat(getComputedStyle(anchor).scale) || 1
+    var width = rect.width / scale
+    var height = rect.height / scale
+    var leftEdge = rect.left + (rect.width - width) / 2
+    var topEdge = rect.top + (rect.height - height) / 2
+    // offset sizes exclude the floating layer's entrance translation.
+    var floatingWidth = node.offsetWidth
+    var floatingHeight = node.offsetHeight
+    var margin = 8
+    var gap = 8 + (arrowSize || 0)
+    var left = alignment === 'end' ? leftEdge + width - floatingWidth : leftEdge
+    var below = alignment !== 'center'
+    var aboveTop = topEdge - floatingHeight - gap
+    var belowTop = topEdge + height + gap
     if (alignment === 'center') {
-      left = rect.left + (rect.width - bounds.width) / 2
-      top = rect.top - bounds.height - 8
-      if (top < 8) top = rect.bottom + 8
-      top = Math.max(8, Math.min(top, window.innerHeight - bounds.height - 8))
-    }
-    else if (top + bounds.height > window.innerHeight - 8) top = Math.max(8, rect.top - bounds.height - 8)
-    node.style.left = Math.max(8, Math.min(left, window.innerWidth - bounds.width - 8)) + 'px'
+      left = leftEdge + (width - floatingWidth) / 2
+      below = aboveTop < margin
+    } else if (belowTop + floatingHeight > window.innerHeight - margin && aboveTop >= margin) below = false
+    var top = below ? belowTop : aboveTop
+    left = Math.max(margin, Math.min(left, window.innerWidth - floatingWidth - margin))
+    top = Math.max(margin, Math.min(top, window.innerHeight - floatingHeight - margin))
+    node.style.left = left + 'px'
     node.style.top = top + 'px'
+    return { below: below, anchorX: leftEdge + width / 2 - left }
   }
   runtime.removeAfterTransition = function (node) {
     var removeCleanup = runtime.addCleanup(function () { node.remove() })

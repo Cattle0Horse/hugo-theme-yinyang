@@ -6,16 +6,9 @@ window.yinyangRuntime.register('tooltip', function (runtime) {
 
   function positionTooltip(target) {
     if (!tooltip || !target) return
-    var rect = target.getBoundingClientRect()
-    var tip = tooltip.getBoundingClientRect()
-    var top = rect.top - tip.height - 8
-    var below = top < 8
-    if (below) top = rect.bottom + 8
-    var left = rect.left + (rect.width - tip.width) / 2
-    left = Math.max(8, Math.min(left, window.innerWidth - tip.width - 8))
-    tooltip.style.left = left + 'px'
-    tooltip.style.top = top + 'px'
-    tooltip.classList.toggle('is-below', below)
+    var placement = runtime.positionFloating(tooltip, target, 'center', 4)
+    tooltip.classList.toggle('is-below', placement.below)
+    tooltip.style.setProperty('--tooltip-arrow-left', placement.anchorX + 'px')
   }
 
   function show(target, delayed) {

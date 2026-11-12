@@ -134,22 +134,54 @@
 .code-block-body:not(.is-folded) .expand-icon { transform: rotate(180deg); }
 
 .code-controls { display: flex; gap: 2px; margin-left: auto; }
-.code-block-wrapper.no-toolbar { position: relative; }
+.code-block-wrapper.no-toolbar {
+  --code-controls-width: calc(3 * var(--action-button-size) + 4px);
+  position: relative;
+}
 .code-block-wrapper.no-toolbar > .code-controls {
   position: absolute;
   top: 8px;
   right: 8px;
   z-index: 4;
 }
+/* Share floating controls and the local source fade across input devices.
+   Touch activation is explicit, so an emulated :hover cannot keep it open. */
+:root.yinyang-js .code-block-wrapper.no-toolbar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 3;
+  width: calc(var(--code-controls-width) + 24px);
+  height: calc(var(--action-button-size) + 16px);
+  background: var(--color-code-bg);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 8px), transparent), linear-gradient(to bottom, transparent, #000 8px, #000 calc(100% - 8px), transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 8px), transparent), linear-gradient(to bottom, transparent, #000 8px, #000 calc(100% - 8px), transparent);
+  mask-composite: intersect;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+:root.yinyang-js .code-block-wrapper .code-controls {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+:root.yinyang-js .code-block-wrapper:is(.is-code-active, :has(:focus-visible)) .code-controls {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+:root.yinyang-js .code-block-wrapper.no-toolbar:is(.is-code-active, :has(:focus-visible))::after {
+  opacity: 1;
+}
 @media (hover: hover) and (pointer: fine) {
-  .code-block-wrapper.no-toolbar > .code-controls {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(-2px);
-    transition: opacity 160ms ease, transform 160ms ease;
+  :root.yinyang-js .code-block-wrapper.no-toolbar:hover::after {
+    opacity: 1;
   }
-  .code-block-wrapper.no-toolbar:hover > .code-controls,
-  .code-block-wrapper.no-toolbar:focus-within > .code-controls {
+  :root.yinyang-js .code-block-wrapper:hover .code-controls {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
