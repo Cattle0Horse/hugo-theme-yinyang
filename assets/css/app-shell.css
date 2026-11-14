@@ -254,21 +254,26 @@ body {
   .app-scroll { padding-inline: 16px; }
 }
 
-/* ---- wide-screen (≥ 84em): body scroll ---- */
+/* ---- wide-screen (≥ 84em): root scroll ---- */
 
 @media (min-width: 84em) {
-  html { scrollbar-gutter: stable; }
+  html {
+    scrollbar-gutter: stable;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
 
   html,
   body {
-    overflow-y: auto;
-    overflow-x: hidden;
     height: auto;
     min-height: 100%;
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
     transition: scrollbar-color 0.3s;
   }
+
+  /* Clip elastic overflow without creating a second scrollbar on body. */
+  body { overflow: clip; }
 
   html.show-scrollbar {
     scrollbar-color: var(--color-scrollbar) transparent;
