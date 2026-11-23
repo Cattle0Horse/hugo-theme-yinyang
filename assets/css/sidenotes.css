@@ -1,0 +1,77 @@
+.sidenote-list {
+  display: grid;
+  gap: 12px;
+  margin-block-start: 20px;
+}
+
+.markdown-body .sidenote {
+  border-inline-start: 1px solid var(--color-border);
+  padding-inline-start: 10px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.markdown-body .sidenote > :first-child { margin-block-start: 0; }
+.markdown-body .sidenote > :last-child { margin-block-end: 0; }
+.markdown-body .sidenote p { margin-block: 0 8px; }
+.markdown-body .sidenote.sidenote-active { border-inline-start-color: var(--color-accent); }
+
+.sidenote-mark {
+  cursor: pointer;
+  text-decoration: underline dotted var(--color-text-muted) 1px;
+  text-underline-offset: 4px;
+}
+
+.sidenote-mark.sidenote-active { text-decoration-color: var(--color-accent); }
+
+.sidenote-inline {
+  display: grid;
+  gap: 10px;
+  margin-block: 0 16px;
+}
+
+.sidenote-link-toggle {
+  padding: 0;
+  min-height: 24px;
+  margin-block: 0 8px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font: 12px/1.5 var(--font-body);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.sidenote-link-toggle.sidenote-active { color: var(--color-accent); }
+.sidenote-mark:focus-visible, .sidenote-link-toggle:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+:is(.sidenote-list, .sidenote-inline, .sidenote-link-toggle)[hidden] { display: none; }
+
+@media (min-width: 84em) {
+  .sidenotes-wide {
+    position: relative;
+    padding-bottom: var(--sidenote-room, 0px);
+  }
+
+  .sidenotes-wide > .sidenote-list {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: calc(100% + 32px);
+    width: min(240px, calc((100vw - 800px) / 2 - 48px));
+    margin: 0;
+  }
+
+  .sidenotes-wide > .sidenote-list > .sidenote {
+    position: absolute;
+    top: var(--sidenote-top, 0px);
+    width: 100%;
+    box-sizing: border-box;
+  }
+}

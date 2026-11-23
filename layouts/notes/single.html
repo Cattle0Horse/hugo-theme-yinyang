@@ -12,7 +12,7 @@
       </div>
       {{ partial "note-source.html" . }}
     </header>
-    <div class="note-content note-single-content markdown-body">{{ .Content }}</div>
+    <div class="note-content note-single-content markdown-body">{{ partial "article-content.html" . }}</div>
     {{ partial "note-detail-tags.html" . }}
   </div></div>
 </article>

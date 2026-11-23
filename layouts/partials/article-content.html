@@ -1,0 +1,10 @@
+{{- $content := partialCached "sidenote-content.html" . .RelPermalink -}}
+{{- $content.html -}}
+{{- with $content.notes -}}
+  <section class="sidenote-list" aria-label="旁注">
+    {{- range . }}
+      {{- $prefix := printf "sidenote-%s-" .id }}
+      <aside class="sidenote" data-sidenote="{{ .id }}">{{ partial "content-fragments.html" (dict "html" .html "prefix" $prefix) }}</aside>
+    {{- end }}
+  </section>
+{{- end -}}

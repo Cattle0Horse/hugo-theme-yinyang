@@ -1,0 +1,104 @@
+{{- $raw := .RawContent -}}
+{{- if not (strings.Contains $raw "sidenote:") -}}
+  {{- return (dict "html" .Content "notes" (slice)) -}}
+{{- end -}}
+
+{{- $digest := crypto.MD5 $raw -}}
+{{- $separator := printf "\x1f%s\x1f" $digest -}}
+{{- $marker := printf "YYNOTE%s" $digest -}}
+{{- $ticks := "\x60" -}}
+{{- $fenceRunPattern := printf "(?:%s{3,}|~{3,})" $ticks -}}
+{{- $fencePattern := printf "(?m)^[ \t]{0,3}%s[^\n]*" $fenceRunPattern -}}
+{{- $tokens := printf `%s|%s+|(?s:<!--.*?-->)` $fencePattern $ticks -}}
+{{- $chunks := split (replaceRE $tokens (printf "%s${0}%s" $separator $separator) $raw) $separator -}}
+{{- $parts := slice -}}
+{{- $order := slice -}}
+{{- $entries := newScratch -}}
+{{- $fence := "" -}}
+{{- $code := "" -}}
+{{- $boundary := `(?s)^<!--[ \t]*(/?)sidenote:([0-9]+)([ \t]*\r?\n.*?)?[ \t]*-->$` -}}
+
+{{- range $i, $chunk := $chunks -}}
+  {{- $part := $chunk -}}
+  {{- if eq (mod $i 2) 1 -}}
+    {{- $trimmed := strings.TrimSpace $chunk -}}
+    {{- $before := index $chunks (sub $i 1) -}}
+    {{- $fenceRun := findRE (printf "^%s" $fenceRunPattern) $trimmed -}}
+    {{- if and $fenceRun (or (and (eq $i 1) (not $before)) (strings.HasSuffix $before "\n")) -}}
+      {{- $run := index $fenceRun 0 -}}
+      {{- if $fence -}}
+        {{- if and (hasPrefix $run $fence) (eq $run $trimmed) -}}{{- $fence = "" -}}{{- end -}}
+      {{- else -}}
+        {{- $fence = $run -}}
+        {{- $code = "" -}}
+      {{- end -}}
+    {{- else if and (not $fence) (hasPrefix $chunk $ticks) -}}
+      {{- if eq $code $chunk -}}
+        {{- $code = "" -}}
+      {{- else if not $code -}}
+        {{- range after (add $i 1) $chunks -}}
+          {{- if findRE `\r?\n[ \t]*\r?\n` . -}}{{- break -}}{{- end -}}
+          {{- if eq . $chunk -}}{{- $code = $chunk -}}{{- break -}}{{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- else if and (not $fence) (not $code) (not (strings.HasSuffix $before "\\")) -}}
+      {{- range findRESubmatch $boundary $chunk -}}
+        {{- $id := index . 2 -}}
+        {{- $closing := eq (index . 1) "/" -}}
+        {{- $body := index . 3 -}}
+        {{- $entry := $entries.Get $id | default (dict "phase" "" "defined" false "body" "" "invalid" false) -}}
+        {{- $part = "" -}}
+        {{- if and $body (not $closing) -}}
+          {{- $entry = merge $entry (dict "defined" true "body" (strings.TrimSpace $body) "invalid" (or $entry.invalid $entry.defined)) -}}
+        {{- else if $closing -}}
+          {{- $entry = merge $entry (dict "phase" "closed" "invalid" (or $entry.invalid (ne $entry.phase "open"))) -}}
+          {{- $part = printf "«%se%s»" $marker $id -}}
+        {{- else -}}
+          {{- if not $entry.phase -}}{{- $order = $order | append $id -}}{{- end -}}
+          {{- $entry = merge $entry (dict "phase" "open" "invalid" (or $entry.invalid (ne $entry.phase ""))) -}}
+          {{- $part = printf "«%ss%s»" $marker $id -}}
+        {{- end -}}
+        {{- $entries.Set $id $entry -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $parts = $parts | append $part -}}
+{{- end -}}
+
+{{- if not $entries.Values -}}
+  {{- return (dict "html" .Content "notes" (slice)) -}}
+{{- end -}}
+{{- $notes := slice -}}
+{{- $valid := dict -}}
+{{- $renderOptions := dict "display" "block" -}}
+{{- range $order -}}
+  {{- $entry := $entries.Get . -}}
+  {{- if and $entry.body (eq $entry.phase "closed") (not $entry.invalid) -}}
+    {{- $valid = merge $valid (dict . true) -}}
+    {{- $html := $.RenderString $renderOptions $entry.body -}}
+    {{- $notes = $notes | append (dict "id" . "html" $html) -}}
+  {{- end -}}
+{{- end -}}
+{{- range $id, $_ := $entries.Values -}}
+  {{- if not (index $valid $id) -}}
+    {{- warnf "%s: sidenote:%s requires one opening marker, one closing marker, and one non-empty definition" $.Path $id -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $markdown := delimit $parts "" -}}
+{{- $pattern := printf "«%s([se])([0-9]+)»" $marker -}}
+{{- range findRESubmatch $pattern $markdown -}}
+  {{- if not (index $valid (index . 2)) -}}
+    {{- $markdown = replace $markdown (index . 0) "" -}}
+  {{- end -}}
+{{- end -}}
+{{- $html := string (.RenderString $renderOptions $markdown) -}}
+{{- /* A marker in image alt text or a link title cannot be a DOM boundary. */ -}}
+{{- range findRE `(?s)<[a-zA-Z][a-zA-Z0-9:-]*(?:[^<>"']|"[^"]*"|'[^']*')*>` $html -}}
+  {{- if strings.Contains . $marker -}}
+    {{- $html = replace $html . (replaceRE $pattern "" .) -}}
+  {{- end -}}
+{{- end -}}
+{{- $html = replaceRE (printf "«%ss([0-9]+)»" $marker) `<span hidden data-sidenote-start="${1}"></span>` $html -}}
+{{- $html = replaceRE (printf "«%se([0-9]+)»" $marker) `<span hidden data-sidenote-end="${1}"></span>` $html -}}
+{{- return (dict "html" ($html | safeHTML) "notes" $notes) -}}

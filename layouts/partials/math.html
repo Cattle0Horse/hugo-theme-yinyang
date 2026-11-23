@@ -1,7 +1,12 @@
-{{- $content := string .Content -}}
+{{- $content := "" -}}
+{{- if and .IsPage (ne .Type "gallery") -}}
+  {{- $content = partial "article-content.html" . -}}
+{{- else -}}
+  {{- $content = string .Content -}}
+{{- end -}}
 {{- if or (and (eq .Section "notes") (eq .Kind "section")) (and (eq .Data.Plural "note_tags") (eq .Kind "term")) -}}
   {{- range (partial "notes-paginator.html" .).Pages -}}
-    {{- $content = printf "%s%s" $content .Content -}}
+    {{- $content = printf "%s%s" $content (partial "article-content.html" .) -}}
   {{- end -}}
 {{- end -}}
 {{- if strings.Contains $content `class="katex` -}}

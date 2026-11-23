@@ -309,12 +309,12 @@ body {
     padding: 0;
   }
 
-  /* TOC fixed to the right of centered content */
+  /* TOC fixed to the left of centered content */
   .app-main:has(.post-toc-sidebar) .post-toc-sidebar {
     position: fixed;
     top: 48px;
-    left: calc(50% + 432px);
-    right: auto;
+    left: auto;
+    right: calc(50% + 432px);
     bottom: 48px;
     z-index: auto;
     width: 240px;

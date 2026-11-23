@@ -27,7 +27,7 @@
         {{ with .Site.Params.postContent }}
           {{ if .enabled }}{{ .header | safeHTML }}{{ end }}
         {{ end }}
-        {{ .Content }}
+        {{ partial "article-content.html" . }}
       </div>
 
       {{ partial "post-tags.html" . }}
