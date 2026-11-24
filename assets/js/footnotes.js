@@ -120,7 +120,8 @@ window.yinyangRuntime.register('footnotes', function (runtime) {
     var text = bt.text
 
     var end = text.length
-    while (end > 0 && /\s/.test(text[end - 1])) end--
+    // A reference after punctuation belongs to the clause that just ended.
+    while (end > 0 && (/\s/.test(text[end - 1]) || SENT_PUNCT.test(text[end - 1]))) end--
 
     var start = clauseStart(text, end)
 
