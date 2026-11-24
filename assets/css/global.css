@@ -220,6 +220,28 @@ a.note-tag:is(:hover, :focus-visible) {
   text-decoration-color: var(--color-accent);
 }
 
+.markdown-body a.heading-permalink {
+  display: inline-block;
+  margin-inline-start: 0.4em;
+  color: var(--color-accent);
+  font-family: var(--font-code);
+  font-size: 0.8em;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.heading-permalink::after { content: "#" / ""; }
+
+@media (hover: hover) and (pointer: fine) {
+  .markdown-body .heading-permalink { opacity: 0; }
+  .markdown-body :is(h1, h2, h3, h4, h5, h6):hover > .heading-permalink,
+  .markdown-body .heading-permalink:focus-visible { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .markdown-body a.heading-permalink { transition: opacity 160ms ease; }
+}
+
 :where(a, button):focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 3px;

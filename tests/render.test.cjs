@@ -75,7 +75,7 @@ inline = [["$", "$"]]
     write(`content/notes/2026-08/${String(i).padStart(3, '0')}.md`, `---\ndate: 2026-08-01T12:00:${String(i).padStart(2, '0')}+08:00\nnote_tags: [math]\n---\n\n## Same heading\n\nReference[^1].\n\n[^1]: Footnote ${i}\n\n${i === 1 ? '$x^2$' : ''}${form}`)
   }
   write('content/posts/old.md', '---\ntitle: old\ndate: 2026-08-01\nlastmod: 2026-08-02\ntoc: false\ntags: [topic]\nai: assisted\nalbum: ["/a.png", "https://cdn.example.org/b.png"]\n---\n\n## Heading\n\nBody\n')
-  write('content/posts/new.md', '---\ntitle: new\ndate: 2026-08-01\ntoc: true\n---\n\n## Heading\n\nBody\n')
+  write('content/posts/new.md', '---\ntitle: new\ndate: 2026-08-01\ntoc: true\n---\n\n## 中文标题\n\nBody\n\n### **Custom** heading {#custom-id .reference data-kind="audit"}\n')
   write('content/posts/table.md', '---\ntitle: Table\n---\n\n| Left | Center | Right |\n| :--- | :---: | ---: |\n| [A & B](https://example.org/?a=1&b=2) | `<tag>` | **bold** |\n{#data-table .reference data-kind="audit"}\n')
   write('layouts/shortcodes/source.html', '<span>Rendered shortcode</span>')
   write('content/posts/bundle/index.md', '---\r\ntitle: 原文\r\nurl: /custom/source/\r\n---\r\n\r\n$x^2$ & <tag>\r\n\r\n{{< source >}}\r\n')
@@ -141,7 +141,25 @@ test('aggregated Notes preserve unique anchors, footnote targets and HTML refere
   assert.ok(page.includes('href="#appScroll"'))
   const detail = html('notes/2026-08/002/index.html')
   assert.ok(detail.includes('id="same-heading"'))
+  const chapterLinks = [...page.matchAll(/<h2\b[^>]*id="([^"]*same-heading)"[^>]*>Same heading<a\b[^>]*href="#([^"]+)"/g)]
+  assert.equal(chapterLinks.length, 30)
+  for (const [, id, fragment] of chapterLinks) assert.equal(fragment, id)
   assert.ok(detail.includes('id="email" name="email"'))
+})
+
+test('heading permalinks resolve to Unicode and author-specified IDs', () => {
+  const page = html('posts/new/index.html')
+  const headings = [...page.matchAll(/<h([23])\b[^>]*id="([^"]+)"([^>]*)>([\s\S]*?)<\/h\1>/g)]
+    .filter(([, , id]) => id === '中文标题' || id === 'custom-id')
+  assert.equal(headings.length, 2)
+  for (const [, , id, , content] of headings) {
+    const fragment = content.match(/<a\b[^>]*href="#([^"]+)"/)?.[1]
+    assert.equal(decodeURIComponent(fragment), id)
+  }
+  const [, , , attributes, content] = headings.find(([, , id]) => id === 'custom-id')
+  assert.match(attributes, /class="reference"/)
+  assert.match(attributes, /data-kind="audit"/)
+  assert.match(content, /<strong>Custom<\/strong> heading/)
 })
 
 test('TOC and disabled AI settings retain their configuration contract', () => {

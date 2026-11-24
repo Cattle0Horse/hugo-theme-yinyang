@@ -1,0 +1,12 @@
+<h{{ .Level }}{{ with .Anchor }} id="{{ . }}"{{ end }}
+  {{- range $name, $value := .Attributes -}}
+    {{- if and (ne (lower $name) "id") (not (hasPrefix (lower $name) "on")) -}}
+      {{- printf " %s=\"%s\"" $name ($value | string | htmlEscape) | safeHTMLAttr -}}
+    {{- end -}}
+  {{- end -}}>
+  {{- .Text -}}
+  {{- with .Anchor -}}
+    {{- $fragment := replace (urlquery .) "+" "%20" -}}
+    <a class="heading-permalink" href="{{ printf "#%s" $fragment | safeURL }}" aria-label="章节链接：{{ $.PlainText }}"></a>
+  {{- end -}}
+</h{{ .Level }}>
