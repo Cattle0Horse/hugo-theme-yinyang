@@ -58,9 +58,11 @@ unsafe = false
     '<!-- sidenote:1',
     '### Target',
     '',
-    'Supplement **bold** and $x^2$.',
+    'Supplement **bold**, *italic*, and $x^2$ with a footnote[^side].',
     '',
     '![Diagram](./diagram.svg)',
+    '',
+    '[^side]: Footnote inside the sidenote.',
     '-->',
     '',
     '<!-- sidenote:2',
@@ -103,7 +105,12 @@ unsafe = false
       html.match(/<h2[^>]*id="?target[\s\S]{0,500}/)?.[0])
     assert.match(html, /<strong>First<\/strong>/)
     assert.match(html, /<a href=(?:"#target"|#target)>over<span[^>]*data-sidenote-start=(?:"2"|2)><\/span>lap<\/a>/)
-    assert.match(html, /Supplement <strong>bold<\/strong>/)
+    const sidenote = html.match(/<aside\b[^>]*data-sidenote=(?:"1"|1)[ >][\s\S]*?<\/aside>/)?.[0] ?? ''
+    assert.match(sidenote, /Supplement <strong>bold<\/strong>, <em>italic<\/em>/)
+    assert.match(sidenote, /<math\b[\s\S]*?<annotation\b[^>]*>x\^2<\/annotation>[\s\S]*?<\/math>/)
+    assert.match(sidenote, /href="?#sidenote-1-fn:1"?[ >]/)
+    assert.match(sidenote, /id="?sidenote-1-fn:1"?[ >][\s\S]*?Footnote inside the sidenote\./)
+    assert.match(sidenote, /href="?#sidenote-1-fnref:1"?[ >]/)
     assert.match(html, /id=(?:"sidenote-1-target"|sidenote-1-target)[ >]/)
     assert.ok(html.includes('/sub/' + route + '/diagram.svg'))
     assert.match(html, /data-page-math/)
