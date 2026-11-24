@@ -14,7 +14,7 @@ async function flush() {
   for (let i = 0; i < 10; i++) await new Promise(resolve => setImmediate(resolve))
 }
 
-function navigationFixture({ math = true, analytics = false, leaving404 = false, oldStyles = false, target404 = false, withFooter = false, sharedTransition = false, transitionFails = false } = {}) {
+function navigationFixture({ math = true, analytics = false, leaving404 = false, oldStyles = false, target404 = false, withFooter = false, sharedTransition = false, transitionFails = false, initialFragment = '' } = {}) {
   const timers = new Map()
   const ready = []
   const font = deferred()
@@ -91,7 +91,7 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
     isEqualNode(other) { return JSON.stringify([...this.attributes]) === JSON.stringify([...other.attributes]) }
   }
   const location = {
-    href: 'https://example.test/', origin: 'https://example.test',
+    href: new URL(initialFragment, 'https://example.test/').href, origin: 'https://example.test',
     assign() { assert.fail('Unexpected full navigation') },
     replace() { assert.fail('Unexpected full navigation') }
   }
@@ -103,6 +103,9 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
   const runtimeScript = Object.assign(new Element(), { textContent: 'runtime' })
   const bundleScript = new Element({ src: '/bundle.js' })
   const heading = Object.assign(new Element(), { focus() {} })
+  const headingTarget = new Element({ id: '网络传输' }, 'H2')
+  const secondHeading = new Element({ id: 'second-section' }, 'H3')
+  const headingTargets = new Map([[headingTarget.getAttribute('id'), headingTarget], ['second-section', secondHeading]])
   const article = new Element()
   const originalFooter = withFooter ? Object.assign(new Element({}, 'FOOTER'), { textContent: 'Previous footer' }) : null
   const footer = withFooter ? Object.assign(new Element({}, 'FOOTER'), { textContent: 'New footer' }) : null
@@ -213,12 +216,18 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
       guard(callback) { return (...args) => { if (this.active) return callback(...args) } },
       addCleanup(callback) { cleanups.add(callback); return () => cleanups.delete(callback) },
       requestAnimationFrame: animationFrame,
-      onMotionEnd(node, options, callback) { motions.push(callback) },
+      onMotionEnd(node, options, callback) {
+        motions.push(callback)
+        return () => {
+          const index = motions.indexOf(callback)
+          if (index >= 0) motions.splice(index, 1)
+        }
+      },
       scroll: {
         capture: () => ({ top: 0 }), onChange() {},
         viewport: () => ({ top: 0, bottom: 800 }),
         element: () => ({ scrollTo() {} }), restore() {},
-        target: hash => hash,
+        target: hash => headingTargets.get(decodeURIComponent(hash.slice(1))) || hash,
         scrollToElement(hash) { restoredHash = hash }
       }
     }
@@ -262,11 +271,11 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
     clearTimeout: id => timers.delete(id),
     requestAnimationFrame: animationFrame
   }
-  for (const filename of ['not-found.js', 'navigation.js']) {
+  for (const filename of ['heading-feedback.js', 'not-found.js', 'navigation.js']) {
     vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../assets/js', filename), 'utf8'), context)
   }
   return {
-    ready, font, scene, article, shell, document, window, location, originalBody, lifecycle,
+    ready, font, scene, article, shell, document, window, location, originalBody, lifecycle, headingTarget, secondHeading,
     previousStyle, previousStylesheet, previousTitle,
     sharedTargets, sharedFinished,
     get sharedStarted() { return sharedStarted },
@@ -301,6 +310,26 @@ function navigationFixture({ math = true, analytics = false, leaving404 = false,
     }
   }
 }
+
+test('the section marker plays on a direct fragment and replays without scrolling', async () => {
+  const fixture = navigationFixture({ math: false, initialFragment: '#网络传输' })
+  await flush()
+  assert.equal(fixture.restoredHash, fixture.headingTarget)
+  assert.ok(fixture.headingTarget.classList.contains('heading-target'))
+  fixture.finishTransition()
+  assert.equal(fixture.headingTarget.classList.contains('heading-target'), false)
+
+  const href = fixture.location.href
+  await fixture.navigate('#网络传输')
+  assert.equal(fixture.location.href, href)
+  assert.ok(fixture.headingTarget.classList.contains('heading-target'))
+
+  await fixture.navigate('#second-section')
+  assert.equal(fixture.headingTarget.classList.contains('heading-target'), false)
+  assert.ok(fixture.secondHeading.classList.contains('heading-target'))
+  fixture.lifecycle.page.dispose()
+  assert.equal(fixture.secondHeading.classList.contains('heading-target'), false)
+})
 
 test('navigation retains the current document and URL until formula CSS and fonts are ready', async () => {
   const fixture = navigationFixture()

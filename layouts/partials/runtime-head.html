@@ -2,7 +2,7 @@
   <script data-yinyang-runtime>{{ .Content | safeJS }}</script>
   {{- end -}}
   {{- $scripts := slice -}}
-  {{- range slice "spring" "scroll" "ui-helpers" "button-press" "tooltip" "lists" "sidenotes" "copy" "tables" "scrollbar" "scroll-boundary" "markdown-actions" "code-toolbar" "image-loading" "reading-count" "header-nav" "appearance" "toc" "footnotes" "not-found-resources" "not-found" "navigation" -}}
+  {{- range slice "spring" "scroll" "ui-helpers" "button-press" "tooltip" "lists" "sidenotes" "copy" "tables" "scrollbar" "scroll-boundary" "markdown-actions" "code-toolbar" "image-loading" "reading-count" "header-nav" "appearance" "heading-feedback" "toc" "footnotes" "not-found-resources" "not-found" "navigation" -}}
     {{- $scripts = $scripts | append (resources.Get (printf "js/%s.js" .)) -}}
   {{- end -}}
   {{- with $scripts | resources.Concat "js/yinyang.js" | minify | fingerprint -}}

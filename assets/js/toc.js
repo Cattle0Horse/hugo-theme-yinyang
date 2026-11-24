@@ -162,7 +162,7 @@ window.yinyangRuntime.register('toc', function (runtime) {
   runtime.addCleanup(runtime.scroll.onModeChange(syncMode))
   syncMode()
 
-  // Scrollspy and heading feedback.
+  // Scrollspy.
   function decodeHash(hash) {
     try {
       return decodeURIComponent(hash)
@@ -186,22 +186,6 @@ window.yinyangRuntime.register('toc', function (runtime) {
   })
 
   var indicator = document.getElementById('tocIndicator')
-  var highlightedHeading = null
-  var cancelHighlight = null
-  function clearHeadingHighlight() {
-    if (cancelHighlight) cancelHighlight()
-    cancelHighlight = null
-    if (highlightedHeading) highlightedHeading.classList.remove('toc-target')
-    highlightedHeading = null
-  }
-  function highlightHeading(target) {
-    clearHeadingHighlight()
-    highlightedHeading = target
-    target.offsetWidth
-    target.classList.add('toc-target')
-    cancelHighlight = runtime.onMotionEnd(target, { type: 'animationend', animation: 'toc-target-fade', timeout: 2400 }, clearHeadingHighlight)
-  }
-  runtime.addCleanup(clearHeadingHighlight)
   function updateActive() {
     if (!entries.length) return
     var viewport = runtime.scroll.viewport()
@@ -267,7 +251,7 @@ window.yinyangRuntime.register('toc', function (runtime) {
     if (!runtime.scroll.isWide()) closeToc(true)
     runtime.requestAnimationFrame(function () {
       runtime.scroll.scrollToElement(target, { offset: headingOffset() })
-      highlightHeading(target)
+      runtime.highlightHeading(target)
     })
     runtime.pushHash(link.getAttribute('href'))
   })

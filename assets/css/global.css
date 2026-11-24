@@ -242,6 +242,32 @@ a.note-tag:is(:hover, :focus-visible) {
   .markdown-body a.heading-permalink { transition: opacity 160ms ease; }
 }
 
+.heading-target { position: relative; }
+
+.heading-target::before {
+  content: "";
+  position: absolute;
+  top: 0.7em;
+  left: -0.6em;
+  width: 0.22em;
+  height: 0.22em;
+  border: solid var(--color-accent);
+  border-width: 2px 2px 0 0;
+  rotate: 45deg;
+  pointer-events: none;
+  animation: heading-target-arrow 1450ms ease-out both;
+}
+
+@keyframes heading-target-arrow {
+  0% { opacity: 1; translate: -4px -50%; }
+  20%, 60% { opacity: 1; translate: 0 -50%; }
+  100% { opacity: 0; translate: 0 -50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heading-target::before { animation-timing-function: steps(1, jump-start); }
+}
+
 :where(a, button):focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 3px;

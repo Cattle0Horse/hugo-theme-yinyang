@@ -28,7 +28,10 @@
     var page = lifecycle.page
     if (page.footnotes && page.footnotes.followHash(hash, { scroll: true, behavior: behavior })) return
     var target = page.scroll.target(hash)
-    if (target) page.scroll.scrollToElement(target, { behavior: behavior })
+    if (target) {
+      page.scroll.scrollToElement(target, { behavior: behavior })
+      page.highlightHeading(target)
+    }
   }
   function nextFrame() { return new Promise(function (resolve) { requestAnimationFrame(resolve) }) }
   async function settleHash(url, follow) {
