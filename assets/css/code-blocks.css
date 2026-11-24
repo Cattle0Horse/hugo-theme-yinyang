@@ -34,22 +34,6 @@
 
 .code-lang:empty { display: none; }
 
-.code-copy-btn {
-  font-size: 12px;
-  font-family: inherit;
-  color: var(--color-text-muted);
-  background: transparent;
-  border: 0;
-  border-radius: 4px;
-  padding: 2px 8px;
-  cursor: pointer;
-  transition: color 0.15s, background 0.15s;
-}
-
-.code-copy-btn:hover {
-  color: var(--color-text);
-}
-
 .code-block-wrapper .highlight {
   margin: 0;
 }
@@ -135,7 +119,8 @@
 
 .code-controls { display: flex; gap: 2px; margin-left: auto; }
 .code-block-wrapper.no-toolbar {
-  --code-controls-width: calc(3 * var(--action-button-size) + 4px);
+  --floating-actions-width: calc(3 * var(--action-button-size) + 4px);
+  --floating-actions-background: var(--color-code-bg);
   position: relative;
 }
 .code-block-wrapper.no-toolbar > .code-controls {
@@ -144,48 +129,8 @@
   right: 8px;
   z-index: 4;
 }
-/* Share floating controls and the local source fade across input devices.
-   Touch activation is explicit, so an emulated :hover cannot keep it open. */
-:root.yinyang-js .code-block-wrapper.no-toolbar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
+.code-block-wrapper.no-toolbar::after {
   z-index: 3;
-  width: calc(var(--code-controls-width) + 24px);
-  height: calc(var(--action-button-size) + 16px);
-  background: var(--color-code-bg);
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 8px), transparent), linear-gradient(to bottom, transparent, #000 8px, #000 calc(100% - 8px), transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 8px), transparent), linear-gradient(to bottom, transparent, #000 8px, #000 calc(100% - 8px), transparent);
-  mask-composite: intersect;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 160ms ease;
-}
-:root.yinyang-js .code-block-wrapper .code-controls {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-2px);
-  transition: opacity 160ms ease, transform 160ms ease;
-}
-:root.yinyang-js .code-block-wrapper:is(.is-code-active, :has(:focus-visible)) .code-controls {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-:root.yinyang-js .code-block-wrapper.no-toolbar:is(.is-code-active, :has(:focus-visible))::after {
-  opacity: 1;
-}
-@media (hover: hover) and (pointer: fine) {
-  :root.yinyang-js .code-block-wrapper.no-toolbar:hover::after {
-    opacity: 1;
-  }
-  :root.yinyang-js .code-block-wrapper:hover .code-controls {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0);
-  }
 }
 .code-toggle {
   padding: 2px 8px;

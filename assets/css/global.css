@@ -330,6 +330,34 @@ a.note-tag:is(:hover, :focus-visible) {
   padding-bottom: var(--table-hint-space);
 }
 
+.table-tools {
+  --floating-actions-width: var(--action-button-size);
+  --floating-actions-background: var(--color-bg);
+  --floating-actions-block-inset: 4px;
+  caption-side: top;
+  height: 0;
+  position: relative;
+  z-index: 1;
+}
+
+table:has(> thead) > .table-tools {
+  --floating-actions-background: var(--color-table-header-bg);
+}
+
+.table-tools::after {
+  z-index: -1;
+  max-inline-size: 100%;
+}
+
+.table-tools > .table-copy-btn {
+  position: absolute;
+  inset-block-start: var(--floating-actions-block-inset);
+  inset-inline-end: 8px;
+  inline-size: var(--action-button-size);
+}
+
+:root:not(.yinyang-js) .table-tools { display: none; }
+
 .table-scroll {
   max-width: 100%;
   overflow-x: auto;

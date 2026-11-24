@@ -1,0 +1,11 @@
+{{- $classes := slice "action-button" -}}
+{{- with .class }}{{ $classes = $classes | append . }}{{ end -}}
+{{- if .state }}{{ $classes = $classes | append "state-button" }}{{ end -}}
+<button class="{{ delimit $classes " " }}" type="button" aria-label="{{ .label }}" data-tooltip="{{ .label }}"
+  {{- range $key, $value := .attrs }}{{ printf " %s=%q" $key $value | safeHTMLAttr }}{{ end }}>
+  {{- if .copyIcons -}}
+    {{ partial "copy-icons.html" . }}
+  {{- else -}}
+    {{- with .icon }}{{ partial "icon.html" (dict "name" . "wrap" "action-icon") }}{{ end -}}
+  {{- end -}}
+</button>

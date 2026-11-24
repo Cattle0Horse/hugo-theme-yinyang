@@ -124,19 +124,7 @@ window.yinyangRuntime.register('code-toolbar', function (runtime) {
   document.querySelectorAll('.markdown-body pre').forEach(enhancePlainPre)
 
   var wrappers = document.querySelectorAll('.code-block-wrapper')
-  var activeWrapper = null
-  function activate(wrapper) {
-    if (activeWrapper === wrapper) return
-    if (activeWrapper) activeWrapper.classList.remove('is-code-active')
-    activeWrapper = wrapper
-    if (activeWrapper) activeWrapper.classList.add('is-code-active')
-  }
-  if (wrappers.length) {
-    runtime.listen(document, 'click', function (event) {
-      activate(event.target.closest ? event.target.closest('.code-block-wrapper') : null)
-    }, true)
-    runtime.addCleanup(function () { activate(null) })
-  }
+  if (wrappers.length) runtime.bindFloatingActions('.code-block-wrapper')
 
   wrappers.forEach(function (wrapper) {
     var viewport = wrapper.querySelector('.code-scroll-viewport')

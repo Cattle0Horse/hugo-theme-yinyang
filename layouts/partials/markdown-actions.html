@@ -3,21 +3,15 @@
 
 <span class="markdown-actions">
   {{ with $s.editURL }}
-  <button id="edit-page-btn" class="markdown-action-btn action-button" type="button" aria-label="编辑原文" data-tooltip="编辑原文">
-    <span class="action-icon">{{ partial "icon.html" (dict "name" "edit") }}</span>
-  </button>
+  {{ partial "action-button.html" (dict "class" "markdown-action-btn" "label" "编辑原文" "icon" "edit" "attrs" (dict "id" "edit-page-btn")) }}
   {{ printf "<script id=\"edit-page-url\" type=\"text/plain\">%s</script>" . | safeHTML }}
   {{ end }}
   {{ with $s.rawURL }}
-  <button id="view-raw-btn" class="markdown-action-btn action-button" type="button" aria-label="查看原始 Markdown" data-tooltip="查看原始 Markdown">
-    <span class="action-icon">{{ partial "icon.html" (dict "name" "file") }}</span>
-  </button>
+  {{ partial "action-button.html" (dict "class" "markdown-action-btn" "label" "查看原始 Markdown" "icon" "file" "attrs" (dict "id" "view-raw-btn")) }}
   {{ printf "<script id=\"raw-page-url\" type=\"text/plain\">%s</script>" . | safeHTML }}
   {{ end }}
   {{ if $s.canCopyMarkdown }}
-  <button id="copy-markdown-btn" class="markdown-action-btn action-button state-button" type="button" aria-label="复制 Markdown" data-tooltip="复制 Markdown">
-    {{ partial "copy-icons.html" . }}
-  </button>
+  {{ partial "action-button.html" (dict "class" "markdown-action-btn copy-button" "label" "复制 Markdown" "state" true "copyIcons" true "attrs" (dict "id" "copy-markdown-btn")) }}
   {{ end }}
 </span>
 {{ if $s.canCopyMarkdown }}

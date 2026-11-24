@@ -38,6 +38,19 @@ window.yinyangRuntime.register('ui-helpers', function (runtime) {
     var removeCleanup = runtime.addCleanup(function () { node.remove() })
     runtime.onMotionEnd(node, { property: 'opacity', timeout: 220 }, function () { removeCleanup(); node.remove() })
   }
+  runtime.bindFloatingActions = function (selector) {
+    var active = null
+    function activate(next) {
+      if (active === next) return
+      if (active) active.classList.remove('is-floating-actions-active')
+      active = next
+      if (active) active.classList.add('is-floating-actions-active')
+    }
+    runtime.listen(document, 'click', function (event) {
+      activate(event.target.closest ? event.target.closest(selector) : null)
+    }, true)
+    runtime.addCleanup(function () { activate(null) })
+  }
   runtime.adjacentControl = function (trigger, backward, excluded) {
     var controls = Array.prototype.slice.call(document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
       .filter(function (control) {

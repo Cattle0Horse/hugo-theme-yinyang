@@ -185,7 +185,14 @@ test('metadata and links support subdirectory deployment and custom taxonomy URL
 })
 
 test('table rendering preserves author attributes, column alignment and inline content', () => {
-  const table = html('posts/table/index.html').match(/<table\b[\s\S]*?<\/table>/)[0]
+  const page = html('posts/table/index.html')
+  const table = page.match(/<table\b[\s\S]*?<\/table>/)[0]
+  assert.match(table, /<caption class="table-tools">[\s\S]*data-copy-table/)
+  assert.equal((page.match(/data-copy-table/g) || []).length, 1)
+  assert.match(page, /<button[^>]*class="action-button table-copy-btn copy-button state-button"[^>]*aria-label="复制表格"[^>]*data-copy-table/)
+  assert.match(page, /state-icon-default/)
+  assert.match(page, /state-icon-success/)
+  assert.match(page, /state-icon-error/)
   assert.match(table, /\bid="data-table"/)
   assert.match(table, /\bdata-kind="audit"/)
   const rows = [...table.matchAll(/<tr>([\s\S]*?)<\/tr>/g)].map(match => match[1])

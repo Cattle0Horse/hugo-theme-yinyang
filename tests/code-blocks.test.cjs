@@ -26,7 +26,7 @@ wrap = ${enabled}
       const states = [...html.matchAll(/data-line-numbers="(true|false)" data-wrap="(true|false)"/g)]
         .map(m => [m[1] === 'true', m[2] === 'true'])
       assert.deepEqual(states, [[enabled, enabled], [false, enabled], [true, enabled], [enabled, enabled]])
-      const buttons = [...html.matchAll(/data-code-toggle="(numbers|wrap)"[^>]*aria-pressed="(true|false)"/g)]
+      const buttons = [...html.matchAll(/<button(?=[^>]*data-code-toggle="(numbers|wrap)")(?=[^>]*aria-pressed="(true|false)")[^>]*>/g)]
         .map(m => m[2] === 'true')
       assert.deepEqual(buttons, states.flat())
       assert.match(html, /&lt;plain&gt;/)

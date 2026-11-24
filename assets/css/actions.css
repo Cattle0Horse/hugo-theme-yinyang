@@ -34,6 +34,72 @@
 .action-button[aria-disabled="true"] { cursor: default; }
 .action-icon { display: inline-flex; width: var(--action-icon-size); height: var(--action-icon-size); }
 
+.copy-button {
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.copy-button:hover { color: var(--color-text); }
+
+/* Fade the underlying content where floating actions appear. */
+:root.yinyang-js :is(.code-block-wrapper, .table-scroll) {
+  --floating-actions-opacity: 0;
+  --floating-actions-pointer-events: none;
+  --floating-actions-offset: -2px;
+}
+
+:root.yinyang-js :is(.code-block-wrapper, .table-scroll):is(.is-floating-actions-active, :has(:focus-visible)) {
+  --floating-actions-opacity: 1;
+  --floating-actions-pointer-events: auto;
+  --floating-actions-offset: 0px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :root.yinyang-js :is(.code-block-wrapper, .table-scroll):hover {
+    --floating-actions-opacity: 1;
+    --floating-actions-pointer-events: auto;
+    --floating-actions-offset: 0px;
+  }
+}
+
+:root.yinyang-js :is(.code-block-wrapper.no-toolbar, .table-tools)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: calc(var(--floating-actions-width) + 24px);
+  height: calc(var(--action-button-size) + 2 * var(--floating-actions-block-inset, 8px));
+  background: var(--floating-actions-background);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 8px), transparent), linear-gradient(to bottom, transparent, #000 8px, #000 calc(100% - 8px), transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 8px), transparent), linear-gradient(to bottom, transparent, #000 8px, #000 calc(100% - 8px), transparent);
+  mask-composite: intersect;
+  pointer-events: none;
+  opacity: var(--floating-actions-opacity);
+  transition: opacity 160ms ease;
+}
+
+:root.yinyang-js :is(.code-block-wrapper > .code-controls, .table-tools > .table-copy-btn) {
+  opacity: var(--floating-actions-opacity);
+  pointer-events: var(--floating-actions-pointer-events);
+  transform: translateY(var(--floating-actions-offset));
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root.yinyang-js :is(.code-block-wrapper.no-toolbar, .table-tools)::after,
+  :root.yinyang-js :is(.code-block-wrapper > .code-controls, .table-tools > .table-copy-btn) {
+    transition: none;
+  }
+}
+
 .header-item a,
 .terms-link,
 .edit-page a {

@@ -1,5 +1,62 @@
 window.yinyangRuntime.register('tables', function (runtime) {
   var tables = []
+
+  function cellText(cell) {
+    return String(cell.textContent || '').replace(/\s+/g, ' ').trim().replace(/\|/g, '\\|')
+  }
+
+  function cellAlignment(cell) {
+    var style = cell.getAttribute && cell.getAttribute('style') || ''
+    var match = style.match(/text-align\s*:\s*(left|center|right)/i)
+    return match ? match[1].toLowerCase() : ''
+  }
+
+  function alignmentMarker(cell) {
+    var alignment = cellAlignment(cell)
+    if (alignment === 'left') return ':---'
+    if (alignment === 'center') return ':---:'
+    if (alignment === 'right') return '---:'
+    return '---'
+  }
+
+  function serializeTable(table) {
+    var rows = Array.prototype.slice.call(table.rows)
+    if (!rows.length) return ''
+    var header = rows.shift()
+    var headerCells = Array.prototype.map.call(header.cells, cellText)
+    var lines = [
+      '| ' + headerCells.join(' | ') + ' |',
+      '| ' + Array.prototype.map.call(header.cells, alignmentMarker).join(' | ') + ' |'
+    ]
+    rows.forEach(function (row) {
+      lines.push('| ' + Array.prototype.map.call(row.cells, cellText).join(' | ') + ' |')
+    })
+    return lines.join('\n')
+  }
+
+  function addTableTools(wrapper, table) {
+    var tools = table.querySelector('.table-tools')
+    if (!tools) {
+      tools = document.createElement('caption')
+      tools.className = 'table-tools'
+      table.insertBefore(tools, table.firstChild)
+    }
+    var button = tools.querySelector('[data-copy-table]')
+    if (!button) {
+      button = document.createElement('button')
+      button.className = 'table-copy-btn copy-button action-button state-button'
+      button.type = 'button'
+      button.setAttribute('aria-label', '复制表格')
+      button.setAttribute('data-tooltip', '复制表格')
+      button.setAttribute('data-copy-table', '')
+      button.innerHTML = runtime.config && runtime.config.copyIcons || ''
+      tools.appendChild(button)
+    }
+    if (button.dataset.tableCopyBound === 'true') return
+    button.dataset.tableCopyBound = 'true'
+    if (runtime.bindCopyButton) runtime.bindCopyButton(button, serializeTable(table), { defaultLabel: '复制表格' })
+  }
+
   document.querySelectorAll('.markdown-body table').forEach(function (table) {
     if (table.closest('.highlight')) return
     var wrapper = table.closest('.table-wrapper')
@@ -18,8 +75,11 @@ window.yinyangRuntime.register('tables', function (runtime) {
       wrapper.append(region, hint)
       region.appendChild(table)
     }
+    addTableTools(wrapper, table)
     tables.push({ region: region, hint: hint })
   })
+
+  if (tables.length) runtime.bindFloatingActions('.table-scroll')
 
   function updateTables() {
     tables.forEach(function (item) {

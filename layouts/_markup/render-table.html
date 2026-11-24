@@ -4,6 +4,9 @@
       {{- range $key, $value := .Attributes }}
         {{- if $value }}{{ printf " %s=%q" $key $value | safeHTMLAttr }}{{ end }}
       {{- end }}>
+      <caption class="table-tools">
+        {{ partial "action-button.html" (dict "class" "table-copy-btn copy-button" "label" "复制表格" "state" true "copyIcons" true "attrs" (dict "data-copy-table" "")) }}
+      </caption>
       <thead>
         {{- range .THead }}
         <tr>
