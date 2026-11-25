@@ -53,6 +53,9 @@
 
 :is(.sidenote-list, .sidenote-inline, .sidenote-link-toggle)[hidden] { display: none; }
 
+/* Keep the in-flow fallback out of the first paint while the runtime mounts. */
+.yinyang-js .markdown-body:not(.sidenotes-wide) > .sidenote-list { display: none; }
+
 @media (min-width: 84em) {
   .sidenotes-wide {
     position: relative;

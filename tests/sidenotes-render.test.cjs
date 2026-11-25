@@ -41,7 +41,7 @@ unsafe = false
     '',
     '<!-- sidenote:1 -->**First** [over<!-- sidenote:2 -->lap](#target)<!-- /sidenote:1 --> tail<!-- /sidenote:2 -->.',
     '',
-    'Ordinary footnote[^ref] and {{< fixture >}}.',
+    'Ordinary footnote[^ref], a definition from the sidenote[^side], and {{< fixture >}}.',
     '',
     'See [中文](#中文).',
     '',
@@ -58,15 +58,16 @@ unsafe = false
     '<!-- sidenote:1',
     '### Target',
     '',
-    'Supplement **bold**, *italic*, and $x^2$ with a footnote[^side].',
+    'Supplement **bold**, *italic*, and $x^2$ with shared footnotes[^ref][^side] and a third one[^third].',
     '',
     '![Diagram](./diagram.svg)',
     '',
     '[^side]: Footnote inside the sidenote.',
+    '[^third]: Footnote referenced only by the sidenote.',
     '-->',
     '',
     '<!-- sidenote:2',
-    'Second supplement.',
+    'Second supplement.[^ref]',
     '-->',
     '',
     'Keep <!-- sidenote:90 -->unclosed text.',
@@ -108,10 +109,19 @@ unsafe = false
     const sidenote = html.match(/<aside\b[^>]*data-sidenote=(?:"1"|1)[ >][\s\S]*?<\/aside>/)?.[0] ?? ''
     assert.match(sidenote, /Supplement <strong>bold<\/strong>, <em>italic<\/em>/)
     assert.match(sidenote, /<math\b[\s\S]*?<annotation\b[^>]*>x\^2<\/annotation>[\s\S]*?<\/math>/)
-    assert.match(sidenote, /href="?#sidenote-1-fn:1"?[ >]/)
-    assert.match(sidenote, /id="?sidenote-1-fn:1"?[ >][\s\S]*?Footnote inside the sidenote\./)
-    assert.match(sidenote, /href="?#sidenote-1-fnref:1"?[ >]/)
-    assert.match(html, /id=(?:"sidenote-1-target"|sidenote-1-target)[ >]/)
+    assert.match(sidenote, /href="?#fn:1"?[ >][^>]*>1<\/a>/)
+    assert.match(sidenote, /href="?#fn:2"?[ >][^>]*>2<\/a>/)
+    assert.match(sidenote, /href="?#fn:3"?[ >][^>]*>3<\/a>/)
+    assert.doesNotMatch(sidenote, /Footnote inside the sidenote\./)
+    const footnotes = html.match(/<div class="?footnotes"?[^>]*>[\s\S]*?<\/div>/g) ?? []
+    assert.equal(footnotes.length, 1)
+    assert.match(footnotes[0], /id="?fn:2"?[ >][\s\S]*?Footnote inside the sidenote\./)
+    const references = Array.from(html.matchAll(/<sup id="?(fnref[^" >]+)"?[ >]/g), match => match[1])
+    assert.equal(new Set(references).size, 6)
+    for (const id of references) assert.ok(footnotes[0].includes('href=#' + id + ' ') || footnotes[0].includes('href="#' + id + '"'), id)
+    const localHeading = sidenote.match(/<h3 id="?([^" >]+)"?>Target/)?.[1]
+    assert.match(localHeading ?? '', /^sidenote-1-target(?:-\d+)?$/)
+    assert.match(sidenote, new RegExp('class=heading-permalink href="?#' + localHeading + '"?[ >]'))
     assert.ok(html.includes('/sub/' + route + '/diagram.svg'))
     assert.match(html, /data-page-math/)
     assert.match(html, /data-fixture[^>]*>Shortcode output/)
@@ -127,4 +137,7 @@ unsafe = false
   assert.match(timeline, /href=(?:"#note-[a-f\d]+-target"|#note-[a-f\d]+-target)/)
   assert.match(timeline, /href=(?:"#note-[a-f\d]+-中文"|#note-[a-f\d]+-中文)/)
   assert.match(timeline, /data-page-math/)
+  const timelineReferences = Array.from(timeline.matchAll(/<sup id="?(note-[a-f\d]+-fnref[^" >]+)"?[ >]/g), match => match[1])
+  assert.equal(new Set(timelineReferences).size, 12)
+  for (const id of timelineReferences) assert.ok(timeline.includes('href=#' + id + ' ') || timeline.includes('href="#' + id + '"'), id)
 })

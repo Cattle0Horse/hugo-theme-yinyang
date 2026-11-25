@@ -68,15 +68,14 @@
 {{- if not $entries.Values -}}
   {{- return (dict "html" .Content "notes" (slice)) -}}
 {{- end -}}
-{{- $notes := slice -}}
+{{- $validNotes := slice -}}
 {{- $valid := dict -}}
 {{- $renderOptions := dict "display" "block" -}}
 {{- range $order -}}
   {{- $entry := $entries.Get . -}}
   {{- if and $entry.body (eq $entry.phase "closed") (not $entry.invalid) -}}
     {{- $valid = merge $valid (dict . true) -}}
-    {{- $html := $.RenderString $renderOptions $entry.body -}}
-    {{- $notes = $notes | append (dict "id" . "html" $html) -}}
+    {{- $validNotes = $validNotes | append (dict "id" . "body" $entry.body) -}}
   {{- end -}}
 {{- end -}}
 {{- range $id, $_ := $entries.Values -}}
@@ -92,7 +91,34 @@
     {{- $markdown = replace $markdown (index . 0) "" -}}
   {{- end -}}
 {{- end -}}
-{{- $html := string (.RenderString $renderOptions $markdown) -}}
+{{- $notes := slice -}}
+{{- $footnotes := "" -}}
+{{- $html := "" -}}
+{{- if $validNotes -}}
+  {{- /* The final delimiter separates the last note from the footnotes emitted by Goldmark. */ -}}
+  {{- $divider := printf "%sSECTION" $marker -}}
+  {{- $sections := slice $markdown -}}
+  {{- range $validNotes -}}{{- $sections = $sections | append .body -}}{{- end -}}
+  {{- $sections = $sections | append "" -}}
+  {{- $combined := delimit $sections (printf "\n\n%s\n\n" $divider) -}}
+  {{- $rendered := string (.RenderString $renderOptions $combined) -}}
+  {{- $renderedSections := split $rendered (printf "<p>%s</p>\n" $divider) -}}
+  {{- if eq (len $renderedSections) (len $sections) -}}
+    {{- $html = index $renderedSections 0 -}}
+    {{- range $i, $note := $validNotes -}}
+      {{- $notes = $notes | append (dict "id" $note.id "html" (index $renderedSections (add $i 1))) -}}
+    {{- end -}}
+    {{- $footnotes = index $renderedSections (sub (len $renderedSections) 1) -}}
+  {{- else -}}
+    {{- warnf "%s: an unclosed Markdown block prevents sharing sidenote footnotes" .Path -}}
+    {{- $html = string (.RenderString $renderOptions $markdown) -}}
+    {{- range $validNotes -}}
+      {{- $notes = $notes | append (dict "id" .id "html" ($.RenderString $renderOptions .body)) -}}
+    {{- end -}}
+  {{- end -}}
+{{- else -}}
+  {{- $html = string (.RenderString $renderOptions $markdown) -}}
+{{- end -}}
 {{- /* A marker in image alt text or a link title cannot be a DOM boundary. */ -}}
 {{- range findRE `(?s)<[a-zA-Z][a-zA-Z0-9:-]*(?:[^<>"']|"[^"]*"|'[^']*')*>` $html -}}
   {{- if strings.Contains . $marker -}}
@@ -101,4 +127,4 @@
 {{- end -}}
 {{- $html = replaceRE (printf "«%ss([0-9]+)»" $marker) `<span hidden data-sidenote-start="${1}"></span>` $html -}}
 {{- $html = replaceRE (printf "«%se([0-9]+)»" $marker) `<span hidden data-sidenote-end="${1}"></span>` $html -}}
-{{- return (dict "html" ($html | safeHTML) "notes" $notes) -}}
+{{- return (dict "html" ($html | safeHTML) "notes" $notes "footnotes" ($footnotes | safeHTML)) -}}

@@ -5,6 +5,10 @@
 {{- $anchors := dict -}}
 {{- /* Collect targets first so references to IDs outside this fragment remain intact. */ -}}
 {{- range $tags -}}
+  {{- /* Shared footnote backlinks live outside this sidenote and use the original IDs. */ -}}
+  {{- if and $.sharedFootnotes (findRE `(?i)^<sup\s+(?:[^>]*\s)?id=["'][^"']*fnref[0-9]*:[^"']+["']` .) -}}
+    {{- continue -}}
+  {{- end -}}
   {{- range findRE `(?i)\sid\s*=\s*["'][^"']+["']` . -}}
     {{- $id := replaceRE `(?is)^.*?=[\s"']*([^"']+)["']$` `${1}` . -}}
     {{- $ids = merge $ids (dict $id (printf "%s%s" $prefix $id)) -}}

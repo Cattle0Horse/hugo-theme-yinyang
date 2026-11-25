@@ -184,6 +184,7 @@ window.yinyangRuntime.register('footnotes', function (runtime) {
     if (!target) return false
     var kind = targetKind(target)
     if (!kind) return false
+    if (kind === 'reference' && runtime.revealSidenote) runtime.revealSidenote(target)
     clearHighlight()
     cancelScroll()
     if (kind === 'footnote') {

@@ -1,6 +1,12 @@
 window.yinyangRuntime.register('sidenotes', function (page) {
   var boundary = '[data-sidenote-start], [data-sidenote-end]'
   var blockSelector = 'p, li, blockquote, dt, dd, h1, h2, h3, h4, h5, h6, td, th, figcaption'
+  var revealers = new Map()
+
+  page.revealSidenote = function (target) {
+    var reveal = revealers.get(target.closest('.sidenote[data-sidenote]'))
+    if (reveal) reveal()
+  }
 
   document.querySelectorAll('.sidenote-list').forEach(function (list) {
     var host = list.parentElement
@@ -134,6 +140,17 @@ window.yinyangRuntime.register('sidenotes', function (page) {
       })
       updateHighlights()
     }
+
+    notes.forEach(function (note, id) {
+      revealers.set(note, function () {
+        if (wide || !list.contains(note)) return
+        var entry = controls.get(anchors.get(id))
+        if (entry) {
+          opened = entry
+          renderSelection()
+        }
+      })
+    })
 
     function layoutRail() {
       if (!wide) return
